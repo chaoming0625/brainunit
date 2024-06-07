@@ -1,0 +1,4 @@
+numpy
+jax
+jaxlib
+brainstate
