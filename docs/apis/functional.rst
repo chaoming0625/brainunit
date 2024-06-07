@@ -1,8 +1,8 @@
-``braintools.functional`` module
+``brainunit.functional`` module
 ================================
 
-.. currentmodule:: braintools.functional 
-.. automodule:: braintools.functional 
+.. currentmodule:: brainunit.functional
+.. automodule:: brainunit.functional
 
 Activation Functions
 --------------------

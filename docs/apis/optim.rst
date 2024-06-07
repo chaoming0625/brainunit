@@ -1,8 +1,8 @@
-``braintools.optim`` module
+``brainunit.optim`` module
 ===========================
 
-.. currentmodule:: braintools.optim 
-.. automodule:: braintools.optim 
+.. currentmodule:: brainunit.optim
+.. automodule:: brainunit.optim
 
 SGD Optimizers
 --------------

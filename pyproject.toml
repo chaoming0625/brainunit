@@ -5,9 +5,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 exclude = [
-    "docs*", "tests*", "examples*", "build*", "dist*",
-    "braintools.egg-info*", "braintools/__pycache__*",
-    "braintools/__init__.py"
+    "docs*", "build*", "dist*",
+    "brainunit.egg-info*", "brainunit/__pycache__*",
+    "brainunit/__init__.py"
 ]
 
 
@@ -16,8 +16,8 @@ universal = true
 
 
 [project]
-name = "braintools"
-description = "The Toolbox for Brain Dynamics Programming."
+name = "brainunit"
+description = "A Unit-aware System for Brain Dynamics Programming."
 readme = 'README.md'
 license = { text = 'Apache-2.0 license' }
 requires-python = '>=3.9'
@@ -54,11 +54,11 @@ dependencies = [
 dynamic = ['version']
 
 [tool.flit.module]
-name = "braintools"
+name = "brainunit"
 
 [project.urls]
-homepage = 'http://github.com/brainpy/braintools'
-repository = 'http://github.com/brainpy/braintools'
+homepage = 'http://github.com/brainpy/brainunit'
+repository = 'http://github.com/brainpy/brainunit'
 
 [project.optional-dependencies]
 testing = [

@@ -29,6 +29,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'brainunit/', '__init__.py'), 'r') as f:
   init_py = f.read()
 version = re.search('__version__ = "(.*)"', init_py).groups()[0]
+print(version)
 if len(sys.argv) > 2 and sys.argv[2] == '--python-tag=py3':
   version = version
 else:
@@ -40,7 +41,7 @@ with io.open(os.path.join(here, 'README.md'), 'r', encoding='utf-8') as f:
 
 # installation packages
 packages = find_packages(
-  exclude=["docs*", "tests*", "examples*", "build*",
+  exclude=["docs*", "build*",
            "dist*", "brainunit.egg-info*", "brainunit/__pycache__*"]
 )
 
