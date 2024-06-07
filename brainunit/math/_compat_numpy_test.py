@@ -109,10 +109,19 @@ class TestArrayCreation(unittest.TestCase):
     self.assertEqual(result.shape, (3,))
     self.assertTrue(jnp.all(result == jnp.asarray([1, 2, 3])))
 
+    result = bm.asarray([1 * U.second, 2 * U.second, 3 * U.second])
+    assert_quantity(result, jnp.asarray([1, 2, 3]), U.second)
+
   def test_arange(self):
-    result = bm.arange(3)
-    self.assertEqual(result.shape, (3,))
-    self.assertTrue(jnp.all(result == jnp.arange(3)))
+    result = bm.arange(5)
+    self.assertEqual(result.shape, (5,))
+    self.assertTrue(jnp.all(result == jnp.arange(5)))
+
+    result = bm.arange(5 * U.second, step=1 * U.second)
+    assert_quantity(result, jnp.arange(5, step=1), U.second)
+
+    result = bm.arange(3 * U.second, 9 * U.second, 1 * U.second)
+    assert_quantity(result, jnp.arange(3, 9, 1), U.second)
 
   def test_linspace(self):
     result = bm.linspace(0, 10, 5)
