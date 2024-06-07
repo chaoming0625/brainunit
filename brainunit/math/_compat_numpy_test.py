@@ -29,12 +29,6 @@ class TestArrayCreation(unittest.TestCase):
     self.assertEqual(result.shape, (3,))
     self.assertTrue(jnp.all(result == 4))
 
-  def test_full_like(self):
-    array = jnp.array([1, 2, 3])
-    result = bm.full_like(array, 4)
-    self.assertEqual(result.shape, array.shape)
-    self.assertTrue(jnp.all(result == 4))
-
   def test_eye(self):
     result = bm.eye(3)
     self.assertEqual(result.shape, (3, 3))
@@ -45,16 +39,41 @@ class TestArrayCreation(unittest.TestCase):
     self.assertEqual(result.shape, (3, 3))
     self.assertTrue(jnp.all(result == jnp.identity(3)))
 
+  def test_tri(self):
+    result = bm.tri(3)
+    self.assertEqual(result.shape, (3, 3))
+    self.assertTrue(jnp.all(result == jnp.tri(3)))
+
+  def test_empty(self):
+    result = bm.empty((2, 2))
+    self.assertEqual(result.shape, (2, 2))
+
+  def test_ones(self):
+    result = bm.ones((2, 2))
+    self.assertEqual(result.shape, (2, 2))
+    self.assertTrue(jnp.all(result == 1))
+
+  def test_zeros(self):
+    result = bm.zeros((2, 2))
+    self.assertEqual(result.shape, (2, 2))
+    self.assertTrue(jnp.all(result == 0))
+
+  def test_array(self):
+    result = bm.array([1, 2, 3])
+    self.assertEqual(result.shape, (3,))
+    self.assertTrue(jnp.all(result == jnp.array([1, 2, 3])))
+
+  def test_full_like(self):
+    array = jnp.array([1, 2, 3])
+    result = bm.full_like(array, 4)
+    self.assertEqual(result.shape, array.shape)
+    self.assertTrue(jnp.all(result == 4))
+
   def test_diag(self):
     array = jnp.array([1, 2, 3])
     result = bm.diag(array)
     self.assertEqual(result.shape, (3, 3))
     self.assertTrue(jnp.all(result == jnp.diag(array)))
-
-  def test_tri(self):
-    result = bm.tri(3)
-    self.assertEqual(result.shape, (3, 3))
-    self.assertTrue(jnp.all(result == jnp.tri(3)))
 
   def test_tril(self):
     array = jnp.ones((3, 3))
@@ -68,19 +87,10 @@ class TestArrayCreation(unittest.TestCase):
     self.assertEqual(result.shape, (3, 3))
     self.assertTrue(jnp.all(result == jnp.triu(array)))
 
-  def test_empty(self):
-    result = bm.empty((2, 2))
-    self.assertEqual(result.shape, (2, 2))
-
   def test_empty_like(self):
     array = jnp.array([1, 2, 3])
     result = bm.empty_like(array)
     self.assertEqual(result.shape, array.shape)
-
-  def test_ones(self):
-    result = bm.ones((2, 2))
-    self.assertEqual(result.shape, (2, 2))
-    self.assertTrue(jnp.all(result == 1))
 
   def test_ones_like(self):
     array = jnp.array([1, 2, 3])
@@ -88,21 +98,11 @@ class TestArrayCreation(unittest.TestCase):
     self.assertEqual(result.shape, array.shape)
     self.assertTrue(jnp.all(result == 1))
 
-  def test_zeros(self):
-    result = bm.zeros((2, 2))
-    self.assertEqual(result.shape, (2, 2))
-    self.assertTrue(jnp.all(result == 0))
-
   def test_zeros_like(self):
     array = jnp.array([1, 2, 3])
     result = bm.zeros_like(array)
     self.assertEqual(result.shape, array.shape)
     self.assertTrue(jnp.all(result == 0))
-
-  def test_array(self):
-    result = bm.array([1, 2, 3])
-    self.assertEqual(result.shape, (3,))
-    self.assertTrue(jnp.all(result == jnp.array([1, 2, 3])))
 
   def test_asarray(self):
     result = bm.asarray([1, 2, 3])

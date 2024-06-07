@@ -6,11 +6,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import opt_einsum
+from braincore._common import set_module_as
 from jax import lax
 from jax._src.numpy.lax_numpy import _einsum
 
-from braincore._common import set_module_as
-from brainunit.math._utils import _compatible_with_quantity
 from brainunit._base import (
   DIMENSIONLESS,
   Quantity,
@@ -19,6 +18,7 @@ from brainunit._base import (
   _return_check_unitless,
   get_unit,
 )
+from brainunit.math._utils import _compatible_with_quantity
 
 __all__ = [
   # array creation
@@ -144,7 +144,6 @@ empty = wrap_array_creation_function(jnp.empty)
 ones = wrap_array_creation_function(jnp.ones)
 zeros = wrap_array_creation_function(jnp.zeros)
 array = wrap_array_creation_function(jnp.array)
-asarray = wrap_array_creation_function(jnp.asarray)
 
 
 @set_module_as('brainunit.math')
@@ -196,6 +195,7 @@ def empty_like(a, dtype=None, shape=None):
   else:
     raise ValueError(f'Unsupported type: {type(a)} for empty_like')
 
+
 @set_module_as('brainunit.math')
 def ones_like(a, dtype=None, shape=None):
   if isinstance(a, Quantity):
@@ -214,6 +214,7 @@ def zeros_like(a, dtype=None, shape=None):
     return jnp.zeros_like(a, dtype=dtype, shape=shape)
   else:
     raise ValueError(f'Unsupported type: {type(a)} for zeros_like')
+
 
 @set_module_as('brainunit.math')
 def asarray(a, dtype=None, order=None):
@@ -234,6 +235,7 @@ def asarray(a, dtype=None, order=None):
     return Quantity(jnp.asarray(values, dtype=dtype, order=order), unit=unit)
   else:
     return jnp.asarray(a, dtype=dtype, order=order)
+
 
 @set_module_as('brainunit.math')
 def arange(*args, **kwargs):
@@ -360,6 +362,7 @@ def fill_diagonal(a, val, wrap=False, inplace=True):
   else:
     raise ValueError(f'Unsupported types : {type(a)} abd {type(val)} for fill_diagonal')
 
+
 @set_module_as('brainunit.math')
 def array_split(ary, indices_or_sections, axis=0):
   if isinstance(ary, Quantity):
@@ -369,10 +372,10 @@ def array_split(ary, indices_or_sections, axis=0):
   else:
     raise ValueError(f'Unsupported type: {type(ary)} for array_split')
 
+
 @set_module_as('brainunit.math')
 def meshgrid(*xi, copy=True, sparse=False, indexing='xy'):
   from builtins import all as origin_all
-  from builtins import any as origin_any
   if origin_all(isinstance(x, Quantity) for x in xi):
     fail_for_dimension_mismatch(*xi)
     return Quantity(jnp.meshgrid(*[x.value for x in xi], copy=copy, sparse=sparse, indexing=indexing), unit=xi[0].unit)
@@ -380,6 +383,7 @@ def meshgrid(*xi, copy=True, sparse=False, indexing='xy'):
     return jnp.meshgrid(*xi, copy=copy, sparse=sparse, indexing=indexing)
   else:
     raise ValueError(f'Unsupported types : {type(xi)} for meshgrid')
+
 
 @set_module_as('brainunit.math')
 def vander(x, N=None, increasing=False):
@@ -389,7 +393,6 @@ def vander(x, N=None, increasing=False):
     return jnp.vander(x, N=N, increasing=increasing)
   else:
     raise ValueError(f'Unsupported type: {type(x)} for vander')
-
 
 
 # getting attribute funcs
