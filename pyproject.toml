@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "numpy", 'jax', 'jaxlib', 'braincore']
+requires = ["setuptools", "numpy", 'jax', 'jaxlib', 'brainstate']
 build-backend = "setuptools.build_meta"
 
 
@@ -17,7 +17,7 @@ universal = true
 
 [project]
 name = "braintools"
-description = "The Toolbox for Brain Dynamics Programming."
+description = "The Unit System for Brain Dynamics Programming."
 readme = 'README.md'
 license = { text = 'Apache-2.0 license' }
 requires-python = '>=3.9'

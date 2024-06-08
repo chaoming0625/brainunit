@@ -48,7 +48,7 @@ packages = find_packages(
 setup(
   name='brainunit',
   version=version,
-  description='A Unit-aware System for Brain Dynamics Programming',
+  description='The Unit System for Brain Dynamics Programming',
   long_description=README,
   long_description_content_type="text/markdown",
   author='BrainPy Team',
