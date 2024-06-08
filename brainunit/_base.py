@@ -947,11 +947,17 @@ class Quantity(object):
       self,
       value: Any,
       dtype: bst.typing.DTypeLike = None,
-      unit: Dimension = DIMENSIONLESS,
+      unit: Union[Dimension, 'Unit'] = DIMENSIONLESS,
   ):
+    if isinstance(unit, Unit):
+      s = unit.value
+      unit = unit.unit
+    else:
+      s = None
+
     if isinstance(value, numbers.Number) and _allow_python_scalar_value:
       self._unit = unit
-      self._value = value
+      self._value = (value if s is None else (value * s))
       return
 
     if isinstance(value, (list, tuple)):
@@ -984,7 +990,7 @@ class Quantity(object):
       raise TypeError(f"Invalid type for value: {type(value)}")
 
     # value
-    self._value = value
+    self._value = (value if s is None else (value * s))
 
     # unit
     self._unit = unit

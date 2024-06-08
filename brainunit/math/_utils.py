@@ -19,7 +19,7 @@ from typing import Callable
 
 from jax.tree_util import tree_map
 
-from brainunit import Quantity
+from .._base import Quantity
 
 
 def _as_jax_array_(obj):
