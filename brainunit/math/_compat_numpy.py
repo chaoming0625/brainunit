@@ -1,24 +1,38 @@
+# Copyright 2024 BDP Ecosystem Limited. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+
 from collections.abc import Sequence
 from functools import wraps
-from typing import (Callable, Union)
+from typing import (Callable, Union, Optional)
 
+import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
 import opt_einsum
-from braincore._common import set_module_as
-from jax import lax
+from brainstate._utils import set_module_as
 from jax._src.numpy.lax_numpy import _einsum
 
-from brainunit._base import (
-  DIMENSIONLESS,
-  Quantity,
-  fail_for_dimension_mismatch,
-  is_unitless,
-  _return_check_unitless,
-  get_unit,
-)
-from brainunit.math._utils import _compatible_with_quantity
+from ._utils import _compatible_with_quantity
+from .._base import (DIMENSIONLESS,
+                     Quantity,
+                     Unit,
+                     fail_for_dimension_mismatch,
+                     is_unitless,
+                     get_unit, )
+from .._base import _return_check_unitless
 
 __all__ = [
   # array creation
@@ -126,8 +140,12 @@ __all__ = [
 # --------------
 
 def wrap_array_creation_function(func):
-  def f(*args, **kwargs):
-    return Quantity(func(*args, **kwargs))
+  def f(*args, unit: Unit = None, **kwargs):
+    if unit is not None:
+      assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
+      return func(*args, **kwargs) * unit
+    else:
+      return func(*args, **kwargs)
 
   f.__module__ = 'brainunit.math'
   return f
@@ -143,7 +161,6 @@ tri = wrap_array_creation_function(jnp.tri)
 empty = wrap_array_creation_function(jnp.empty)
 ones = wrap_array_creation_function(jnp.ones)
 zeros = wrap_array_creation_function(jnp.zeros)
-array = wrap_array_creation_function(jnp.array)
 
 
 @set_module_as('brainunit.math')
@@ -218,7 +235,12 @@ def zeros_like(a, dtype=None, shape=None):
 
 
 @set_module_as('brainunit.math')
-def asarray(a, dtype=None, order=None):
+def asarray(
+    a,
+    dtype: Optional[bst.typing.DTypeLike] = None,
+    order: Optional[str] = None,
+    unit: Optional[Unit] = None,
+):
   from builtins import all as origin_all
   from builtins import any as origin_any
   if isinstance(a, Quantity):
@@ -236,6 +258,9 @@ def asarray(a, dtype=None, order=None):
     return Quantity(jnp.asarray(values, dtype=dtype, order=order), unit=unit)
   else:
     return jnp.asarray(a, dtype=dtype, order=order)
+
+
+array = asarray
 
 
 @set_module_as('brainunit.math')
@@ -1309,7 +1334,7 @@ def einsum(
     optimize: Union[str, bool] = "optimal",
     precision: jax.lax.PrecisionLike = None,
     preferred_element_type: Union[jax.typing.DTypeLike, None] = None,
-    _dot_general: Callable[..., jax.Array] = lax.dot_general,
+    _dot_general: Callable[..., jax.Array] = jax.lax.dot_general,
 ) -> Union[jax.Array, Quantity]:
   operands = (subscripts, *operands)
   if out is not None:
