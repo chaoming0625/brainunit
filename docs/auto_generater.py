@@ -320,7 +320,7 @@ def main():
   os.makedirs('apis/auto/', exist_ok=True)
 
   _write_module(module_name='brainunit',
-                filename='apis/math.rst',
+                filename='apis/brainunit.math.rst',
                 header='``brainunit.init`` module')
 
 

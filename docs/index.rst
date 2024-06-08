@@ -1,7 +1,7 @@
 ``brainunit`` documentation
 ===========================
 
-`brainunit <https://github.com/brainpy/brainunit>`_ implements the common toolboxes for brain dynamics programming (BDP).
+`brainunit <https://github.com/brainpy/brainunit>`_ implements a unit system for brain dynamics programming (BDP).
 
 ----
 
