@@ -34,6 +34,7 @@ __all__ = [
   'Quantity',
   'Unit',
   'UnitRegistry',
+  'DIMENSIONLESS',
   'DimensionMismatchError',
   'get_or_create_dimension',
   'get_unit',
@@ -49,7 +50,6 @@ __all__ = [
 ]
 
 _all_slice = slice(None, None, None)
-
 random = None
 _unit_checking = True
 _automatically_register_units = True
@@ -242,6 +242,7 @@ class Dimension:
   indices, allowing for a very fast dimensionality check with ``is``.
   """
 
+  __module__ = "brainunit"
   __slots__ = ["_dims"]
   __array_priority__ = 1000
 
@@ -748,9 +749,9 @@ def in_best_unit(x, precision=None):
   return x.repr_in_unit(u, precision=precision)
 
 
-def array_with_units(
+def array_with_unit(
     floatval,
-    units: Dimension,
+    unit: Dimension,
     dtype: bst.typing.DTypeLike = None
 ) -> 'Quantity':
   """
@@ -764,7 +765,7 @@ def array_with_units(
   ----------
   floatval : `float`
       The floating point value of the array.
-  units: Dimension
+  unit: Dimension
       The unit dimensions of the array.
   dtype: `dtype`, optional
       The data type of the array.
@@ -777,10 +778,10 @@ def array_with_units(
   Examples
   --------
   >>> from brainunit import *
-  >>> array_with_units(0.001, volt.unit)
+  >>> array_with_unit(0.001, volt.unit)
   1. * mvolt
   """
-  return Quantity(floatval, unit=get_or_create_dimension(units._dims), dtype=dtype)
+  return Quantity(floatval, unit=get_or_create_dimension(unit._dims), dtype=dtype)
 
 
 def is_unitless(obj) -> bool:
@@ -936,6 +937,7 @@ class Quantity(object):
   unit. It is used to represent all physical quantities in ``BrainCore``.
 
   """
+  __module__ = "brainunit"
   __slots__ = ('_value', '_unit')
   _value: Union[jax.Array, numbers.Number]
   _unit: Dimension
@@ -1701,7 +1703,7 @@ class Quantity(object):
     return Quantity(self.value.__round__(ndigits), unit=self.unit)
 
   def __reduce__(self):
-    return array_with_units, (self.value, self.unit, self.value.dtype)
+    return array_with_unit, (self.value, self.unit, self.value.dtype)
 
   # ----------------------- #
   #      NumPy methods      #
@@ -2438,8 +2440,9 @@ class Unit(Quantity):
    3. * joule
 
   """
-  __slots__ = ["_value", "_unit", "scale", "_dispname", "_name", "iscompound"]
 
+  __module__ = "brainunit"
+  __slots__ = ["_value", "_unit", "scale", "_dispname", "_name", "iscompound"]
   __array_priority__ = 1000
 
   def __init__(
@@ -2705,6 +2708,8 @@ class UnitRegistry:
   add
   __getitem__
   """
+
+  __module__ = "brainunit"
 
   def __init__(self):
     self.units = collections.OrderedDict()
