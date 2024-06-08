@@ -148,12 +148,13 @@ array = wrap_array_creation_function(jnp.array)
 
 @set_module_as('brainunit.math')
 def full_like(a, fill_value, dtype=None, shape=None):
-  if isinstance(a, Quantity):
-    return Quantity(jnp.full_like(a.value, fill_value, dtype=dtype, shape=shape), unit=a.unit)
-  elif isinstance(a, (jax.Array, np.ndarray)):
+  if isinstance(a, Quantity) and isinstance(fill_value, Quantity):
+    fail_for_dimension_mismatch(a, fill_value, error_message='Units do not match for full_like operation.')
+    return Quantity(jnp.full_like(a.value, fill_value.value, dtype=dtype, shape=shape), unit=a.unit)
+  elif isinstance(a, (jax.Array, np.ndarray)) and not isinstance(fill_value, Quantity):
     return jnp.full_like(a, fill_value, dtype=dtype, shape=shape)
   else:
-    raise ValueError(f'Unsupported type: {type(a)} for full_like')
+    raise ValueError(f'Unsupported types : {type(a)} abd {type(fill_value)} for full_like')
 
 
 @set_module_as('brainunit.math')
