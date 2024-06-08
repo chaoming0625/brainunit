@@ -319,9 +319,9 @@ def _section(header, numpy_mod, brainpy_mod, jax_mod, klass=None, is_jax=False):
 def main():
   os.makedirs('apis/auto/', exist_ok=True)
 
-  _write_module(module_name='braintools.init',
+  _write_module(module_name='brainunit.init',
                 filename='apis/init.rst',
-                header='``braintools.init`` module')
+                header='``brainunit.init`` module')
 
   module_and_name = [
     ('_classification', 'Classification Losses'),
@@ -333,9 +333,9 @@ def main():
     ('_regression', 'Regression Losses'),
     ('_smoothing', 'Smoothing Losses'),
   ]
-  _write_submodules(module_name='braintools.metric',
+  _write_submodules(module_name='brainunit.metric',
                     filename='apis/metric.rst',
-                    header='``braintools.metric`` module',
+                    header='``brainunit.metric`` module',
                     submodule_names=[k[0] for k in module_and_name],
                     section_names=[k[1] for k in module_and_name])
 
@@ -344,9 +344,9 @@ def main():
     ('_normalization', 'Normalization'),
     ('_spikes', 'Spike Operations'),
   ]
-  _write_submodules(module_name='braintools.functional',
+  _write_submodules(module_name='brainunit.functional',
                     filename='apis/functional.rst',
-                    header='``braintools.functional`` module',
+                    header='``brainunit.functional`` module',
                     submodule_names=[k[0] for k in module_and_name],
                     section_names=[k[1] for k in module_and_name])
 
@@ -354,9 +354,9 @@ def main():
     ('_sgd_optimizer', 'SGD Optimizers'),
     ('_lr_scheduler', 'Learning Rate Schedulers'),
   ]
-  _write_submodules(module_name='braintools.optim',
+  _write_submodules(module_name='brainunit.optim',
                     filename='apis/optim.rst',
-                    header='``braintools.optim`` module',
+                    header='``brainunit.optim`` module',
                     submodule_names=[k[0] for k in module_and_name],
                     section_names=[k[1] for k in module_and_name])
 

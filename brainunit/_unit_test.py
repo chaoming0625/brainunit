@@ -881,7 +881,7 @@ def test_unit_discarding_functions():
   """
   Test functions that discard units.
   """
-  from brainunit import ones_like, zeros_like
+  from brainunit.math import ones_like, zeros_like
 
   values = [3 * mV, np.array([1, 2]) * mV, np.arange(12).reshape(3, 4) * mV]
   for value in values:
@@ -897,7 +897,7 @@ def test_unitsafe_functions():
   """
   Test the unitsafe functions wrapping their numpy counterparts.
   """
-  from braincore.math import (
+  from brainunit.math import (
     arccos,
     arccosh,
     arcsin,
@@ -966,7 +966,7 @@ def test_special_case_numpy_functions():
   """
   Test a couple of functions/methods that need special treatment.
   """
-  from braincore.math import diagonal, dot, ravel, trace, where
+  from brainunit.math import diagonal, dot, ravel, trace, where
 
   quadratic_matrix = np.reshape(np.arange(9), (3, 3)) * mV
 

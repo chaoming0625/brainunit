@@ -13,16 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-__version__ = "0.0.1"
+from ._compat_numpy import *
+from ._compat_numpy import __all__ as _compat_numpy_all
 
-from ._base import *
-from ._base import __all__ as _base_all
-from ._unit_common import *
-from ._unit_common import __all__ as _common_all
-from ._unit_constants import *
-from ._unit_constants import __all__ as _constants_all
-from ._unit_shortcuts import *
-from ._unit_shortcuts import __all__ as _std_units_all
-
-__all__ = _common_all + _std_units_all + _constants_all + _base_all
-del _common_all, _std_units_all, _constants_all, _base_all
+__all__ = _compat_numpy_all

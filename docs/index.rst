@@ -57,5 +57,6 @@ See also the BDP ecosystem
    :hidden:
    :maxdepth: 2
 
+   tutorials/physical_units.rst
    api.rst
 

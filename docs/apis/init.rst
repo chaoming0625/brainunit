@@ -1,18 +1,16 @@
-``braintools.init`` module
+``brainunit.init`` module
 ==========================
 
-.. currentmodule:: braintools.init 
-.. automodule:: braintools.init 
-
-
-Initializers
-------------
+.. currentmodule:: brainunit.init
+.. automodule:: brainunit.init
 
 .. autosummary::
    :toctree: generated/
-   :nosignatures:
-   :template: classtemplate.rst
 
+   parameter
+   state
+   noise
+   to_size
    Initializer
    ZeroInit
    Constant
@@ -29,15 +27,3 @@ Initializers
    LecunNormal
    Orthogonal
    DeltaOrthogonal
-
-
-Initialization Helpers
-----------------------
-
-.. autosummary::
-   :toctree: generated/
-
-   parameter
-   state
-   noise
-   to_size

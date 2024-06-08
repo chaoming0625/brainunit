@@ -1,8 +1,8 @@
-``braintools.metric`` module
+``brainunit.metric`` module
 ============================
 
-.. currentmodule:: braintools.metric 
-.. automodule:: braintools.metric 
+.. currentmodule:: brainunit.metric
+.. automodule:: brainunit.metric
 
 Classification Losses
 ---------------------
