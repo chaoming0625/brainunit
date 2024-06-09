@@ -1,7 +1,7 @@
 ``brainunit`` documentation
 ===========================
 
-`brainunit <https://github.com/brainpy/brainunit>`_ implements a unit system for brain dynamics programming (BDP).
+`brainunit <https://github.com/brainpy/brainunit>`_ provides a unit-aware system for brain dynamics programming (BDP).
 
 ----
 
@@ -33,7 +33,7 @@ Installation
 
        .. code-block:: bash
 
-          pip install -U brainunit[tpu]
+          pip install -U brainunit[tpu] -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
 
 
 ----
@@ -43,13 +43,15 @@ See also the BDP ecosystem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-- `brainpy <https://github.com/brainpy/BrainPy>`_: The solution for the general-purpose brain dynamics programming.
+- `brainstate <https://github.com/brainpy/brainstate>`_: A ``State``-based transformation system for brain dynamics programming.
 
-- `braincore <https://github.com/brainpy/braincore>`_: The core system for the next generation of BrainPy framework.
+- `brainunit <https://github.com/brainpy/brainunit>`_: The unit system for brain dynamics programming.
 
-- `brainunit <https://github.com/brainpy/brainunit>`_: The tools for the brain dynamics simulation and analysis.
+- `braintaichi <https://github.com/brainpy/braintaichi>`_: Leveraging Taichi Lang to customize brain dynamics operators.
 
-- `brainscale <https://github.com/brainpy/brainscale>`_: The scalable online learning for biological spiking neural networks.
+- `brainscale <https://github.com/brainpy/brainscale>`_: The scalable online learning framework for biological neural networks.
+
+- `braintools <https://github.com/brainpy/braintools>`_: The toolbox for the brain dynamics simulation, training and analysis.
 
 
 
