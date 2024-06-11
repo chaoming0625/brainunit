@@ -16,7 +16,7 @@
 
 import brainstate as bst
 
-from ._compat_numpy import wrap_math_funcs_only_accept_unitless_unary
+from ._compat_numpy_funcs_accept_unitless import wrap_math_funcs_only_accept_unitless_unary
 
 __all__ = [
   'exprel',

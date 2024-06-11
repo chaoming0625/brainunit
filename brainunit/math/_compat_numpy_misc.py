@@ -245,7 +245,7 @@ def intersect1d(
   fail_for_dimension_mismatch(ar1, ar2, 'intersect1d')
   unit = None
   if isinstance(ar1, Quantity):
-    unit = ar1.unit
+    unit = ar1.dim
   ar1 = ar1.value if isinstance(ar1, Quantity) else ar1
   ar2 = ar2.value if isinstance(ar2, Quantity) else ar2
   result = jnp.intersect1d(ar1, ar2, assume_unique=assume_unique, return_indices=return_indices)

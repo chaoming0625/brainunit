@@ -49,7 +49,7 @@ def wrap_math_funcs_change_unit_unary(change_unit_func: Callable) -> Callable:
     @wraps(func)
     def f(x, *args, **kwargs):
       if isinstance(x, Quantity):
-        return _return_check_unitless(Quantity(func(x.value, *args, **kwargs), dtype=change_unit_func(x.dim)))
+        return _return_check_unitless(Quantity(func(x.value, *args, **kwargs), dim=change_unit_func(x.dim)))
       elif isinstance(x, (jnp.ndarray, np.ndarray)):
         return func(x, *args, **kwargs)
       else:

@@ -73,7 +73,7 @@ def assert_allclose(actual, desired, rtol=4.5e8, atol=0, **kwds):
 def assert_quantity(q, values, unit):
   values = jnp.asarray(values)
   if isinstance(q, Quantity):
-    assert have_same_unit(q.unit, unit), f"Dimension mismatch: ({get_unit(q)}) ({get_unit(unit)})"
+    assert have_same_unit(q.dim, unit), f"Dimension mismatch: ({get_unit(q)}) ({get_unit(unit)})"
     if not jnp.allclose(q.value, values):
       raise AssertionError(f"Values do not match: {q.value} != {values}")
   elif isinstance(q, jnp.ndarray):
@@ -144,10 +144,10 @@ def test_get_dimensions():
   Test various ways of getting/comparing the dimensions of a Array.
   """
   q = 500 * ms
-  assert get_unit(q) is get_or_create_dimension(q.unit._dims)
-  assert get_unit(q) is q.unit
+  assert get_unit(q) is get_or_create_dimension(q.dim._dims)
+  assert get_unit(q) is q.dim
   assert q.has_same_unit(3 * second)
-  dims = q.unit
+  dims = q.dim
   assert_equal(dims.get_dimension("time"), 1.0)
   assert_equal(dims.get_dimension("length"), 0)
 
@@ -201,11 +201,11 @@ def test_unary_operations():
 
 
 def test_operations():
-  q1 = Quantity(5, dim=mV)
-  q2 = Quantity(10, dim=mV)
-  assert_quantity(q1 + q2, 15, mV)
-  assert_quantity(q1 - q2, -5, mV)
-  assert_quantity(q1 * q2, 50, mV * mV)
+  q1 = 5 * second
+  q2 = 10 * second
+  assert_quantity(q1 + q2, 15, second)
+  assert_quantity(q1 - q2, -5, second)
+  assert_quantity(q1 * q2, 50, second * second)
   assert_quantity(q2 / q1, 2, DIMENSIONLESS)
   assert_quantity(q2 // q1, 2, DIMENSIONLESS)
   assert_quantity(q2 % q1, 0, second)
@@ -215,21 +215,21 @@ def test_operations():
   assert_quantity(round(q1, 0), 5, second)
 
   # matmul
-  q1 = Quantity([1, 2], dim=mV)
-  q2 = Quantity([3, 4], dim=mV)
-  assert_quantity(q1 @ q2, 11, mV ** 2)
+  q1 = [1, 2] * second
+  q2 = [3, 4] * second
+  assert_quantity(q1 @ q2, 11, second ** 2)
   q1 = Quantity([1, 2], unit=second)
   q2 = Quantity([3, 4], unit=second)
   assert_quantity(q1 @ q2, 11, second ** 2)
 
   # shift
-  q1 = Quantity(0b1100, dtype=jnp.int32, unit=DIMENSIONLESS)
+  q1 = Quantity(0b1100, dtype=jnp.int32, dim=DIMENSIONLESS)
   assert_quantity(q1 << 1, 0b11000, second)
   assert_quantity(q1 >> 1, 0b110, second)
 
 
 def test_numpy_methods():
-  q = Quantity([[1, 2], [3, 4]], dim=mV)
+  q = [[1, 2], [3, 4]] * second
   assert q.all()
   assert q.any()
   assert q.nonzero()[0].tolist() == [0, 0, 1, 1]
@@ -1603,7 +1603,7 @@ def test_constants():
   import brainunit._unit_constants as constants
 
   # Check that the expected names exist and have the correct dimensions
-  assert constants.avogadro_constant.dim == (1 / mole).unit
+  assert constants.avogadro_constant.dim == (1 / mole).dim
   assert constants.boltzmann_constant.dim == (joule / kelvin).dim
   assert constants.electric_constant.dim == (farad / meter).dim
   assert constants.electron_mass.dim == kilogram.dim

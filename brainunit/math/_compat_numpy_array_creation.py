@@ -521,7 +521,7 @@ def arange(*args, **kwargs):
     stop=stop,
     step=step,
   )
-  unit = getattr(stop, "unit", DIMENSIONLESS)
+  unit = getattr(stop, "dim", DIMENSIONLESS)
   # start is a position-only argument in numpy 2.0
   # https://numpy.org/devdocs/release/2.0.0-notes.html#arange-s-start-argument-is-positional-only
   # TODO: check whether this is still the case in the final release
