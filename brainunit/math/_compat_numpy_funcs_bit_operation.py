@@ -20,6 +20,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 from jax import Array
+from numpy import number
 
 from .._base import (Quantity,
                      )
@@ -91,7 +92,7 @@ def wrap_elementwise_bit_operation_binary(func):
   def f(x, y, *args, **kwargs):
     if isinstance(x, Quantity) or isinstance(y, Quantity):
       raise ValueError(f'Expected integers, got {x} and {y}')
-    elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
+    elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray, number)):
       return func(x, y, *args, **kwargs)
     else:
       raise ValueError(f'Unsupported types {type(x)} and {type(y)} for {func.__name__}')
