@@ -24,6 +24,7 @@ import brainunit as bu
 from brainunit import DimensionMismatchError
 from brainunit._base import Quantity
 from brainunit._unit_shortcuts import ms, mV
+from brainunit._unit_common import second
 
 bst.environ.set(precision=64)
 
@@ -31,7 +32,7 @@ bst.environ.set(precision=64)
 def assert_quantity(q, values, unit):
   values = jnp.asarray(values)
   if isinstance(q, Quantity):
-    assert q.unit == unit.dim, f"Unit mismatch: {q.unit} != {unit}"
+    assert q.dim == unit.dim, f"Unit mismatch: {q.dim} != {unit}"
     assert jnp.allclose(q.value, values), f"Values do not match: {q.value} != {values}"
   else:
     assert jnp.allclose(q, values), f"Values do not match: {q} != {values}"
@@ -43,6 +44,10 @@ class TestArrayCreation(unittest.TestCase):
     result = bu.math.full(3, 4)
     self.assertEqual(result.shape, (3,))
     self.assertTrue(jnp.all(result == 4))
+
+    q = bu.math.full(3, 4, unit=second)
+    self.assertEqual(q.shape, (3,))
+    assert_quantity(q, result, second)
 
   def test_eye(self):
     result = bu.math.eye(3)
@@ -87,7 +92,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertTrue(jnp.all(result == 4))
 
     q = [1, 2, 3] * bu.second
-    result_q = bu.math.full_like(q, 4 * bu.second)
+    result_q = bu.math.full_like(q, 4, unit=bu.second)
     assert_quantity(result_q, jnp.full_like(jnp.array([1, 2, 3]), 4), bu.second)
 
   def test_diag(self):
@@ -97,7 +102,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.diag(array)))
 
     q = [1, 2, 3] * bu.second
-    result_q = bu.math.diag(q)
+    result_q = bu.math.diag(q, unit=bu.second)
     assert_quantity(result_q, jnp.diag(jnp.array([1, 2, 3])), bu.second)
 
   def test_tril(self):
@@ -107,7 +112,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.tril(array)))
 
     q = jnp.ones((3, 3)) * bu.second
-    result_q = bu.math.tril(q)
+    result_q = bu.math.tril(q, unit=bu.second)
     assert_quantity(result_q, jnp.tril(jnp.ones((3, 3))), bu.second)
 
   def test_triu(self):
@@ -117,7 +122,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.triu(array)))
 
     q = jnp.ones((3, 3)) * bu.second
-    result_q = bu.math.triu(q)
+    result_q = bu.math.triu(q, unit=bu.second)
     assert_quantity(result_q, jnp.triu(jnp.ones((3, 3))), bu.second)
 
   def test_empty_like(self):
@@ -1706,7 +1711,7 @@ class TestArrayManipulation(unittest.TestCase):
     q = [2, 3, 1] * bu.second
     result_q = bu.math.argsort(q)
     expected_q = jnp.argsort(jnp.array([2, 3, 1]))
-    assert jnp.all(result_q == expected_q)
+    assert_quantity(result_q, expected_q, bu.second)
 
   def test_argmax(self):
     array = jnp.array([2, 3, 1])
@@ -1810,22 +1815,6 @@ class TestElementwiseBitOperationsUnary(unittest.TestCase):
       q = [0b1100] * bu.second
       result_q = bu.math.invert(q)
 
-  def test_left_shift(self):
-    result = bu.math.left_shift(jnp.array([0b0100]), 2)
-    self.assertTrue(jnp.all(result == jnp.left_shift(jnp.array([0b0100]), 2)))
-
-    with pytest.raises(ValueError):
-      q = [0b0100] * bu.second
-      result_q = bu.math.left_shift(q, 2)
-
-  def test_right_shift(self):
-    result = bu.math.right_shift(jnp.array([0b0100]), 2)
-    self.assertTrue(jnp.all(result == jnp.right_shift(jnp.array([0b0100]), 2)))
-
-    with pytest.raises(ValueError):
-      q = [0b0100] * bu.second
-      result_q = bu.math.right_shift(q, 2)
-
 
 class TestElementwiseBitOperationsBinary(unittest.TestCase):
 
@@ -1855,6 +1844,22 @@ class TestElementwiseBitOperationsBinary(unittest.TestCase):
       q1 = [0b1100] * bu.second
       q2 = [0b1010] * bu.second
       result_q = bu.math.bitwise_xor(q1, q2)
+
+  def test_left_shift(self):
+    result = bu.math.left_shift(jnp.array([0b1100]), 2)
+    self.assertTrue(jnp.all(result == jnp.left_shift(jnp.array([0b1100]), 2)))
+
+    with pytest.raises(ValueError):
+      q = [0b1100] * bu.second
+      result_q = bu.math.left_shift(q, 2)
+
+  def test_right_shift(self):
+    result = bu.math.right_shift(jnp.array([0b1100]), 2)
+    self.assertTrue(jnp.all(result == jnp.right_shift(jnp.array([0b1100]), 2)))
+
+    with pytest.raises(ValueError):
+      q = [0b1100] * bu.second
+      result_q = bu.math.right_shift(q, 2)
 
 
 class TestLogicFuncsUnary(unittest.TestCase):
