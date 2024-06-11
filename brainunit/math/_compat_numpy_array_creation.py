@@ -53,10 +53,12 @@ def wrap_array_creation_function(func: Callable) -> Callable:
 
 
 @wrap_array_creation_function
-def full(shape: Sequence[int],
-         fill_value: Any,
-         dtype: Optional[Any] = None,
-         unit: Optional[Unit] = None) -> Union[Array, Quantity]:
+def full(
+    shape: Sequence[int],
+    fill_value: Any,
+    dtype: Optional[Any] = None,
+    unit: Optional[Unit] = None
+) -> Union[Array, Quantity]:
   return jnp.full(shape, fill_value, dtype=dtype)
 
 
@@ -447,8 +449,6 @@ def asarray(
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
   '''
-  from builtins import all as origin_all
-  from builtins import any as origin_any
   if isinstance(a, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit)
@@ -561,12 +561,14 @@ def arange(*args, **kwargs):
 
 
 @set_module_as('brainunit.math')
-def linspace(start: Union[Quantity, bst.typing.ArrayLike],
-             stop: Union[Quantity, bst.typing.ArrayLike],
-             num: int = 50,
-             endpoint: Optional[bool] = True,
-             retstep: Optional[bool] = False,
-             dtype: Optional[bst.typing.DTypeLike] = None) -> Union[Quantity, jax.Array]:
+def linspace(
+    start: Union[Quantity, bst.typing.ArrayLike],
+    stop: Union[Quantity, bst.typing.ArrayLike],
+    num: int = 50,
+    endpoint: Optional[bool] = True,
+    retstep: Optional[bool] = False,
+    dtype: Optional[bst.typing.DTypeLike] = None
+) -> Union[Quantity, jax.Array]:
   '''
   Return a Quantity of `linspace` and `unit`, with uninitialized values if `unit` is provided.
 
