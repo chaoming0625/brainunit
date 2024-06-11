@@ -13,7 +13,48 @@
 # limitations under the License.
 # ==============================================================================
 
-from ._compat_numpy import *
-from ._compat_numpy import __all__ as _compat_numpy_all
+# from ._compat_numpy import *
+# from ._compat_numpy import __all__ as _compat_numpy_all
+from ._compat_numpy_array_creation import *
+from ._compat_numpy_array_creation import __all__ as _compat_array_creation_all
+from ._compat_numpy_array_manipulation import *
+from ._compat_numpy_array_manipulation import __all__ as _compat_array_manipulation_all
+from ._compat_numpy_funcs_accept_unitless import *
+from ._compat_numpy_funcs_accept_unitless import __all__ as _compat_funcs_accept_unitless_all
+from ._compat_numpy_funcs_bit_operation import *
+from ._compat_numpy_funcs_bit_operation import __all__ as _compat_funcs_bit_operation_all
+from ._compat_numpy_funcs_change_unit import *
+from ._compat_numpy_funcs_change_unit import __all__ as _compat_funcs_change_unit_all
+from ._compat_numpy_funcs_indexing import *
+from ._compat_numpy_funcs_indexing import __all__ as _compat_funcs_indexing_all
+from ._compat_numpy_funcs_keep_unit import *
+from ._compat_numpy_funcs_keep_unit import __all__ as _compat_funcs_keep_unit_all
+from ._compat_numpy_funcs_logic import *
+from ._compat_numpy_funcs_logic import __all__ as _compat_funcs_logic_all
+from ._compat_numpy_funcs_match_unit import *
+from ._compat_numpy_funcs_match_unit import __all__ as _compat_funcs_match_unit_all
+from ._compat_numpy_funcs_remove_unit import *
+from ._compat_numpy_funcs_remove_unit import __all__ as _compat_funcs_remove_unit_all
+from ._compat_numpy_funcs_window import *
+from ._compat_numpy_funcs_window import __all__ as _compat_funcs_window_all
+from ._compat_numpy_get_attribute import *
+from ._compat_numpy_get_attribute import __all__ as _compat_get_attribute_all
+from ._compat_numpy_linear_algebra import *
+from ._compat_numpy_linear_algebra import __all__ as _compat_linear_algebra_all
+from ._compat_numpy_misc import *
+from ._compat_numpy_misc import __all__ as _compat_misc_all
 
-__all__ = _compat_numpy_all
+__all__ = _compat_array_creation_all + \
+          _compat_array_manipulation_all + \
+          _compat_funcs_change_unit_all + \
+          _compat_funcs_keep_unit_all + \
+          _compat_funcs_accept_unitless_all + \
+          _compat_funcs_match_unit_all + \
+          _compat_funcs_remove_unit_all + \
+          _compat_get_attribute_all + \
+          _compat_funcs_bit_operation_all + \
+          _compat_funcs_logic_all + \
+          _compat_funcs_indexing_all + \
+          _compat_funcs_window_all + \
+          _compat_linear_algebra_all + \
+          _compat_misc_all

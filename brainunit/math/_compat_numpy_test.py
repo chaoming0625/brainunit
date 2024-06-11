@@ -24,6 +24,7 @@ import brainunit as bu
 from brainunit import DimensionMismatchError
 from brainunit._base import Quantity
 from brainunit._unit_shortcuts import ms, mV
+from brainunit._unit_common import second
 
 bst.environ.set(precision=64)
 
@@ -43,6 +44,10 @@ class TestArrayCreation(unittest.TestCase):
     result = bu.math.full(3, 4)
     self.assertEqual(result.shape, (3,))
     self.assertTrue(jnp.all(result == 4))
+
+    q = bu.math.full(3, 4, unit=second)
+    self.assertEqual(q.shape, (3,))
+    assert_quantity(q, result, second)
 
   def test_eye(self):
     result = bu.math.eye(3)
@@ -1706,7 +1711,7 @@ class TestArrayManipulation(unittest.TestCase):
     q = [2, 3, 1] * bu.second
     result_q = bu.math.argsort(q)
     expected_q = jnp.argsort(jnp.array([2, 3, 1]))
-    assert jnp.all(result_q == expected_q)
+    assert_quantity(result_q, expected_q, bu.second)
 
   def test_argmax(self):
     array = jnp.array([2, 3, 1])
