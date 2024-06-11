@@ -159,7 +159,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertEqual(result.shape, (3,))
     self.assertTrue(jnp.all(result == jnp.asarray([1, 2, 3])))
 
-    result_q = bu.math.asarray([1 * bu.second, 2 * bu.second, 3 * bu.second])
+    result_q = bu.math.asarray([1, 2, 3], unit=bu.second)
     assert_quantity(result_q, jnp.asarray([1, 2, 3]), bu.second)
 
   def test_arange(self):
