@@ -193,55 +193,59 @@ def test_display():
 
 
 def test_unary_operations():
-  q = Quantity(5, unit=mV)
-  assert_quantity(-q, -5, mV)
-  assert_quantity(+q, 5, mV)
-  assert_quantity(abs(Quantity(-5, unit=mV)), 5, mV)
+  q = 5 * second
+  assert_quantity(-q, -5, second)
+  assert_quantity(+q, 5, second)
+  assert_quantity(abs(-5 * second), 5, second)
   assert_quantity(~Quantity(0b101, unit=DIMENSIONLESS), -0b110, DIMENSIONLESS)
 
 
 def test_operations():
-  q1 = Quantity(5, unit=mV)
-  q2 = Quantity(10, unit=mV)
-  assert_quantity(q1 + q2, 15, mV)
-  assert_quantity(q1 - q2, -5, mV)
-  assert_quantity(q1 * q2, 50, mV * mV)
+  q1 = 5 * second
+  q2 = 10 * second
+  assert_quantity(q1 + q2, 15, second)
+  assert_quantity(q1 - q2, -5, second)
+  assert_quantity(q1 * q2, 50, second * second)
   assert_quantity(q2 / q1, 2, DIMENSIONLESS)
   assert_quantity(q2 // q1, 2, DIMENSIONLESS)
-  assert_quantity(q2 % q1, 0, mV)
+  assert_quantity(q2 % q1, 0, second)
   assert_quantity(divmod(q2, q1)[0], 2, DIMENSIONLESS)
-  assert_quantity(divmod(q2, q1)[1], 0, mV)
-  assert_quantity(q1 ** 2, 25, mV ** 2)
-  assert_quantity(q1 << 1, 10, mV)
-  assert_quantity(q1 >> 1, 2, mV)
-  assert_quantity(round(q1, 0), 5, mV)
+  assert_quantity(divmod(q2, q1)[1], 0, second)
+  assert_quantity(q1 ** 2, 25, second ** 2)
+  assert_quantity(round(q1, 0), 5, second)
+
   # matmul
-  q1 = Quantity([1, 2], unit=mV)
-  q2 = Quantity([3, 4], unit=mV)
-  assert_quantity(q1 @ q2, 11, mV ** 2)
+  q1 = Quantity([1, 2], unit=second)
+  q2 = Quantity([3, 4], unit=second)
+  assert_quantity(q1 @ q2, 11, second ** 2)
+
+  # shift
+  q1 = Quantity(0b1100, dtype=jnp.int32, unit=DIMENSIONLESS)
+  assert_quantity(q1 << 1, 0b11000, second)
+  assert_quantity(q1 >> 1, 0b110, second)
 
 
 def test_numpy_methods():
-  q = Quantity([[1, 2], [3, 4]], unit=mV)
+  q = [[1, 2], [3, 4]] * second
   assert q.all()
   assert q.any()
   assert q.nonzero()[0].tolist() == [0, 0, 1, 1]
   assert q.argmax() == 3
   assert q.argmin() == 0
   assert q.argsort(axis=None).tolist() == [0, 1, 2, 3]
-  assert_quantity(q.var(), 1.25, mV ** 2)
-  assert_quantity(q.round(), [[1, 2], [3, 4]], mV)
-  assert_quantity(q.std(), 1.11803398875, mV)
-  assert_quantity(q.sum(), 10, mV)
-  assert_quantity(q.trace(), 5, mV)
-  assert_quantity(q.cumsum(), [1, 3, 6, 10], mV)
-  assert_quantity(q.cumprod(), [1, 2, 6, 24], mV ** 4)
-  assert_quantity(q.diagonal(), [1, 4], mV)
-  assert_quantity(q.max(), 4, mV)
-  assert_quantity(q.mean(), 2.5, mV)
-  assert_quantity(q.min(), 1, mV)
-  assert_quantity(q.ptp(), 3, mV)
-  assert_quantity(q.ravel(), [1, 2, 3, 4], mV)
+  assert_quantity(q.var(), 1.25, second ** 2)
+  assert_quantity(q.round(), [[1, 2], [3, 4]], second)
+  assert_quantity(q.std(), 1.11803398875, second)
+  assert_quantity(q.sum(), 10, second)
+  assert_quantity(q.trace(), 5, second)
+  assert_quantity(q.cumsum(), [1, 3, 6, 10], second)
+  assert_quantity(q.cumprod(), [1, 2, 6, 24], second ** 4)
+  assert_quantity(q.diagonal(), [1, 4], second)
+  assert_quantity(q.max(), 4, second)
+  assert_quantity(q.mean(), 2.5, second)
+  assert_quantity(q.min(), 1, second)
+  assert_quantity(q.ptp(), 3, second)
+  assert_quantity(q.ravel(), [1, 2, 3, 4], second)
 
 
 def test_shape_manipulation():
