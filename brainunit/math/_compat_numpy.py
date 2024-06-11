@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-import functools
 from collections.abc import Sequence
 from functools import wraps
-from typing import (Callable, Union, Optional, Any, List)
+from typing import (Callable, Union, Optional, Any)
 
 import brainstate as bst
 import jax
@@ -27,7 +26,6 @@ from jax import Array
 from jax._src.numpy.lax_numpy import _einsum
 
 from ._utils import _compatible_with_quantity
-from .. import Quantity
 from .._base import (DIMENSIONLESS,
                      Quantity,
                      Unit,
