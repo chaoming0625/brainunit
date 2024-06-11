@@ -154,13 +154,13 @@ def wrap_array_creation_function(func):
 # array creation
 # --------------
 
-full = wrap_array_creation_function(jnp.full)
-eye = wrap_array_creation_function(jnp.eye)
-identity = wrap_array_creation_function(jnp.identity)
-tri = wrap_array_creation_function(jnp.tri)
-empty = wrap_array_creation_function(jnp.empty)
-ones = wrap_array_creation_function(jnp.ones)
-zeros = wrap_array_creation_function(jnp.zeros)
+full: Callable = wrap_array_creation_function(jnp.full)
+eye: Callable = wrap_array_creation_function(jnp.eye)
+identity: Callable = wrap_array_creation_function(jnp.identity)
+tri: Callable = wrap_array_creation_function(jnp.tri)
+empty: Callable = wrap_array_creation_function(jnp.empty)
+ones: Callable = wrap_array_creation_function(jnp.ones)
+zeros: Callable = wrap_array_creation_function(jnp.zeros)
 
 # docs for full, eye, identity, tri, empty, ones, zeros
 
@@ -179,7 +179,7 @@ full.__doc__ = """
     unit: the unit of the output array, or `None`.
   
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
 """
 
 eye.__doc__ = """
@@ -199,7 +199,7 @@ eye.__doc__ = """
     unit: the unit of the output array, or `None`.
     
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
 """
 
 identity.__doc__ = """
@@ -216,7 +216,7 @@ identity.__doc__ = """
     unit: the unit of the output array, or `None`.
     
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
 """
 
 tri.__doc__ = """
@@ -237,7 +237,7 @@ tri.__doc__ = """
     unit: the unit of the output array, or `None`.
     
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
 """
 
 # empty
@@ -255,7 +255,7 @@ empty.__doc__ = """
     unit: the unit of the output array, or `None`.
     
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
 """
 
 # ones
@@ -273,7 +273,7 @@ ones.__doc__ = """
     unit: the unit of the output array, or `None`.
     
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
 """
 
 # zeros
@@ -291,7 +291,7 @@ zeros.__doc__ = """
     unit: the unit of the output array, or `None`.
     
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
 """
 
 
@@ -313,7 +313,7 @@ def full_like(a: Union[Quantity, bst.typing.ArrayLike],
     shape: sequence of ints, optional
 
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
   '''
   if unit is not None:
     assert isinstance(unit, Unit)
@@ -338,7 +338,7 @@ def diag(a: Union[Quantity, bst.typing.ArrayLike],
     unit: Unit, optional
 
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
   '''
   if unit is not None:
     assert isinstance(unit, Unit)
@@ -363,7 +363,7 @@ def tril(a: Union[Quantity, bst.typing.ArrayLike],
     unit: Unit, optional
 
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
   '''
   if unit is not None:
     assert isinstance(unit, Unit)
@@ -388,7 +388,7 @@ def triu(a: Union[Quantity, bst.typing.ArrayLike],
     unit: Unit, optional
 
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
   '''
   if unit is not None:
     assert isinstance(unit, Unit)
@@ -416,7 +416,7 @@ def empty_like(a: Union[Quantity, bst.typing.ArrayLike],
     unit: Unit, optional
 
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
   '''
   if unit is not None:
     assert isinstance(unit, Unit)
@@ -444,7 +444,7 @@ def ones_like(a: Union[Quantity, bst.typing.ArrayLike],
     unit: Unit, optional
 
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
   '''
   if unit is not None:
     assert isinstance(unit, Unit)
@@ -472,7 +472,7 @@ def zeros_like(a: Union[Quantity, bst.typing.ArrayLike],
     unit: Unit, optional
 
   Returns:
-    out: Quantity if `unit` is provided, else an array.
+    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
   '''
   if unit is not None:
     assert isinstance(unit, Unit)
@@ -526,7 +526,7 @@ def arange(*args, **kwargs):
     unit: Unit, optional
 
   Returns:
-    out: Quantity if start and stop are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if start and stop are Quantities that have the same unit, else an array.
   '''
   # arange has a bit of a complicated argument structure unfortunately
   # we leave the actual checking of the number of arguments to numpy, though
@@ -624,7 +624,7 @@ def linspace(start: Union[Quantity, bst.typing.ArrayLike],
     dtype: dtype, optional
 
   Returns:
-    out: Quantity if start and stop are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if start and stop are Quantities that have the same unit, else an array.
   '''
   fail_for_dimension_mismatch(
     start,
@@ -660,7 +660,7 @@ def logspace(start: Union[Quantity, bst.typing.ArrayLike],
     dtype: dtype, optional
 
   Returns:
-    out: Quantity if start and stop are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if start and stop are Quantities that have the same unit, else an array.
   '''
   fail_for_dimension_mismatch(
     start,
@@ -692,7 +692,7 @@ def fill_diagonal(a: Union[Quantity, bst.typing.ArrayLike],
     inplace: bool, optional
 
   Returns:
-    out: Quantity if `a` and `val` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `a` and `val` are Quantities that have the same unit, else an array.
   '''
   if isinstance(a, Quantity) and isinstance(val, Quantity):
     fail_for_dimension_mismatch(a, val)
@@ -718,7 +718,7 @@ def array_split(ary: Union[Quantity, bst.typing.ArrayLike],
     axis: int, optional
 
   Returns:
-    out: Quantity if `ary` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `ary` is a Quantity, else an array.
   '''
   if isinstance(ary, Quantity):
     return [Quantity(x, unit=ary.unit) for x in jnp.array_split(ary.value, indices_or_sections, axis)]
@@ -743,7 +743,7 @@ def meshgrid(*xi: Union[Quantity, bst.typing.ArrayLike],
     indexing: str, optional
 
   Returns:
-    out: Quantity if `xi` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `xi` are Quantities that have the same unit, else an array.
   '''
   from builtins import all as origin_all
   if origin_all(isinstance(x, Quantity) for x in xi):
@@ -768,7 +768,7 @@ def vander(x: Union[Quantity, bst.typing.ArrayLike],
     increasing: bool, optional
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
   '''
   if isinstance(x, Quantity):
     return Quantity(jnp.vander(x.value, N=N, increasing=increasing), unit=x.unit)
@@ -790,7 +790,7 @@ def ndim(a: Union[Quantity, bst.typing.ArrayLike]) -> int:
     a: array_like, Quantity
 
   Returns:
-    out: int
+    Union[jax.Array, Quantity]: int
   '''
   if isinstance(a, Quantity):
     return a.ndim
@@ -807,7 +807,7 @@ def isreal(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
     a: array_like, Quantity
 
   Returns:
-    out: boolean array
+    Union[jax.Array, Quantity]: boolean array
   '''
   if isinstance(a, Quantity):
     return a.isreal
@@ -824,7 +824,7 @@ def isscalar(a: Union[Quantity, bst.typing.ArrayLike]) -> bool:
     a: array_like, Quantity
 
   Returns:
-    out: boolean array
+    Union[jax.Array, Quantity]: boolean array
   '''
   if isinstance(a, Quantity):
     return a.isscalar
@@ -841,7 +841,7 @@ def isfinite(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
     a: array_like, Quantity
 
   Returns:
-    out: boolean array
+    Union[jax.Array, Quantity]: boolean array
   '''
   if isinstance(a, Quantity):
     return a.isfinite
@@ -858,7 +858,7 @@ def isinf(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
     a: array_like, Quantity
 
   Returns:
-    out: boolean array
+    Union[jax.Array, Quantity]: boolean array
   '''
   if isinstance(a, Quantity):
     return a.isinf
@@ -875,7 +875,7 @@ def isnan(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
     a: array_like, Quantity
 
   Returns:
-    out: boolean array
+    Union[jax.Array, Quantity]: boolean array
   '''
   if isinstance(a, Quantity):
     return a.isnan
@@ -1025,7 +1025,7 @@ real.__doc__ = '''
     x: array_like, Quantity
     
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 imag.__doc__ = '''
@@ -1035,7 +1035,7 @@ imag.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 conj.__doc__ = '''
@@ -1045,7 +1045,7 @@ conj.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 conjugate.__doc__ = '''
@@ -1055,7 +1055,7 @@ conjugate.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 negative.__doc__ = '''
@@ -1065,7 +1065,7 @@ negative.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 positive.__doc__ = '''
@@ -1075,7 +1075,7 @@ positive.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 abs.__doc__ = '''
@@ -1085,7 +1085,7 @@ abs.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 round_.__doc__ = '''
@@ -1095,7 +1095,7 @@ round_.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 around.__doc__ = '''
@@ -1105,7 +1105,7 @@ around.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 round.__doc__ = '''
@@ -1115,7 +1115,7 @@ round.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 rint.__doc__ = '''
@@ -1125,7 +1125,7 @@ rint.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 floor.__doc__ = '''
@@ -1135,7 +1135,7 @@ floor.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 ceil.__doc__ = '''
@@ -1145,7 +1145,7 @@ ceil.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 trunc.__doc__ = '''
@@ -1155,7 +1155,7 @@ trunc.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 fix.__doc__ = '''
@@ -1165,7 +1165,7 @@ fix.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 sum.__doc__ = '''
@@ -1175,7 +1175,7 @@ sum.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 nancumsum.__doc__ = '''
@@ -1185,7 +1185,7 @@ nancumsum.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 nansum.__doc__ = '''
@@ -1195,7 +1195,7 @@ nansum.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 cumsum.__doc__ = '''
@@ -1205,7 +1205,7 @@ cumsum.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 ediff1d.__doc__ = '''
@@ -1215,7 +1215,7 @@ ediff1d.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 absolute.__doc__ = '''
@@ -1225,7 +1225,7 @@ absolute.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 fabs.__doc__ = '''
@@ -1235,7 +1235,7 @@ fabs.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 median.__doc__ = '''
@@ -1245,7 +1245,7 @@ median.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 nanmin.__doc__ = '''
@@ -1255,7 +1255,7 @@ nanmin.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 nanmax.__doc__ = '''
@@ -1265,7 +1265,7 @@ nanmax.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 ptp.__doc__ = '''
@@ -1275,7 +1275,7 @@ ptp.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 average.__doc__ = '''
@@ -1285,7 +1285,7 @@ average.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 mean.__doc__ = '''
@@ -1295,7 +1295,7 @@ mean.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 std.__doc__ = '''
@@ -1305,7 +1305,7 @@ std.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 nanmedian.__doc__ = '''
@@ -1315,7 +1315,7 @@ nanmedian.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 nanmean.__doc__ = '''
@@ -1325,7 +1325,7 @@ nanmean.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 nanstd.__doc__ = '''
@@ -1335,7 +1335,7 @@ nanstd.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 diff.__doc__ = '''
@@ -1345,7 +1345,7 @@ diff.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 modf.__doc__ = '''
@@ -1355,7 +1355,7 @@ modf.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity tuple if `x` is a Quantity, else an array tuple.
+    Union[jax.Array, Quantity]: Quantity tuple if `x` is a Quantity, else an array tuple.
 '''
 
 
@@ -1395,7 +1395,7 @@ fmod.__doc__ = '''
     x2: array_like, Quantity
     
   Returns:
-    out: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
 '''
 
 mod.__doc__ = '''
@@ -1406,7 +1406,7 @@ mod.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
 '''
 
 copysign.__doc__ = '''
@@ -1417,7 +1417,7 @@ copysign.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
 '''
 
 heaviside.__doc__ = '''
@@ -1428,7 +1428,7 @@ heaviside.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
 '''
 
 maximum.__doc__ = '''
@@ -1439,7 +1439,7 @@ maximum.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
 '''
 
 minimum.__doc__ = '''
@@ -1450,7 +1450,7 @@ minimum.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
 '''
 
 fmax.__doc__ = '''
@@ -1461,7 +1461,7 @@ fmax.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
 '''
 
 fmin.__doc__ = '''
@@ -1472,7 +1472,7 @@ fmin.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
 '''
 
 lcm.__doc__ = '''
@@ -1483,7 +1483,7 @@ lcm.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
 '''
 
 gcd.__doc__ = '''
@@ -1494,7 +1494,7 @@ gcd.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
 '''
 
 
@@ -1519,7 +1519,7 @@ def interp(x: Union[Quantity, bst.typing.ArrayLike],
     period: array_like, Quantity, optional
 
   Returns:
-    out: Quantity if `x`, `xp`, and `fp` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x`, `xp`, and `fp` are Quantities that have the same unit, else an array.
   '''
   unit = None
   if isinstance(x, Quantity) or isinstance(xp, Quantity) or isinstance(fp, Quantity):
@@ -1556,7 +1556,7 @@ def clip(a: Union[Quantity, bst.typing.ArrayLike],
     a_max: array_like, Quantity
 
   Returns:
-    out: Quantity if `a`, `a_min`, and `a_max` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `a`, `a_min`, and `a_max` are Quantities that have the same unit, else an array.
   '''
   unit = None
   if isinstance(a, Quantity) or isinstance(a_min, Quantity) or isinstance(a_max, Quantity):
@@ -1620,7 +1620,7 @@ add.__doc__ = '''
     y: array_like, Quantity
     
   Returns:
-    out: Quantity if `x` and `y` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` and `y` are Quantities that have the same unit, else an array.
 '''
 
 subtract.__doc__ = '''
@@ -1631,7 +1631,7 @@ subtract.__doc__ = '''
     y: array_like, Quantity
 
   Returns:
-    out: Quantity if `x` and `y` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` and `y` are Quantities that have the same unit, else an array.
 '''
 
 nextafter.__doc__ = '''
@@ -1642,7 +1642,7 @@ nextafter.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
 '''
 
 
@@ -1670,7 +1670,7 @@ reciprocal.__doc__ = '''
     x: array_like, Quantity
     
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
 '''
 
 
@@ -1697,7 +1697,7 @@ def prod(x: Union[Quantity, bst.typing.ArrayLike],
     promote_integers: bool, optional
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
   '''
   if isinstance(x, Quantity):
     return x.prod(axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial, where=where,
@@ -1728,7 +1728,7 @@ def nanprod(x: Union[Quantity, bst.typing.ArrayLike],
     where: array_like, Quantity, optional
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
   '''
   if isinstance(x, Quantity):
     return x.nanprod(axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial, where=where)
@@ -1754,7 +1754,7 @@ def cumprod(x: Union[Quantity, bst.typing.ArrayLike],
     out: array, optional
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
   '''
   if isinstance(x, Quantity):
     return x.cumprod(axis=axis, dtype=dtype, out=out)
@@ -1777,7 +1777,7 @@ def nancumprod(x: Union[Quantity, bst.typing.ArrayLike],
     out: array, optional
 
   Returns:
-    out: Quantity if `x` is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
   '''
   if isinstance(x, Quantity):
     return x.nancumprod(axis=axis, dtype=dtype, out=out)
@@ -1802,7 +1802,7 @@ var.__doc__ = '''
     x: array_like, Quantity
     
   Returns:
-    out: Quantity if the final unit is the square of the unit of `x`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
 '''
 
 nanvar.__doc__ = '''
@@ -1812,7 +1812,7 @@ nanvar.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the square of the unit of `x`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
 '''
 
 frexp.__doc__ = '''
@@ -1822,7 +1822,7 @@ frexp.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Tuple of Quantity if the final unit is the product of the unit of `x` and 2 raised to the power of the exponent, else a tuple of arrays.
+    Union[jax.Array, Quantity]: Tuple of Quantity if the final unit is the product of the unit of `x` and 2 raised to the power of the exponent, else a tuple of arrays.
 '''
 
 sqrt.__doc__ = '''
@@ -1832,7 +1832,7 @@ sqrt.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the square root of the unit of `x`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the square root of the unit of `x`, else an array.
 '''
 
 cbrt.__doc__ = '''
@@ -1842,7 +1842,7 @@ cbrt.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the cube root of the unit of `x`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the cube root of the unit of `x`, else an array.
 '''
 
 square.__doc__ = '''
@@ -1852,7 +1852,7 @@ square.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the square of the unit of `x`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
 '''
 
 
@@ -1897,7 +1897,7 @@ multiply.__doc__ = '''
     y: array_like, Quantity
     
   Returns:
-    out: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
 '''
 
 divide.__doc__ = '''
@@ -1907,7 +1907,7 @@ divide.__doc__ = '''
     x: array_like, Quantity
     
   Returns:
-    out: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
 '''
 
 cross.__doc__ = '''
@@ -1918,7 +1918,7 @@ cross.__doc__ = '''
     y: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
 '''
 
 ldexp.__doc__ = '''
@@ -1929,7 +1929,7 @@ ldexp.__doc__ = '''
     y: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the product of the unit of `x` and 2 raised to the power of the unit of `y`, else an array. 
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and 2 raised to the power of the unit of `y`, else an array. 
 '''
 
 true_divide.__doc__ = '''
@@ -1940,7 +1940,7 @@ true_divide.__doc__ = '''
     y: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
 '''
 
 divmod.__doc__ = '''
@@ -1951,7 +1951,7 @@ divmod.__doc__ = '''
     y: array_like, Quantity
     
   Returns:
-    out: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
 '''
 
 convolve.__doc__ = '''
@@ -1962,7 +1962,7 @@ convolve.__doc__ = '''
     y: array_like, Quantity
     
   Returns:
-    out: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
 '''
 
 
@@ -1977,7 +1977,7 @@ def power(x: Union[Quantity, bst.typing.ArrayLike],
     y: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
   '''
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     return _return_check_unitless(Quantity(jnp.power(x.value, y.value), unit=x.unit ** y.unit))
@@ -2002,7 +2002,7 @@ def floor_divide(x: Union[Quantity, bst.typing.ArrayLike],
     y: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
   '''
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y.value), unit=x.unit / y.unit))
@@ -2027,7 +2027,7 @@ def float_power(x: Union[Quantity, bst.typing.ArrayLike],
     y: array_like
 
   Returns:
-    out: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
   '''
   if isinstance(y, Quantity):
     assert isscalar(y), f'{jnp.float_power.__name__} only supports scalar exponent'
@@ -2111,7 +2111,7 @@ exp.__doc__ = '''
     x: array_like, Quantity
     
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 exp2.__doc__ = '''
@@ -2121,7 +2121,7 @@ exp2.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 expm1.__doc__ = '''
@@ -2131,7 +2131,7 @@ expm1.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 log.__doc__ = '''
@@ -2141,7 +2141,7 @@ log.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 log10.__doc__ = '''
@@ -2151,7 +2151,7 @@ log10.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 log1p.__doc__ = '''
@@ -2161,7 +2161,7 @@ log1p.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 log2.__doc__ = '''
@@ -2171,7 +2171,7 @@ log2.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 arccos.__doc__ = '''
@@ -2181,7 +2181,7 @@ arccos.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 arccosh.__doc__ = '''
@@ -2191,7 +2191,7 @@ arccosh.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 arcsin.__doc__ = '''
@@ -2201,7 +2201,7 @@ arcsin.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 arcsinh.__doc__ = '''
@@ -2211,7 +2211,7 @@ arcsinh.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 arctan.__doc__ = '''
@@ -2221,7 +2221,7 @@ arctan.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 arctanh.__doc__ = '''
@@ -2231,7 +2231,7 @@ arctanh.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 cos.__doc__ = '''
@@ -2241,7 +2241,7 @@ cos.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 cosh.__doc__ = '''
@@ -2251,7 +2251,7 @@ cosh.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 sin.__doc__ = '''
@@ -2261,7 +2261,7 @@ sin.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 sinc.__doc__ = '''
@@ -2271,7 +2271,7 @@ sinc.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 sinh.__doc__ = '''
@@ -2281,7 +2281,7 @@ sinh.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 tan.__doc__ = '''
@@ -2291,7 +2291,7 @@ tan.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 tanh.__doc__ = '''
@@ -2301,7 +2301,7 @@ tanh.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 deg2rad.__doc__ = '''
@@ -2311,7 +2311,7 @@ deg2rad.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 rad2deg.__doc__ = '''
@@ -2321,7 +2321,7 @@ rad2deg.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 degrees.__doc__ = '''
@@ -2331,7 +2331,7 @@ degrees.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 radians.__doc__ = '''
@@ -2341,7 +2341,7 @@ radians.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 angle.__doc__ = '''
@@ -2351,7 +2351,7 @@ angle.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 percentile.__doc__ = '''
@@ -2361,7 +2361,7 @@ percentile.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 nanpercentile.__doc__ = '''
@@ -2371,7 +2371,7 @@ nanpercentile.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 quantile.__doc__ = '''
@@ -2381,7 +2381,7 @@ quantile.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 nanquantile.__doc__ = '''
@@ -2391,7 +2391,7 @@ nanquantile.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 
@@ -2437,7 +2437,7 @@ hypot.__doc__ = '''
     y: array_like, Quantity
     
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 arctan2.__doc__ = '''
@@ -2448,7 +2448,7 @@ arctan2.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 logaddexp.__doc__ = '''
@@ -2459,7 +2459,7 @@ logaddexp.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 logaddexp2.__doc__ = '''
@@ -2470,7 +2470,7 @@ logaddexp2.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 
@@ -2500,7 +2500,7 @@ signbit.__doc__ = '''
     x: array_like, Quantity
     
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 sign.__doc__ = '''
@@ -2510,7 +2510,7 @@ sign.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 histogram.__doc__ = '''
@@ -2520,7 +2520,7 @@ histogram.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: Tuple of arrays (hist, bin_edges)
+    tuple[jax.Array]: Tuple of arrays (hist, bin_edges)
 '''
 
 bincount.__doc__ = '''
@@ -2530,7 +2530,7 @@ bincount.__doc__ = '''
     x: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 
@@ -2565,7 +2565,7 @@ corrcoef.__doc__ = '''
     y: array_like, Quantity
     
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 correlate.__doc__ = '''
@@ -2576,7 +2576,7 @@ correlate.__doc__ = '''
     y: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 cov.__doc__ = '''
@@ -2587,7 +2587,7 @@ cov.__doc__ = '''
     y: array_like, Quantity (optional, if not provided, x is assumed to be a 2D array)
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 digitize.__doc__ = '''
@@ -2598,7 +2598,7 @@ digitize.__doc__ = '''
     bins: array_like, Quantity
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 # array manipulation
@@ -2682,7 +2682,7 @@ moveaxis.__doc__ = '''
     destination: int or sequence of ints
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 transpose.__doc__ = '''
@@ -2693,7 +2693,7 @@ transpose.__doc__ = '''
     axes: tuple or list of ints, optional
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 swapaxes.__doc__ = '''
@@ -2705,7 +2705,7 @@ swapaxes.__doc__ = '''
     axis2: int
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 concatenate.__doc__ = '''
@@ -2716,7 +2716,7 @@ concatenate.__doc__ = '''
     axis: int, optional
 
   Returns:
-    out: a Quantity if all input arrays are Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
 '''
 
 stack.__doc__ = '''
@@ -2727,7 +2727,7 @@ stack.__doc__ = '''
     axis: int
 
   Returns:
-    out: a Quantity if all input arrays are Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
 '''
 
 vstack.__doc__ = '''
@@ -2737,7 +2737,7 @@ vstack.__doc__ = '''
     arrays: sequence of array_like, Quantity
 
   Returns:
-    out: a Quantity if all input arrays are Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.numpy.Array
 '''
 
 hstack.__doc__ = '''
@@ -2747,7 +2747,7 @@ hstack.__doc__ = '''
     arrays: sequence of array_like, Quantity
 
   Returns:
-    out: a Quantity if all input arrays are Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
 '''
 
 dstack.__doc__ = '''
@@ -2757,7 +2757,7 @@ dstack.__doc__ = '''
     arrays: sequence of array_like, Quantity
 
   Returns:
-    out: a Quantity if all input arrays are Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
 '''
 
 column_stack.__doc__ = '''
@@ -2767,7 +2767,7 @@ column_stack.__doc__ = '''
     arrays: sequence of 1-D or 2-D array_like, Quantity
 
   Returns:
-    out: a Quantity if all input arrays are Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
 '''
 
 split.__doc__ = '''
@@ -2779,7 +2779,7 @@ split.__doc__ = '''
     axis: int, optional
 
   Returns:
-    out: a list of Quantity if a is a Quantity, otherwise a list of jax.numpy.Array
+    Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
 '''
 
 dsplit.__doc__ = '''
@@ -2790,7 +2790,7 @@ dsplit.__doc__ = '''
     indices_or_sections: int or 1-D array
 
   Returns:
-    out: a list of Quantity if a is a Quantity, otherwise a list of jax.numpy.Array
+    Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
 '''
 
 hsplit.__doc__ = '''
@@ -2801,7 +2801,7 @@ hsplit.__doc__ = '''
     indices_or_sections: int or 1-D array
 
   Returns:
-    out: a list of Quantity if a is a Quantity, otherwise a list of jax.numpy.Array
+    Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
 '''
 
 vsplit.__doc__ = '''
@@ -2812,7 +2812,7 @@ vsplit.__doc__ = '''
     indices_or_sections: int or 1-D array
 
   Returns:
-    out: a list of Quantity if a is a Quantity, otherwise a list of jax.numpy.Array
+    Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
 '''
 
 tile.__doc__ = '''
@@ -2823,7 +2823,7 @@ tile.__doc__ = '''
     reps: array_like
 
   Returns:
-    out: a Quantity if A is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if A is a Quantity, otherwise a jax.Array
 '''
 
 repeat.__doc__ = '''
@@ -2835,7 +2835,7 @@ repeat.__doc__ = '''
     axis: int, optional
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 unique.__doc__ = '''
@@ -2849,7 +2849,7 @@ unique.__doc__ = '''
     axis: int or None, optional
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 append.__doc__ = '''
@@ -2861,7 +2861,7 @@ append.__doc__ = '''
     axis: int, optional
 
   Returns:
-    out: a Quantity if arr and values are Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if arr and values are Quantity, otherwise a jax.Array
 '''
 
 flip.__doc__ = '''
@@ -2872,7 +2872,7 @@ flip.__doc__ = '''
     axis: int or tuple of ints, optional
 
   Returns:
-    out: a Quantity if m is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
 '''
 
 fliplr.__doc__ = '''
@@ -2882,7 +2882,7 @@ fliplr.__doc__ = '''
     m: array_like, Quantity
 
   Returns:
-    out: a Quantity if m is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
 '''
 
 flipud.__doc__ = '''
@@ -2892,7 +2892,7 @@ flipud.__doc__ = '''
     m: array_like, Quantity
 
   Returns:
-    out: a Quantity if m is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
 '''
 
 roll.__doc__ = '''
@@ -2904,7 +2904,7 @@ roll.__doc__ = '''
     axis: int or tuple of ints, optional
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 atleast_1d.__doc__ = '''
@@ -2914,7 +2914,7 @@ atleast_1d.__doc__ = '''
     *args: array_like, Quantity
 
   Returns:
-    out: a Quantity if any input is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
 '''
 
 atleast_2d.__doc__ = '''
@@ -2924,7 +2924,7 @@ atleast_2d.__doc__ = '''
     *args: array_like, Quantity
 
   Returns:
-    out: a Quantity if any input is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
 '''
 
 atleast_3d.__doc__ = '''
@@ -2934,7 +2934,7 @@ atleast_3d.__doc__ = '''
     *args: array_like, Quantity
 
   Returns:
-    out: a Quantity if any input is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
 '''
 
 expand_dims.__doc__ = '''
@@ -2945,7 +2945,7 @@ expand_dims.__doc__ = '''
     axis: int or tuple of ints
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 squeeze.__doc__ = '''
@@ -2956,7 +2956,7 @@ squeeze.__doc__ = '''
     axis: None or int or tuple of ints, optional
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 sort.__doc__ = '''
@@ -2969,7 +2969,7 @@ sort.__doc__ = '''
     order: str or list of str, optional
     
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 max.__doc__ = '''
   Return the maximum of an array or maximum along an axis.
@@ -2980,7 +2980,7 @@ max.__doc__ = '''
     keepdims: bool, optional
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 min.__doc__ = '''
@@ -2992,7 +2992,7 @@ min.__doc__ = '''
     keepdims: bool, optional
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 choose.__doc__ = '''
@@ -3003,7 +3003,7 @@ choose.__doc__ = '''
     choices: array_like, Quantity
 
   Returns:
-    out: a Quantity if a and choices are Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a and choices are Quantity, otherwise a jax.Array
 '''
 
 block.__doc__ = '''
@@ -3013,7 +3013,7 @@ block.__doc__ = '''
     arrays: sequence of array_like, Quantity
 
   Returns:
-    out: a Quantity if all input arrays are Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
 '''
 
 compress.__doc__ = '''
@@ -3025,7 +3025,7 @@ compress.__doc__ = '''
     axis: int, optional
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 diagflat.__doc__ = '''
@@ -3036,7 +3036,7 @@ diagflat.__doc__ = '''
     offset: int, optional
 
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
 '''
 
 argsort.__doc__ = '''
@@ -3049,7 +3049,7 @@ argsort.__doc__ = '''
     order: str or list of str, optional
 
   Returns:
-    out: jax.numpy.Array (does not return a Quantity)
+    jax.Array jax.numpy.Array (does not return a Quantity)
 '''
 
 argmax.__doc__ = '''
@@ -3061,7 +3061,7 @@ argmax.__doc__ = '''
     out: array, optional
 
   Returns:
-    out: jax.numpy.Array (does not return a Quantity)
+    jax.Array: an array (does not return a Quantity)
 '''
 
 argmin.__doc__ = '''
@@ -3073,7 +3073,7 @@ argmin.__doc__ = '''
     out: array, optional
 
   Returns:
-    out: jax.numpy.Array (does not return a Quantity)
+    jax.Array: an array (does not return a Quantity)
 '''
 
 argwhere.__doc__ = '''
@@ -3083,7 +3083,7 @@ argwhere.__doc__ = '''
     a: array_like, Quantity
 
   Returns:
-    out: jax.numpy.Array (does not return a Quantity)
+    jax.Array: an array (does not return a Quantity)
 '''
 
 nonzero.__doc__ = '''
@@ -3093,7 +3093,7 @@ nonzero.__doc__ = '''
     a: array_like, Quantity
 
   Returns:
-    out: jax.numpy.Array (does not return a Quantity)
+    jax.Array: an array (does not return a Quantity)
 '''
 
 flatnonzero.__doc__ = '''
@@ -3103,7 +3103,7 @@ flatnonzero.__doc__ = '''
     a: array_like, Quantity
 
   Returns:
-    out: jax.numpy.Array (does not return a Quantity)
+    jax.Array: an array (does not return a Quantity)
 '''
 
 searchsorted.__doc__ = '''
@@ -3115,7 +3115,7 @@ searchsorted.__doc__ = '''
     side: {'left', 'right'}, optional
 
   Returns:
-    out: jax.numpy.Array (does not return a Quantity)
+    jax.Array: an array (does not return a Quantity)
 '''
 
 extract.__doc__ = '''
@@ -3126,7 +3126,7 @@ extract.__doc__ = '''
     a: array_like, Quantity
 
   Returns:
-    out: jax.numpy.Array (does not return a Quantity)
+    jax.Array: an array (does not return a Quantity)
 '''
 
 count_nonzero.__doc__ = '''
@@ -3137,7 +3137,7 @@ count_nonzero.__doc__ = '''
     axis: int or tuple of ints, optional
 
   Returns:
-    out: jax.numpy.Array (does not return a Quantity)
+    jax.Array: an array (does not return a Quantity)
 '''
 
 
@@ -3166,7 +3166,7 @@ diagonal.__doc__ = '''
     axis2: int, optional
     
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity]: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
 '''
 
 ravel.__doc__ = '''
@@ -3177,7 +3177,7 @@ ravel.__doc__ = '''
     order: {'C', 'F', 'A', 'K'}, optional
     
   Returns:
-    out: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
+    Union[jax.Array, Quantity]: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
 '''
 
 
@@ -3208,7 +3208,7 @@ bitwise_not.__doc__ = '''
     x: array_like
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 invert.__doc__ = '''
@@ -3218,7 +3218,7 @@ invert.__doc__ = '''
     x: array_like
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 
@@ -3253,7 +3253,7 @@ bitwise_and.__doc__ = '''
     y: array_like
     
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 bitwise_or.__doc__ = '''
@@ -3264,7 +3264,7 @@ bitwise_or.__doc__ = '''
     y: array_like
     
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 bitwise_xor.__doc__ = '''
@@ -3275,7 +3275,7 @@ bitwise_xor.__doc__ = '''
     y: array_like
     
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 left_shift.__doc__ = '''
@@ -3286,7 +3286,7 @@ left_shift.__doc__ = '''
     y: array_like
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 right_shift.__doc__ = '''
@@ -3297,7 +3297,7 @@ right_shift.__doc__ = '''
     y: array_like
 
   Returns:
-    out: an array
+    jax.Array: an array
 '''
 
 
@@ -3335,7 +3335,7 @@ all.__doc__ = '''
     where: array_like of bool, optional
     
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 any.__doc__ = '''
@@ -3349,7 +3349,7 @@ any.__doc__ = '''
     where: array_like of bool, optional
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 logical_not.__doc__ = '''
@@ -3360,7 +3360,7 @@ logical_not.__doc__ = '''
     out: array, optional
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 
@@ -3404,7 +3404,7 @@ equal.__doc__ = '''
     y: array_like, Quantity
     
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 not_equal.__doc__ = '''
@@ -3415,7 +3415,7 @@ not_equal.__doc__ = '''
     y: array_like, Quantity
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 greater.__doc__ = '''
@@ -3426,7 +3426,7 @@ greater.__doc__ = '''
     y: array_like, Quantity
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 greater_equal.__doc__ = '''
@@ -3437,7 +3437,7 @@ greater_equal.__doc__ = '''
     y: array_like, Quantity
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 less.__doc__ = '''
@@ -3448,7 +3448,7 @@ less.__doc__ = '''
     y: array_like, Quantity
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 less_equal.__doc__ = '''
@@ -3459,7 +3459,7 @@ less_equal.__doc__ = '''
     y: array_like, Quantity
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 array_equal.__doc__ = '''
@@ -3470,7 +3470,7 @@ array_equal.__doc__ = '''
     x2: array_like, Quantity
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 isclose.__doc__ = '''
@@ -3484,7 +3484,7 @@ isclose.__doc__ = '''
     equal_nan: bool, optional
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 allclose.__doc__ = '''
@@ -3498,7 +3498,7 @@ allclose.__doc__ = '''
     equal_nan: bool, optional
 
   Returns:
-    out: bool
+    bool: boolean result
 '''
 
 logical_and.__doc__ = '''
@@ -3510,7 +3510,7 @@ logical_and.__doc__ = '''
     out: array, optional
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 logical_or.__doc__ = '''
@@ -3522,7 +3522,7 @@ logical_or.__doc__ = '''
     out: array, optional
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 logical_xor.__doc__ = '''
@@ -3534,7 +3534,7 @@ logical_xor.__doc__ = '''
     out: array, optional
 
   Returns:
-    out: bool or array
+    Union[bool, jax.Array]: bool or array
 '''
 
 
@@ -3586,7 +3586,7 @@ tril_indices.__doc__ = '''
     k: int, optional
     
   Returns:
-    out: tuple[array]
+    tuple[jax.Array]: tuple[array]
 '''
 
 
@@ -3601,7 +3601,7 @@ def tril_indices_from(arr: Union[Quantity, bst.typing.ArrayLike],
     k: int, optional
 
   Returns:
-    out: tuple[array]
+    tuple[jax.Array]: tuple[array]
   '''
   if isinstance(arr, Quantity):
     return jnp.tril_indices_from(arr.value, k=k)
@@ -3619,7 +3619,7 @@ triu_indices.__doc__ = '''
     k: int, optional
     
   Returns:
-    out: tuple[array]
+    tuple[jax.Array]: tuple[array]
 '''
 
 
@@ -3634,7 +3634,7 @@ def triu_indices_from(arr: Union[Quantity, bst.typing.ArrayLike],
     k: int, optional
 
   Returns:
-    out: tuple[array]
+    tuple[jax.Array]: tuple[array]
   '''
   if isinstance(arr, Quantity):
     return jnp.triu_indices_from(arr.value, k=k)
@@ -3720,7 +3720,7 @@ dot.__doc__ = '''
     b: array_like, Quantity
     
   Returns:
-    out: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
 '''
 
 vdot.__doc__ = '''
@@ -3731,7 +3731,7 @@ vdot.__doc__ = '''
     b: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
 '''
 
 inner.__doc__ = '''
@@ -3742,7 +3742,7 @@ inner.__doc__ = '''
     b: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
 '''
 
 outer.__doc__ = '''
@@ -3753,7 +3753,7 @@ outer.__doc__ = '''
     b: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
 '''
 
 kron.__doc__ = '''
@@ -3764,7 +3764,7 @@ kron.__doc__ = '''
     b: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
 '''
 
 matmul.__doc__ = '''
@@ -3775,7 +3775,7 @@ matmul.__doc__ = '''
     b: array_like, Quantity
 
   Returns:
-    out: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
+    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
 '''
 
 trace.__doc__ = '''
@@ -3786,7 +3786,7 @@ trace.__doc__ = '''
     offset: int, optional
 
   Returns:
-    out: Quantity if the input is a Quantity, else an array.
+    Union[jax.Array, Quantity]: Quantity if the input is a Quantity, else an array.
 '''
 
 # data types
