@@ -167,7 +167,7 @@ zeros = wrap_array_creation_function(jnp.zeros)
 def full_like(a, fill_value, dtype=None, shape=None):
   if isinstance(a, Quantity) and isinstance(fill_value, Quantity):
     fail_for_dimension_mismatch(a, fill_value, error_message='Units do not match for full_like operation.')
-    return Quantity(jnp.full_like(a.value, fill_value.value, dtype=dtype, shape=shape), unit=a.unit)
+    return Quantity(jnp.full_like(a.value, fill_value.value, dtype=dtype, shape=shape), dim=a.unit)
   elif isinstance(a, (jax.Array, np.ndarray)) and not isinstance(fill_value, Quantity):
     return jnp.full_like(a, fill_value, dtype=dtype, shape=shape)
   else:
@@ -177,7 +177,7 @@ def full_like(a, fill_value, dtype=None, shape=None):
 @set_module_as('brainunit.math')
 def diag(a, k=0):
   if isinstance(a, Quantity):
-    return Quantity(jnp.diag(a.value, k=k), unit=a.unit)
+    return Quantity(jnp.diag(a.value, k=k), dim=a.unit)
   elif isinstance(a, (jax.Array, np.ndarray)):
     return jnp.diag(a, k=k)
   else:
@@ -187,7 +187,7 @@ def diag(a, k=0):
 @set_module_as('brainunit.math')
 def tril(a, k=0):
   if isinstance(a, Quantity):
-    return Quantity(jnp.tril(a.value, k=k), unit=a.unit)
+    return Quantity(jnp.tril(a.value, k=k), dim=a.unit)
   elif isinstance(a, (jax.Array, np.ndarray)):
     return jnp.tril(a, k=k)
   else:
@@ -197,7 +197,7 @@ def tril(a, k=0):
 @set_module_as('brainunit.math')
 def triu(a, k=0):
   if isinstance(a, Quantity):
-    return Quantity(jnp.triu(a.value, k=k), unit=a.unit)
+    return Quantity(jnp.triu(a.value, k=k), dim=a.unit)
   elif isinstance(a, (jax.Array, np.ndarray)):
     return jnp.triu(a, k=k)
   else:
@@ -207,7 +207,7 @@ def triu(a, k=0):
 @set_module_as('brainunit.math')
 def empty_like(a, dtype=None, shape=None):
   if isinstance(a, Quantity):
-    return Quantity(jnp.empty_like(a.value, dtype=dtype, shape=shape), unit=a.unit)
+    return Quantity(jnp.empty_like(a.value, dtype=dtype, shape=shape), dim=a.unit)
   elif isinstance(a, (jax.Array, np.ndarray)):
     return jnp.empty_like(a, dtype=dtype, shape=shape)
   else:
@@ -217,7 +217,7 @@ def empty_like(a, dtype=None, shape=None):
 @set_module_as('brainunit.math')
 def ones_like(a, dtype=None, shape=None):
   if isinstance(a, Quantity):
-    return Quantity(jnp.ones_like(a.value, dtype=dtype, shape=shape), unit=a.unit)
+    return Quantity(jnp.ones_like(a.value, dtype=dtype, shape=shape), dim=a.unit)
   elif isinstance(a, (jax.Array, np.ndarray)):
     return jnp.ones_like(a, dtype=dtype, shape=shape)
   else:
@@ -227,7 +227,7 @@ def ones_like(a, dtype=None, shape=None):
 @set_module_as('brainunit.math')
 def zeros_like(a, dtype=None, shape=None):
   if isinstance(a, Quantity):
-    return Quantity(jnp.zeros_like(a.value, dtype=dtype, shape=shape), unit=a.unit)
+    return Quantity(jnp.zeros_like(a.value, dtype=dtype, shape=shape), dim=a.unit)
   elif isinstance(a, (jax.Array, np.ndarray)):
     return jnp.zeros_like(a, dtype=dtype, shape=shape)
   else:
@@ -244,18 +244,18 @@ def asarray(
   from builtins import all as origin_all
   from builtins import any as origin_any
   if isinstance(a, Quantity):
-    return Quantity(jnp.asarray(a.value, dtype=dtype, order=order), unit=a.unit)
+    return Quantity(jnp.asarray(a.value, dtype=dtype, order=order), dim=a.unit)
   elif isinstance(a, (jax.Array, np.ndarray)):
     return jnp.asarray(a, dtype=dtype, order=order)
   # list[Quantity]
   elif isinstance(a, Sequence) and origin_all(isinstance(x, Quantity) for x in a):
     # check all elements have the same unit
-    if origin_any(x.unit != a[0].unit for x in a):
+    if origin_any(x.dim != a[0].dim for x in a):
       raise ValueError('Units do not match for asarray operation.')
     values = [x.value for x in a]
-    unit = a[0].unit
+    unit = a[0].dim
     # Convert the values to a jnp.ndarray and create a Quantity object
-    return Quantity(jnp.asarray(values, dtype=dtype, order=order), unit=unit)
+    return Quantity(jnp.asarray(values, dtype=dtype, order=order), dim=unit)
   else:
     return jnp.asarray(a, dtype=dtype, order=order)
 
@@ -296,7 +296,7 @@ def arange(*args, **kwargs):
   if stop is None:
     raise TypeError("Missing stop argument.")
   if stop is not None and not is_unitless(stop):
-    start = Quantity(start, unit=stop.unit)
+    start = Quantity(start, dim=stop.unit)
 
   fail_for_dimension_mismatch(
     start,
@@ -328,7 +328,7 @@ def arange(*args, **kwargs):
         step=step.value if isinstance(step, Quantity) else jnp.asarray(step),
         **kwargs,
       ),
-      unit=unit,
+      dim=unit,
     )
   else:
     return Quantity(
@@ -338,7 +338,7 @@ def arange(*args, **kwargs):
         step=step.value if isinstance(step, Quantity) else jnp.asarray(step),
         **kwargs,
       ),
-      unit=unit,
+      dim=unit,
     )
 
 
@@ -356,7 +356,7 @@ def linspace(start, stop, num=50, endpoint=True, retstep=False, dtype=None):
   stop = stop.value if isinstance(stop, Quantity) else stop
 
   result = jnp.linspace(start, stop, num=num, endpoint=endpoint, retstep=retstep, dtype=dtype)
-  return Quantity(result, unit=unit)
+  return Quantity(result, dim=unit)
 
 
 @set_module_as('brainunit.math')
@@ -373,14 +373,14 @@ def logspace(start, stop, num=50, endpoint=True, base=10.0, dtype=None):
   stop = stop.value if isinstance(stop, Quantity) else stop
 
   result = jnp.logspace(start, stop, num=num, endpoint=endpoint, base=base, dtype=dtype)
-  return Quantity(result, unit=unit)
+  return Quantity(result, dim=unit)
 
 
 @set_module_as('brainunit.math')
 def fill_diagonal(a, val, wrap=False, inplace=True):
   if isinstance(a, Quantity) and isinstance(val, Quantity):
     fail_for_dimension_mismatch(a, val)
-    return Quantity(jnp.fill_diagonal(a.value, val.value, wrap=wrap, inplace=inplace), unit=a.unit)
+    return Quantity(jnp.fill_diagonal(a.value, val.value, wrap=wrap, inplace=inplace), dim=a.unit)
   elif isinstance(a, (jax.Array, np.ndarray)) and isinstance(val, (jax.Array, np.ndarray)):
     return jnp.fill_diagonal(a, val, wrap=wrap, inplace=inplace)
   elif is_unitless(a) or is_unitless(val):
@@ -392,7 +392,7 @@ def fill_diagonal(a, val, wrap=False, inplace=True):
 @set_module_as('brainunit.math')
 def array_split(ary, indices_or_sections, axis=0):
   if isinstance(ary, Quantity):
-    return Quantity(jnp.array_split(ary.value, indices_or_sections, axis), unit=ary.unit)
+    return Quantity(jnp.array_split(ary.value, indices_or_sections, axis), dim=ary.unit)
   elif isinstance(ary, (jax.Array, np.ndarray)):
     return jnp.array_split(ary, indices_or_sections, axis)
   else:
@@ -404,7 +404,7 @@ def meshgrid(*xi, copy=True, sparse=False, indexing='xy'):
   from builtins import all as origin_all
   if origin_all(isinstance(x, Quantity) for x in xi):
     fail_for_dimension_mismatch(*xi)
-    return Quantity(jnp.meshgrid(*[x.value for x in xi], copy=copy, sparse=sparse, indexing=indexing), unit=xi[0].unit)
+    return Quantity(jnp.meshgrid(*[x.value for x in xi], copy=copy, sparse=sparse, indexing=indexing), dim=xi[0].dim)
   elif origin_all(isinstance(x, (jax.Array, np.ndarray)) for x in xi):
     return jnp.meshgrid(*xi, copy=copy, sparse=sparse, indexing=indexing)
   else:
@@ -414,7 +414,7 @@ def meshgrid(*xi, copy=True, sparse=False, indexing='xy'):
 @set_module_as('brainunit.math')
 def vander(x, N=None, increasing=False):
   if isinstance(x, Quantity):
-    return Quantity(jnp.vander(x.value, N=N, increasing=increasing), unit=x.unit)
+    return Quantity(jnp.vander(x.value, N=N, increasing=increasing), dim=x.unit)
   elif isinstance(x, (jax.Array, np.ndarray)):
     return jnp.vander(x, N=N, increasing=increasing)
   else:
@@ -561,7 +561,7 @@ def size(a, axis=None):
 def wrap_math_funcs_keep_unit_unary(func):
   def f(x, *args, **kwargs):
     if isinstance(x, Quantity):
-      return Quantity(func(x.value, *args, **kwargs), unit=x.unit)
+      return Quantity(func(x.value, *args, **kwargs), dim=x.unit)
     elif isinstance(x, (jax.Array, np.ndarray)):
       return func(x, *args, **kwargs)
     else:
@@ -613,7 +613,7 @@ modf = wrap_math_funcs_keep_unit_unary(jnp.modf)
 def wrap_math_funcs_keep_unit_binary(func):
   def f(x1, x2, *args, **kwargs):
     if isinstance(x1, Quantity) and isinstance(x2, Quantity):
-      return Quantity(func(x1.value, x2.value, *args, **kwargs), unit=x1.unit)
+      return Quantity(func(x1.value, x2.value, *args, **kwargs), dim=x1.unit)
     elif isinstance(x1, (jax.Array, np.ndarray)) and isinstance(x2, (jax.Array, np.ndarray)):
       return func(x1, x2, *args, **kwargs)
     else:
@@ -656,7 +656,7 @@ def interp(x, xp, fp, left=None, right=None, period=None):
     fp_value = fp
   result = jnp.interp(x_value, xp_value, fp_value, left=left, right=right, period=period)
   if unit is not None:
-    return Quantity(result, unit=unit)
+    return Quantity(result, dim=unit)
   else:
     return result
 
@@ -680,7 +680,7 @@ def clip(a, a_min, a_max):
     a_max_value = a_max
   result = jnp.clip(a_value, a_min_value, a_max_value)
   if unit is not None:
-    return Quantity(result, unit=unit)
+    return Quantity(result, dim=unit)
   else:
     return result
 
@@ -692,17 +692,17 @@ def wrap_math_funcs_match_unit_binary(func):
   def f(x, y, *args, **kwargs):
     if isinstance(x, Quantity) and isinstance(y, Quantity):
       fail_for_dimension_mismatch(x, y)
-      return Quantity(func(x.value, y.value, *args, **kwargs), unit=x.unit)
+      return Quantity(func(x.value, y.value, *args, **kwargs), dim=x.unit)
     elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
       return func(x, y, *args, **kwargs)
     elif isinstance(x, Quantity):
       if x.is_unitless:
-        return Quantity(func(x.value, y, *args, **kwargs), unit=x.unit)
+        return Quantity(func(x.value, y, *args, **kwargs), dim=x.unit)
       else:
         raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
     elif isinstance(y, Quantity):
       if y.is_unitless:
-        return Quantity(func(x, y.value, *args, **kwargs), unit=y.unit)
+        return Quantity(func(x, y.value, *args, **kwargs), dim=y.unit)
       else:
         raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
     else:
@@ -723,7 +723,7 @@ nextafter = wrap_math_funcs_match_unit_binary(jnp.nextafter)
 def wrap_math_funcs_change_unit_unary(func, change_unit_func):
   def f(x, *args, **kwargs):
     if isinstance(x, Quantity):
-      return _return_check_unitless(Quantity(func(x.value, *args, **kwargs), unit=change_unit_func(x.unit)))
+      return _return_check_unitless(Quantity(func(x.value, *args, **kwargs), dim=change_unit_func(x.unit)))
     elif isinstance(x, (jax.Array, np.ndarray)):
       return func(x, *args, **kwargs)
     else:
@@ -788,16 +788,16 @@ def wrap_math_funcs_change_unit_binary(func, change_unit_func):
   def f(x, y, *args, **kwargs):
     if isinstance(x, Quantity) and isinstance(y, Quantity):
       return _return_check_unitless(
-        Quantity(func(x.value, y.value, *args, **kwargs), unit=change_unit_func(x.unit, y.unit))
+        Quantity(func(x.value, y.value, *args, **kwargs), dim=change_unit_func(x.unit, y.unit))
       )
     elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
       return func(x, y, *args, **kwargs)
     elif isinstance(x, Quantity):
       return _return_check_unitless(
-        Quantity(func(x.value, y, *args, **kwargs), unit=change_unit_func(x.unit, DIMENSIONLESS)))
+        Quantity(func(x.value, y, *args, **kwargs), dim=change_unit_func(x.unit, DIMENSIONLESS)))
     elif isinstance(y, Quantity):
       return _return_check_unitless(
-        Quantity(func(x, y.value, *args, **kwargs), unit=change_unit_func(DIMENSIONLESS, y.unit)))
+        Quantity(func(x, y.value, *args, **kwargs), dim=change_unit_func(DIMENSIONLESS, y.unit)))
     else:
       raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
 
@@ -812,13 +812,13 @@ divide = wrap_math_funcs_change_unit_binary(jnp.divide, lambda x, y: x / y)
 @set_module_as('brainunit.math')
 def power(x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.power(x.value, y.value, *args, **kwargs), unit=x.unit ** y.unit))
+    return _return_check_unitless(Quantity(jnp.power(x.value, y.value, *args, **kwargs), dim=x.unit ** y.unit))
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
     return jnp.power(x, y, *args, **kwargs)
   elif isinstance(x, Quantity):
-    return _return_check_unitless(Quantity(jnp.power(x.value, y, *args, **kwargs), unit=x.unit ** y))
+    return _return_check_unitless(Quantity(jnp.power(x.value, y, *args, **kwargs), dim=x.unit ** y))
   elif isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.power(x, y.value, *args, **kwargs), unit=x ** y.unit))
+    return _return_check_unitless(Quantity(jnp.power(x, y.value, *args, **kwargs), dim=x ** y.unit))
   else:
     raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {jnp.power.__name__}')
 
@@ -831,13 +831,13 @@ true_divide = wrap_math_funcs_change_unit_binary(jnp.true_divide, lambda x, y: x
 @set_module_as('brainunit.math')
 def floor_divide(x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y.value, *args, **kwargs), unit=x.unit / y.unit))
+    return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y.value, *args, **kwargs), dim=x.unit / y.unit))
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
     return jnp.floor_divide(x, y, *args, **kwargs)
   elif isinstance(x, Quantity):
-    return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y, *args, **kwargs), unit=x.unit / y))
+    return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y, *args, **kwargs), dim=x.unit / y))
   elif isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.floor_divide(x, y.value, *args, **kwargs), unit=x / y.unit))
+    return _return_check_unitless(Quantity(jnp.floor_divide(x, y.value, *args, **kwargs), dim=x / y.unit))
   else:
     raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {jnp.floor_divide.__name__}')
 
@@ -845,13 +845,13 @@ def floor_divide(x, y, *args, **kwargs):
 @set_module_as('brainunit.math')
 def float_power(x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.float_power(x.value, y.value, *args, **kwargs), unit=x.unit ** y.unit))
+    return _return_check_unitless(Quantity(jnp.float_power(x.value, y.value, *args, **kwargs), dim=x.unit ** y.unit))
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
     return jnp.float_power(x, y, *args, **kwargs)
   elif isinstance(x, Quantity):
-    return _return_check_unitless(Quantity(jnp.float_power(x.value, y, *args, **kwargs), unit=x.unit ** y))
+    return _return_check_unitless(Quantity(jnp.float_power(x.value, y, *args, **kwargs), dim=x.unit ** y))
   elif isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.float_power(x, y.value, *args, **kwargs), unit=x ** y.unit))
+    return _return_check_unitless(Quantity(jnp.float_power(x, y.value, *args, **kwargs), dim=x ** y.unit))
   else:
     raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {jnp.float_power.__name__}')
 
@@ -862,13 +862,13 @@ divmod = wrap_math_funcs_change_unit_binary(jnp.divmod, lambda x, y: x / y)
 @set_module_as('brainunit.math')
 def remainder(x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.remainder(x.value, y.value, *args, **kwargs), unit=x.unit / y.unit))
+    return _return_check_unitless(Quantity(jnp.remainder(x.value, y.value, *args, **kwargs), dim=x.unit / y.unit))
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
     return jnp.remainder(x, y, *args, **kwargs)
   elif isinstance(x, Quantity):
-    return _return_check_unitless(Quantity(jnp.remainder(x.value, y, *args, **kwargs), unit=x.unit % y))
+    return _return_check_unitless(Quantity(jnp.remainder(x.value, y, *args, **kwargs), dim=x.unit % y))
   elif isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.remainder(x, y.value, *args, **kwargs), unit=x % y.unit))
+    return _return_check_unitless(Quantity(jnp.remainder(x, y.value, *args, **kwargs), dim=x % y.unit))
   else:
     raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {jnp.remainder.__name__}')
 
@@ -1061,7 +1061,7 @@ def wrap_function_to_method(func):
   @wraps(func)
   def f(x, *args, **kwargs):
     if isinstance(x, Quantity):
-      return Quantity(func(x.value, *args, **kwargs), unit=x.unit)
+      return Quantity(func(x.value, *args, **kwargs), dim=x.unit)
     else:
       return func(x, *args, **kwargs)
 
@@ -1197,7 +1197,7 @@ def where(condition, *args, **kwds):  # pylint: disable=C0111
       # as both arguments have the same unit, just use the first one's
       dimensionless_args = [jnp.asarray(arg.value) if isinstance(arg, Quantity) else jnp.asarray(arg) for arg in args]
       return Quantity.with_units(
-        jnp.where(condition, *dimensionless_args), args[0].unit
+        jnp.where(condition, *dimensionless_args), args[0].dim
       )
   else:
     # illegal number of arguments
@@ -1242,11 +1242,11 @@ def select(condlist: list[Union[jnp.array, np.ndarray]], choicelist: Union[Quant
   from builtins import all as origin_all
   from builtins import any as origin_any
   if origin_all(isinstance(choice, Quantity) for choice in choicelist):
-    if origin_any(choice.unit != choicelist[0].unit for choice in choicelist):
+    if origin_any(choice.dim != choicelist[0].dim for choice in choicelist):
       raise ValueError("All choices must have the same unit")
     else:
       return Quantity(jnp.select(condlist, [choice.value for choice in choicelist], default=default),
-                      unit=choicelist[0].unit)
+                      dim=choicelist[0].dim)
   elif origin_all(isinstance(choice, (jax.Array, np.ndarray)) for choice in choicelist):
     return jnp.select(condlist, choicelist, default=default)
   else:
@@ -1314,9 +1314,9 @@ def broadcast_arrays(*args):
   from builtins import all as origin_all
   from builtins import any as origin_any
   if origin_all(isinstance(arg, Quantity) for arg in args):
-    if origin_any(arg.unit != args[0].unit for arg in args):
+    if origin_any(arg.dim != args[0].dim for arg in args):
       raise ValueError("All arguments must have the same unit")
-    return Quantity(jnp.broadcast_arrays(*[arg.value for arg in args]), unit=args[0].unit)
+    return Quantity(jnp.broadcast_arrays(*[arg.value for arg in args]), dim=args[0].dim)
   elif origin_all(isinstance(arg, (jax.Array, np.ndarray)) for arg in args):
     return jnp.broadcast_arrays(*args)
   else:
@@ -1361,7 +1361,7 @@ def einsum(
     if contractions[i][4] == 'False':
 
       fail_for_dimension_mismatch(
-        Quantity([], unit=unit), operands[i + 1], 'einsum'
+        Quantity([], dim=unit), operands[i + 1], 'einsum'
       )
     elif contractions[i][4] == 'DOT' or \
         contractions[i][4] == 'TDOT' or \
@@ -1369,14 +1369,14 @@ def einsum(
         contractions[i][4] == 'OUTER/EINSUM':
       if i == 0:
         if isinstance(operands[i], Quantity) and isinstance(operands[i + 1], Quantity):
-          unit = operands[i].unit * operands[i + 1].unit
+          unit = operands[i].dim * operands[i + 1].dim
         elif isinstance(operands[i], Quantity):
-          unit = operands[i].unit
+          unit = operands[i].dim
         elif isinstance(operands[i + 1], Quantity):
-          unit = operands[i + 1].unit
+          unit = operands[i + 1].dim
       else:
         if isinstance(operands[i + 1], Quantity):
-          unit = unit * operands[i + 1].unit
+          unit = unit * operands[i + 1].dim
 
   contractions = tuple((a, frozenset(b), c) for a, b, c, *_ in contractions)
 
@@ -1387,7 +1387,7 @@ def einsum(
   r = einsum(operands, contractions, precision,  # type: ignore[operator]
              preferred_element_type, _dot_general)
   if unit is not None:
-    return Quantity(r, unit=unit)
+    return Quantity(r, dim=unit)
   else:
     return r
 
@@ -1404,7 +1404,7 @@ def gradient(
 
   if len(varargs) == 0:
     if isinstance(f, Quantity) and not is_unitless(f):
-      return Quantity(jnp.gradient(f.value, axis=axis), unit=f.unit)
+      return Quantity(jnp.gradient(f.value, axis=axis), dim=f.unit)
     else:
       return jnp.gradient(f)
   elif len(varargs) == 1:
@@ -1412,13 +1412,13 @@ def gradient(
     if unit is None or unit == DIMENSIONLESS:
       return jnp.gradient(f, varargs[0], axis=axis)
     else:
-      return [Quantity(r, unit=unit) for r in jnp.gradient(f.value, varargs[0].value, axis=axis)]
+      return [Quantity(r, dim=unit) for r in jnp.gradient(f.value, varargs[0].value, axis=axis)]
   else:
     unit_list = [get_unit(f) / get_unit(v) for v in varargs]
     f = f.value if isinstance(f, Quantity) else f
     varargs = [v.value if isinstance(v, Quantity) else v for v in varargs]
     result_list = jnp.gradient(f, *varargs, axis=axis)
-    return [Quantity(r, unit=unit) if unit is not None else r for r, unit in zip(result_list, unit_list)]
+    return [Quantity(r, dim=unit) if unit is not None else r for r, unit in zip(result_list, unit_list)]
 
 
 @set_module_as('brainunit.math')
@@ -1437,12 +1437,12 @@ def intersect1d(
   result = jnp.intersect1d(ar1, ar2, assume_unique=assume_unique, return_indices=return_indices)
   if return_indices:
     if unit is not None:
-      return (Quantity(result[0], unit=unit), result[1], result[2])
+      return (Quantity(result[0], dim=unit), result[1], result[2])
     else:
       return result
   else:
     if unit is not None:
-      return Quantity(result, unit=unit)
+      return Quantity(result, dim=unit)
     else:
       return result
 

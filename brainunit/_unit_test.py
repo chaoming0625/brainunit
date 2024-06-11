@@ -109,11 +109,11 @@ def test_construction():
   assert_quantity(q, np.array([0.5, 1]), second)
   q = Quantity(500)
   assert_quantity(q, 500, 1)
-  q = Quantity(500, unit=second.unit)
+  q = Quantity(500, dim=second.dim)
   assert_quantity(q, 500, second)
-  q = Quantity([0.5, 1], unit=second.unit)
+  q = Quantity([0.5, 1], dim=second.dim)
   assert_quantity(q, np.array([0.5, 1]), second)
-  q = Quantity(np.array([0.5, 1]), unit=second.unit)
+  q = Quantity(np.array([0.5, 1]), dim=second.dim)
   assert_quantity(q, np.array([0.5, 1]), second)
   q = Quantity([500 * ms, 1 * second])
   assert_quantity(q, np.array([0.5, 1]), second)
@@ -193,16 +193,16 @@ def test_display():
 
 
 def test_unary_operations():
-  q = Quantity(5, unit=mV)
+  q = Quantity(5, dim=mV)
   assert_quantity(-q, -5, mV)
   assert_quantity(+q, 5, mV)
-  assert_quantity(abs(Quantity(-5, unit=mV)), 5, mV)
-  assert_quantity(~Quantity(0b101, unit=DIMENSIONLESS), -0b110, DIMENSIONLESS)
+  assert_quantity(abs(Quantity(-5, dim=mV)), 5, mV)
+  assert_quantity(~Quantity(0b101, dim=DIMENSIONLESS), -0b110, DIMENSIONLESS)
 
 
 def test_operations():
-  q1 = Quantity(5, unit=mV)
-  q2 = Quantity(10, unit=mV)
+  q1 = Quantity(5, dim=mV)
+  q2 = Quantity(10, dim=mV)
   assert_quantity(q1 + q2, 15, mV)
   assert_quantity(q1 - q2, -5, mV)
   assert_quantity(q1 * q2, 50, mV * mV)
@@ -216,13 +216,13 @@ def test_operations():
   assert_quantity(q1 >> 1, 2, mV)
   assert_quantity(round(q1, 0), 5, mV)
   # matmul
-  q1 = Quantity([1, 2], unit=mV)
-  q2 = Quantity([3, 4], unit=mV)
+  q1 = Quantity([1, 2], dim=mV)
+  q2 = Quantity([3, 4], dim=mV)
   assert_quantity(q1 @ q2, 11, mV ** 2)
 
 
 def test_numpy_methods():
-  q = Quantity([[1, 2], [3, 4]], unit=mV)
+  q = Quantity([[1, 2], [3, 4]], dim=mV)
   assert q.all()
   assert q.any()
   assert q.nonzero()[0].tolist() == [0, 0, 1, 1]
@@ -307,7 +307,7 @@ def test_misc_methods():
   assert_quantity(q.copy(), [5, 10, 15], volt)
 
   # Test dot
-  assert_quantity(q.dot(Quantity([2, 2, 2], unit=DIMENSIONLESS)), 60, volt)
+  assert_quantity(q.dot(Quantity([2, 2, 2], dim=DIMENSIONLESS)), 60, volt)
 
   # Test fill
   q_filled = [5, 10, 15] * volt
@@ -1446,9 +1446,9 @@ def test_get_basic_unit():
   Test get_unit
   """
   values = [
-    (volt.unit, volt),
-    (mV.unit, volt),
-    ((amp / metre ** 2).unit, amp / metre ** 2),
+    (volt.dim, volt),
+    (mV.dim, volt),
+    ((amp / metre ** 2).dim, amp / metre ** 2),
   ]
   for unit, expected_unit in values:
     unit = get_basic_unit(unit)
@@ -1507,8 +1507,8 @@ def test_fail_for_dimension_mismatch():
   assert dim1 is DIMENSIONLESS
   assert dim2 is DIMENSIONLESS
   dim1, dim2 = fail_for_dimension_mismatch(3 * volt, 5 * volt)
-  assert dim1 is volt.unit
-  assert dim2 is volt.unit
+  assert dim1 is volt.dim
+  assert dim2 is volt.dim
 
   # examples that should raise an error
   with pytest.raises(DimensionMismatchError):
@@ -1596,16 +1596,16 @@ def test_constants():
   import brainunit._unit_constants as constants
 
   # Check that the expected names exist and have the correct dimensions
-  assert constants.avogadro_constant.unit == (1 / mole).unit
-  assert constants.boltzmann_constant.unit == (joule / kelvin).unit
-  assert constants.electric_constant.unit == (farad / meter).unit
-  assert constants.electron_mass.unit == kilogram.unit
-  assert constants.elementary_charge.unit == coulomb.unit
-  assert constants.faraday_constant.unit == (coulomb / mole).unit
-  assert constants.gas_constant.unit == (joule / mole / kelvin).unit
-  assert constants.magnetic_constant.unit == (newton / amp2).unit
-  assert constants.molar_mass_constant.unit == (kilogram / mole).unit
-  assert constants.zero_celsius.unit == kelvin.unit
+  assert constants.avogadro_constant.dim == (1 / mole).unit
+  assert constants.boltzmann_constant.dim == (joule / kelvin).dim
+  assert constants.electric_constant.dim == (farad / meter).dim
+  assert constants.electron_mass.dim == kilogram.dim
+  assert constants.elementary_charge.dim == coulomb.dim
+  assert constants.faraday_constant.dim == (coulomb / mole).dim
+  assert constants.gas_constant.dim == (joule / mole / kelvin).dim
+  assert constants.magnetic_constant.dim == (newton / amp2).dim
+  assert constants.molar_mass_constant.dim == (kilogram / mole).dim
+  assert constants.zero_celsius.dim == kelvin.dim
 
   # Check the consistency between a few constants
   assert_allclose(
