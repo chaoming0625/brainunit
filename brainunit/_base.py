@@ -542,7 +542,7 @@ def get_unit(obj) -> Dimension:
     if isinstance(obj, (numbers.Number, jax.Array, np.number, np.ndarray)):
       return DIMENSIONLESS
     try:
-      return Quantity(obj).unit
+      return Quantity(obj).dim
     except TypeError:
       raise TypeError(f"Object of type {type(obj)} does not have dimensions")
 
@@ -778,10 +778,10 @@ def array_with_unit(
   Examples
   --------
   >>> from brainunit import *
-  >>> array_with_unit(0.001, volt.unit)
+  >>> array_with_unit(0.001, volt.dim)
   1. * mvolt
   """
-  return Quantity(floatval, unit=get_or_create_dimension(unit._dims), dtype=dtype)
+  return Quantity(floatval, dim=get_or_create_dimension(unit._dims), dtype=dtype)
 
 
 def is_unitless(obj) -> bool:
@@ -835,7 +835,7 @@ def wrap_function_keep_dimensions(func):
   """
 
   def f(x, *args, **kwds):  # pylint: disable=C0111
-    return Quantity(func(x.value, *args, **kwds), unit=x.unit)
+    return Quantity(func(x.value, *args, **kwds), dim=x.dim)
 
   f._arg_units = [None]
   f._return_unit = lambda u: u
@@ -860,7 +860,7 @@ def wrap_function_change_dimensions(func, change_dim_func):
 
   def f(x, *args, **kwds):  # pylint: disable=C0111
     assert isinstance(x, Quantity), "Only Quantity objects can be passed to this function"
-    return _return_check_unitless(Quantity(func(x.value, *args, **kwds), unit=change_dim_func(x.value, x.unit)))
+    return _return_check_unitless(Quantity(func(x.value, *args, **kwds), dim=change_dim_func(x.value, x.dim)))
 
   f._arg_units = [None]
   f._return_unit = change_dim_func
@@ -902,32 +902,44 @@ def _return_check_unitless(q):
 
 def process_list_with_units(value):
   def check_units_and_collect_values(lst):
-    all_units = []
+    all_dims = []
     values = []
 
     for item in lst:
       if isinstance(item, list):
-        val, unit = check_units_and_collect_values(item)
+        val, dim = check_units_and_collect_values(item)
         values.append(val)
-        if unit is not None:
-          all_units.append(unit)
+        if dim is not None:
+          all_dims.append(dim)
       elif isinstance(item, Quantity):
         values.append(item.value)
-        all_units.append(item.unit)
+        all_dims.append(item.dim)
       else:
         values.append(item)
-        all_units.append(DIMENSIONLESS)
+        all_dims.append(DIMENSIONLESS)
 
-    if all_units:
-      first_unit = all_units[0]
-      if not all(unit == first_unit for unit in all_units):
+    if all_dims:
+      first_unit = all_dims[0]
+      if not all(unit == first_unit for unit in all_dims):
         raise TypeError("All elements must have the same unit")
       return values, first_unit
     else:
       return values, DIMENSIONLESS
 
-  values, unit = check_units_and_collect_values(value)
-  return values, unit
+  values, dim = check_units_and_collect_values(value)
+  return values, dim
+
+
+def _get_dim(dim: Dimension, unit: 'Unit'):
+  if dim != DIMENSIONLESS and unit is not None:
+    raise ValueError("Cannot specify both a dimension and a unit")
+  if dim == DIMENSIONLESS:
+    if unit is None:
+      return None, DIMENSIONLESS
+    else:
+      return unit.value, unit.dim
+  else:
+    return None, dim
 
 
 @register_pytree_node_class
@@ -938,35 +950,32 @@ class Quantity(object):
 
   """
   __module__ = "brainunit"
-  __slots__ = ('_value', '_unit')
+  __slots__ = ('_value', '_dim')
   _value: Union[jax.Array, numbers.Number]
-  _unit: Dimension
+  _dim: Dimension
   __array_priority__ = 1000
 
   def __init__(
       self,
       value: Any,
-      dtype: bst.typing.DTypeLike = None,
-      unit: Union[Dimension, 'Unit'] = DIMENSIONLESS,
+      dtype: Optional[bst.typing.DTypeLike] = None,
+      dim: Dimension = DIMENSIONLESS,
+      unit: Optional['Unit'] = None,
   ):
-    if isinstance(unit, Unit):
-      s = unit.value
-      unit = unit.unit
-    else:
-      s = None
+    scale, dim = _get_dim(dim, unit)
 
     if isinstance(value, numbers.Number) and _allow_python_scalar_value:
-      self._unit = unit
-      self._value = (value if s is None else (value * s))
+      self._dim = dim
+      self._value = (value if scale is None else (value * scale))
       return
 
     if isinstance(value, (list, tuple)):
-      value, new_unit = process_list_with_units(value)
-      if unit == DIMENSIONLESS:
-        unit = new_unit
-      elif new_unit != DIMENSIONLESS:
-        if unit != new_unit:
-          raise TypeError(f"All elements must have the same unit. But got {unit} != {new_unit}")
+      value, new_dim = process_list_with_units(value)
+      if dim == DIMENSIONLESS:
+        dim = new_dim
+      elif new_dim != DIMENSIONLESS:
+        if dim != new_dim:
+          raise TypeError(f"All elements must have the same unit. But got {dim} != {new_dim}")
       try:
         # Transform to jnp array
         value = jnp.array(value, dtype=dtype)
@@ -976,7 +985,7 @@ class Quantity(object):
 
     # array value
     if isinstance(value, Quantity):
-      self._unit = value.unit
+      self._dim = value.dim
       self._value = jnp.array(value.value, dtype=dtype)
       return
 
@@ -986,14 +995,17 @@ class Quantity(object):
     elif isinstance(value, (jnp.number, numbers.Number)):
       value = jnp.array(value, dtype=dtype)
 
+    elif isinstance(value, (jax.core.ShapedArray, jax.ShapeDtypeStruct)):
+      value = value
+
     else:
       raise TypeError(f"Invalid type for value: {type(value)}")
 
     # value
-    self._value = (value if s is None else (value * s))
+    self._value = (value if scale is None else (value * scale))
 
-    # unit
-    self._unit = unit
+    # dimension
+    self._dim = dim
 
   @property
   def value(self) -> jax.Array | numbers.Number:
@@ -1038,16 +1050,16 @@ class Quantity(object):
     self._value = value
 
   @property
-  def unit(self) -> Dimension:
+  def dim(self) -> Dimension:
     """
     The physical unit dimensions of this Array
     """
-    return self._unit
+    return self._dim
 
-  @unit.setter
-  def unit(self, unit):
+  @dim.setter
+  def dim(self, *args):
     # Do not support setting the unit directly
-    raise NotImplementedError("Cannot set the unit of a Quantity object directly,"
+    raise NotImplementedError("Cannot set the dimension of a Quantity object directly,"
                               "Please create a new Quantity object with the value you want.")
 
   @staticmethod
@@ -1085,7 +1097,7 @@ class Quantity(object):
       dimensions = args[0]
     else:
       dimensions = get_or_create_dimension(*args, **keywords)
-    return Quantity(value, unit=dimensions)
+    return Quantity(value, dim=dimensions)
 
   @property
   def is_unitless(self) -> bool:
@@ -1095,7 +1107,7 @@ class Quantity(object):
     Returns:
       bool: True if the array does not have unit.
     """
-    return self.unit.is_unitless
+    return self.dim.is_unitless
 
   def has_same_unit(self, other):
     """
@@ -1113,8 +1125,8 @@ class Quantity(object):
     """
     if not _unit_checking:
       return True
-    other_unit = get_unit(other.unit)
-    return (get_unit(self.unit) is other_unit) or (get_unit(self.unit) == other_unit)
+    other_unit = get_unit(other.dim)
+    return (get_unit(self.dim) is other_unit) or (get_unit(self.dim) == other_unit)
 
   def get_best_unit(self, *regs) -> 'Quantity':
     """
@@ -1139,7 +1151,7 @@ class Quantity(object):
           return r[self]
         except KeyError:
           pass
-      return Quantity(1, unit=self.unit)
+      return Quantity(1, dim=self.dim)
     else:
       return self.get_best_unit(standard_unit_register, user_unit_register, additional_unit_register)
 
@@ -1207,9 +1219,9 @@ class Quantity(object):
           s += f" {str(u)}"
       else:
         if python_code:
-          s += f" * {repr(u.unit)}"
+          s += f" * {repr(u.dim)}"
         else:
-          s += f" {str(u.unit)}"
+          s += f" {str(u.dim)}"
     elif python_code:  # Make a array without unit recognisable
       return f"{self.__class__.__name__}({s.strip()})"
     return s.strip()
@@ -1275,11 +1287,11 @@ class Quantity(object):
 
   @property
   def imag(self) -> 'Quantity':
-    return Quantity(jnp.imag(self.value), unit=self.unit)
+    return Quantity(jnp.imag(self.value), dim=self.dim)
 
   @property
   def real(self) -> 'Quantity':
-    return Quantity(jnp.real(self.value), unit=self.unit)
+    return Quantity(jnp.real(self.value), dim=self.dim)
 
   @property
   def size(self) -> int:
@@ -1287,7 +1299,7 @@ class Quantity(object):
 
   @property
   def T(self) -> 'Quantity':
-    return Quantity(self.value.T, unit=self.unit)
+    return Quantity(self.value.T, dim=self.dim)
 
   @property
   def isreal(self) -> jax.Array:
@@ -1343,17 +1355,17 @@ class Quantity(object):
       yield self
     else:
       for i in range(self.shape[0]):
-        yield Quantity(self.value[i], unit=self.unit)
+        yield Quantity(self.value[i], dim=self.dim)
 
   def __getitem__(self, index) -> 'Quantity':
     if isinstance(index, slice) and (index == _all_slice):
-      return Quantity(self.value, unit=self.unit)
+      return Quantity(self.value, dim=self.dim)
     elif isinstance(index, tuple):
       for x in index:
         assert not isinstance(x, Quantity), "Array indices must be integers or slices, not Array"
     elif isinstance(index, Quantity):
       raise TypeError("Array indices must be integers or slices, not Array")
-    return Quantity(self.value[index], unit=self.unit)
+    return Quantity(self.value[index], dim=self.dim)
 
   def __setitem__(self, index, value: 'Quantity'):
     if not isinstance(value, Quantity):
@@ -1381,16 +1393,16 @@ class Quantity(object):
     return len(self.value)
 
   def __neg__(self) -> 'Quantity':
-    return Quantity(self.value.__neg__(), unit=self.unit)
+    return Quantity(self.value.__neg__(), dim=self.dim)
 
   def __pos__(self) -> 'Quantity':
-    return Quantity(self.value.__pos__(), unit=self.unit)
+    return Quantity(self.value.__pos__(), dim=self.dim)
 
   def __abs__(self) -> 'Quantity':
-    return Quantity(self.value.__abs__(), unit=self.unit)
+    return Quantity(self.value.__abs__(), dim=self.dim)
 
   def __invert__(self) -> 'Quantity':
-    return Quantity(self.value.__invert__(), unit=self.unit)
+    return Quantity(self.value.__invert__(), dim=self.dim)
 
   def _comparison(self, other: Any, operator_str: str, operation: Callable):
     is_scalar = is_scalar_type(other)
@@ -1455,22 +1467,22 @@ class Quantity(object):
         Whether to do the operation in-place (defaults to ``False``).
     """
     other = _to_quantity(other)
-    other_unit = None
+    other_dim = None
 
     if fail_for_mismatch:
       if inplace:
         message = "Cannot calculate ... %s {value}, units do not match" % operator_str
-        _, other_unit = fail_for_dimension_mismatch(self, other, message, value=other)
+        _, other_dim = fail_for_dimension_mismatch(self, other, message, value=other)
       else:
         message = "Cannot calculate {value1} %s {value2}, units do not match" % operator_str
-        _, other_unit = fail_for_dimension_mismatch(self, other, message, value1=self, value2=other)
+        _, other_dim = fail_for_dimension_mismatch(self, other, message, value1=self, value2=other)
 
-    if other_unit is None:
-      other_unit = get_unit(other)
+    if other_dim is None:
+      other_dim = get_unit(other)
 
-    new_unit = unit_operation(self.unit, other_unit)
+    new_dim = unit_operation(self.dim, other_dim)
     result = value_operation(self.value, other.value)
-    r = Quantity(result, unit=new_unit)
+    r = Quantity(result, dim=new_dim)
     if inplace:
       self.update_value(r.value)
       return self
@@ -1605,7 +1617,7 @@ class Quantity(object):
       )
       if isinstance(oc, Quantity):
         oc = oc.value
-      r = Quantity(jnp.array(self.value) ** oc, unit=self.unit ** oc)
+      r = Quantity(jnp.array(self.value) ** oc, dim=self.dim ** oc)
       return _return_check_unitless(r)
     else:
       return TypeError('Cannot calculate {base} ** {exponent}, the '
@@ -1621,7 +1633,7 @@ class Quantity(object):
     else:
       raise DimensionMismatchError(f"Cannot calculate {_short_str(oc)} ** {_short_str(self)}, "
                                    f"the base has to be dimensionless",
-                                   self.unit)
+                                   self.dim)
 
   def __ipow__(self, oc):
     # a **= b
@@ -1669,13 +1681,13 @@ class Quantity(object):
     # self << oc
     if is_scalar_type(oc) and isinstance(oc, Quantity):
       oc = oc.value
-    r = Quantity(self.value << oc, unit=self.unit)
+    r = Quantity(self.value << oc, dim=self.dim)
     return _return_check_unitless(r)
 
   def __rlshift__(self, oc) -> 'Quantity':
     # oc << self
     if isinstance(oc, (jax.Array, np.ndarray, numbers.Number)):
-      oc = Quantity(oc, unit=DIMENSIONLESS)
+      oc = Quantity(oc, dim=DIMENSIONLESS)
     r = oc.__lshift__(self.value)
     return _return_check_unitless(r)
 
@@ -1689,13 +1701,13 @@ class Quantity(object):
     # self >> oc
     if isinstance(oc, Quantity):
       oc = oc.value
-    r = Quantity(self.value >> oc, unit=self.unit)
+    r = Quantity(self.value >> oc, dim=self.dim)
     return _return_check_unitless(r)
 
   def __rrshift__(self, oc) -> 'Quantity':
     # oc >> self
     if isinstance(oc, (jax.Array, np.ndarray, numbers.Number)):
-      oc = Quantity(oc, unit=DIMENSIONLESS)
+      oc = Quantity(oc, dim=DIMENSIONLESS)
     r = oc.__rshift__(self.value)
     return _return_check_unitless(r)
 
@@ -1706,10 +1718,10 @@ class Quantity(object):
     return self
 
   def __round__(self, ndigits: int = None) -> 'Quantity':
-    return Quantity(self.value.__round__(ndigits), unit=self.unit)
+    return Quantity(self.value.__round__(ndigits), dim=self.dim)
 
   def __reduce__(self):
-    return array_with_unit, (self.value, self.unit, self.value.dtype)
+    return array_with_unit, (self.value, self.dim, self.value.dtype)
 
   # ----------------------- #
   #      NumPy methods      #
@@ -1745,9 +1757,9 @@ class Quantity(object):
       Typecode or data-type to which the array is cast.
     """
     if dtype is None:
-      return Quantity(self.value, unit=self.unit)
+      return Quantity(self.value, dim=self.dim)
     else:
-      return Quantity(self.value.astype(dtype), unit=self.unit)
+      return Quantity(self.value.astype(dtype), dim=self.dim)
 
   def clip(self, min: Quantity = None, max: Quantity = None, *args, **kwds) -> 'Quantity':
     """Return an array whose values are limited to [min, max]. One of max or min must be given."""
@@ -1762,20 +1774,20 @@ class Quantity(object):
         *args,
         **kwds,
       ),
-      unit=self.unit,
+      dim=self.dim,
     )
 
   def conj(self) -> 'Quantity':
     """Complex-conjugate all elements."""
-    return Quantity(jnp.conj(self.value), unit=self.unit)
+    return Quantity(jnp.conj(self.value), dim=self.dim)
 
   def conjugate(self) -> 'Quantity':
     """Return the complex conjugate, element-wise."""
-    return Quantity(jnp.conjugate(self.value), unit=self.unit)
+    return Quantity(jnp.conjugate(self.value), dim=self.dim)
 
   def copy(self) -> 'Quantity':
     """Return a copy of the array."""
-    return Quantity(jnp.copy(self.value), unit=self.unit)
+    return Quantity(jnp.copy(self.value), dim=self.dim)
 
   def dot(self, b) -> 'Quantity':
     """Dot product of two arrays."""
@@ -1789,15 +1801,15 @@ class Quantity(object):
     return self
 
   def flatten(self) -> 'Quantity':
-    return Quantity(jnp.reshape(self.value, -1), unit=self.unit)
+    return Quantity(jnp.reshape(self.value, -1), dim=self.dim)
 
   def item(self, *args) -> 'Quantity':
     """Copy an element of an array to a standard Python scalar and return it."""
     with allow_python_scalar():
       if isinstance(self.value, jax.Array):
-        return Quantity(self.value.item(*args), unit=self.unit)
+        return Quantity(self.value.item(*args), dim=self.dim)
       else:
-        return Quantity(self.value, unit=self.unit)
+        return Quantity(self.value, dim=self.dim)
 
   def prod(self, *args, **kwds) -> 'Quantity':
     """Return the product of the array elements over the given axis."""
@@ -1815,7 +1827,7 @@ class Quantity(object):
     # identical
     if dim_exponent.size > 1:
       dim_exponent = dim_exponent[-1]
-    r = Quantity(jnp.array(prod_res), unit=self.unit ** dim_exponent)
+    r = Quantity(jnp.array(prod_res), dim=self.dim ** dim_exponent)
     return _return_check_unitless(r)
 
   def nanprod(self, *args, **kwds) -> 'Quantity':
@@ -1825,7 +1837,7 @@ class Quantity(object):
     dim_exponent = jnp.cumsum(jnp.where(nan_mask, 0, 1), *args)
     if dim_exponent.size > 1:
       dim_exponent = dim_exponent[-1]
-    r = Quantity(jnp.array(prod_res), unit=self.unit ** dim_exponent)
+    r = Quantity(jnp.array(prod_res), dim=self.dim ** dim_exponent)
     return _return_check_unitless(r)
 
   def cumprod(self, *args, **kwds):  # pylint: disable=C0111
@@ -1833,7 +1845,7 @@ class Quantity(object):
     dim_exponent = jnp.ones_like(self.value).cumsum(*args, **kwds)
     if dim_exponent.size > 1:
       dim_exponent = dim_exponent[-1]
-    r = Quantity(jnp.array(prod_res), unit=self.unit ** dim_exponent)
+    r = Quantity(jnp.array(prod_res), dim=self.dim ** dim_exponent)
     return _return_check_unitless(r)
 
   def nancumprod(self, *args, **kwds):  # pylint: disable=C0111
@@ -1842,7 +1854,7 @@ class Quantity(object):
     dim_exponent = jnp.cumsum(jnp.where(nan_mask, 0, 1), *args)
     if dim_exponent.size > 1:
       dim_exponent = dim_exponent[-1]
-    r = Quantity(jnp.array(prod_res), unit=self.unit ** dim_exponent)
+    r = Quantity(jnp.array(prod_res), dim=self.dim ** dim_exponent)
     return _return_check_unitless(r)
 
   def put(self, indices, values) -> 'Quantity':
@@ -1862,11 +1874,11 @@ class Quantity(object):
   def repeat(self, repeats, axis=None) -> 'Quantity':
     """Repeat elements of an array."""
     r = jnp.repeat(self.value, repeats=repeats, axis=axis)
-    return Quantity(r, unit=self.unit)
+    return Quantity(r, dim=self.dim)
 
   def reshape(self, *shape, order='C') -> 'Quantity':
     """Returns an array containing the same data with a new shape."""
-    return Quantity(jnp.reshape(self.value, shape, order=order), unit=self.unit)
+    return Quantity(jnp.reshape(self.value, shape, order=order), dim=self.dim)
 
   def resize(self, new_shape) -> 'Quantity':
     """Change shape and size of array in-place."""
@@ -1895,11 +1907,11 @@ class Quantity(object):
 
   def squeeze(self, axis=None) -> 'Quantity':
     """Remove axes of length one from ``a``."""
-    return Quantity(jnp.squeeze(self.value, axis=axis), unit=self.unit)
+    return Quantity(jnp.squeeze(self.value, axis=axis), dim=self.dim)
 
   def swapaxes(self, axis1, axis2) -> 'Quantity':
     """Return a view of the array with `axis1` and `axis2` interchanged."""
-    return Quantity(jnp.swapaxes(self.value, axis1, axis2), unit=self.unit)
+    return Quantity(jnp.swapaxes(self.value, axis1, axis2), dim=self.dim)
 
   def split(self, indices_or_sections, axis=0) -> List['Quantity']:
     """Split an array into multiple sub-arrays as views into ``ary``.
@@ -1929,11 +1941,11 @@ class Quantity(object):
     sub-arrays : list of ndarrays
       A list of sub-arrays as views into `ary`.
     """
-    return [Quantity(a, unit=self.unit) for a in jnp.split(self.value, indices_or_sections, axis=axis)]
+    return [Quantity(a, dim=self.dim) for a in jnp.split(self.value, indices_or_sections, axis=axis)]
 
   def take(self, indices, axis=None, mode=None) -> 'Quantity':
     """Return an array formed from the elements of a at the given indices."""
-    return Quantity(jnp.take(self.value, indices=indices, axis=axis, mode=mode), unit=self.unit)
+    return Quantity(jnp.take(self.value, indices=indices, axis=axis, mode=mode), dim=self.dim)
 
   def tolist(self):
     """Return the array as an ``a.ndim``-levels deep nested list of Python scalars.
@@ -1953,7 +1965,7 @@ class Quantity(object):
       """
       # No recursion needed for single values
       if not isinstance(seq, list):
-        return Quantity(seq, unit=unit)
+        return Quantity(seq, dim=unit)
 
       def top_replace(s):
         """
@@ -1961,17 +1973,17 @@ class Quantity(object):
         """
         for i in s:
           if not isinstance(i, list):
-            yield Quantity(i, unit=unit)
+            yield Quantity(i, dim=unit)
           else:
             yield type(i)(top_replace(i))
 
       return type(seq)(top_replace(seq))
 
     if isinstance(self.value, jax.Array):
-      return replace_with_array(self.value.tolist(), self.unit)
+      return replace_with_array(self.value.tolist(), self.dim)
     else:
       with allow_python_scalar():
-        return Quantity(self.value, unit=self.unit)
+        return Quantity(self.value, dim=self.dim)
 
   def transpose(self, *axes) -> 'Quantity':
     """Returns a view of the array with axes transposed.
@@ -2003,7 +2015,7 @@ class Quantity(object):
     out : ndarray
         View of `a`, with axes suitably permuted.
     """
-    return Quantity(jnp.transpose(self.value, *axes), unit=self.unit)
+    return Quantity(jnp.transpose(self.value, *axes), dim=self.dim)
 
   def tile(self, reps) -> 'Quantity':
     """Construct an array by repeating A the number of times given by reps.
@@ -2034,7 +2046,7 @@ class Quantity(object):
     c : ndarray
         The tiled output array.
     """
-    return Quantity(jnp.tile(self.value, reps), unit=self.unit)
+    return Quantity(jnp.tile(self.value, reps), dim=self.dim)
 
   def view(self, *args, dtype=None) -> 'Quantity':
     r"""New view of array with the same data.
@@ -2177,18 +2189,18 @@ class Quantity(object):
         if dtype is None:
           raise ValueError('Provide dtype or shape.')
         else:
-          return Quantity(self.value.view(dtype), unit=self.unit)
+          return Quantity(self.value.view(dtype), dim=self.dim)
       else:
         if isinstance(args[0], int):  # shape
           if dtype is not None:
             raise ValueError('Provide one of dtype or shape. Not both.')
-          return Quantity(self.value.reshape(*args), unit=self.unit)
+          return Quantity(self.value.reshape(*args), dim=self.dim)
         else:  # dtype
           assert not isinstance(args[0], int)
           assert dtype is None
-          return Quantity(self.value.view(args[0]), unit=self.unit)
+          return Quantity(self.value.view(args[0]), dim=self.dim)
     else:
-      return Quantity(jnp.asarray(self.value, dtype=dtype), unit=self.unit)
+      return Quantity(jnp.asarray(self.value, dtype=dtype), dim=self.dim)
 
   # ------------------
   # NumPy support
@@ -2227,7 +2239,7 @@ class Quantity(object):
 
     See :func:`brainstate.math.unsqueeze`
     """
-    return Quantity(jnp.expand_dims(self.value, dim), unit=self.unit)
+    return Quantity(jnp.expand_dims(self.value, dim), dim=self.dim)
 
   def expand_dims(self, axis: Union[int, Sequence[int]]) -> 'Quantity':
     """
@@ -2259,7 +2271,7 @@ class Quantity(object):
     self.expand_dims(axis)==self.expand_dims(axis[0]).expand_dims(axis[1])... expand_dims(axis[len(axis)-1])
 
     """
-    return Quantity(jnp.expand_dims(self.value, axis), unit=self.unit)
+    return Quantity(jnp.expand_dims(self.value, axis), dim=self.dim)
 
   def expand_as(self, array: Union['Quantity', jax.Array, np.ndarray]) -> 'Quantity':
     """
@@ -2278,7 +2290,7 @@ class Quantity(object):
     """
     if isinstance(array, Quantity):
       array = array.value
-    return Quantity(jnp.broadcast_to(self.value, array), unit=self.unit)
+    return Quantity(jnp.broadcast_to(self.value, array), dim=self.dim)
 
   def pow(self, oc) -> 'Quantity':
     return self.__pow__(oc)
@@ -2299,30 +2311,30 @@ class Quantity(object):
     if isinstance(self.value, jax.Array):
       return self.copy()
     with allow_python_scalar():
-      return type(self)(self.value, unit=self.unit)
+      return type(self)(self.value, dim=self.dim)
 
   def tree_flatten(self) -> Tuple[jax.Array | numbers.Number, Any]:
     """
     Tree flattens the data.
 
     Returns:
-      The data and the unit.
+      The data and the dimension.
     """
-    return self.value, self.unit
+    return (self.value,), self.dim
 
   @classmethod
-  def tree_unflatten(cls, unit, value) -> 'Quantity':
+  def tree_unflatten(cls, dim, value) -> 'Quantity':
     """
     Tree unflattens the data.
 
     Args:
-      unit: The unit.
+      dim: The dimension.
       value: The data.
 
     Returns:
       The Quantity object.
     """
-    return cls(value, unit=unit)
+    return cls(*value, dim=dim)
 
   def cuda(self, deice=None) -> 'Quantity':
     deice = jax.devices('cuda')[0] if deice is None else deice
@@ -2338,19 +2350,19 @@ class Quantity(object):
   # ---------------- #
 
   def int(self) -> 'Quantity':
-    return Quantity(jnp.asarray(self.value, dtype=jnp.int32), unit=self.unit)
+    return Quantity(jnp.asarray(self.value, dtype=jnp.int32), dim=self.dim)
 
   def long(self) -> 'Quantity':
-    return Quantity(jnp.asarray(self.value, dtype=jnp.int64), unit=self.unit)
+    return Quantity(jnp.asarray(self.value, dtype=jnp.int64), dim=self.dim)
 
   def half(self) -> 'Quantity':
-    return Quantity(jnp.asarray(self.value, dtype=jnp.float16), unit=self.unit)
+    return Quantity(jnp.asarray(self.value, dtype=jnp.float16), dim=self.dim)
 
   def float(self) -> 'Quantity':
-    return Quantity(jnp.asarray(self.value, dtype=jnp.float32), unit=self.unit)
+    return Quantity(jnp.asarray(self.value, dtype=jnp.float32), dim=self.dim)
 
   def double(self) -> 'Quantity':
-    return Quantity(jnp.asarray(self.value, dtype=jnp.float64), unit=self.unit)
+    return Quantity(jnp.asarray(self.value, dtype=jnp.float64), dim=self.dim)
 
 
 class Unit(Quantity):
@@ -2454,15 +2466,15 @@ class Unit(Quantity):
   def __init__(
       self,
       value,
-      unit: Dimension = None,
+      dim: Dimension = None,
       scale: int = 0,
       name: str = None,
       dispname: str = None,
       iscompound: bool = None,
       dtype: bst.typing.DTypeLike = None,
   ):
-    if unit is None:
-      unit = DIMENSIONLESS
+    if dim is None:
+      dim = DIMENSIONLESS
     if value != 10.0 ** scale:
       raise AssertionError(f"Unit value has to be 10**scale (scale={scale}, value={value})")
 
@@ -2470,10 +2482,10 @@ class Unit(Quantity):
     # a scale of 3 means 10^3, for a "k" prefix.
     self.scale = scale
     if name is None:
-      if unit is DIMENSIONLESS:
+      if dim is DIMENSIONLESS:
         name = "Unit(1)"
       else:
-        name = repr(unit)
+        name = repr(dim)
     # The full name of this unit
     self._name = name
     # The display name of this unit
@@ -2483,7 +2495,7 @@ class Unit(Quantity):
     # Whether this unit is a combination of other units
     self.iscompound = iscompound
 
-    super().__init__(value, dtype=dtype, unit=unit)
+    super().__init__(value, dtype=dtype, dim=dim)
 
     if _automatically_register_units:
       register_new_unit(self)
@@ -2515,7 +2527,7 @@ class Unit(Quantity):
 
     u = Unit(
       10.0 ** scale,
-      unit=unit,
+      dim=unit,
       scale=scale,
       name=name,
       dispname=dispname,
@@ -2547,7 +2559,7 @@ class Unit(Quantity):
 
     u = Unit(
       10.0 ** scale,
-      unit=baseunit.unit,
+      dim=baseunit.dim,
       name=name,
       dispname=dispname,
       scale=scale,
@@ -2572,7 +2584,7 @@ class Unit(Quantity):
       scale = self.scale + other.scale
       u = Unit(
         10.0 ** scale,
-        unit=self.unit * other.unit,
+        dim=self.dim * other.dim,
         name=name,
         dispname=dispname,
         iscompound=True,
@@ -2602,7 +2614,7 @@ class Unit(Quantity):
       scale = self.scale - other.scale
       u = Unit(
         10.0 ** scale,
-        unit=self.unit / other.unit,
+        dim=self.dim / other.dim,
         name=name,
         dispname=dispname,
         scale=scale,
@@ -2621,7 +2633,7 @@ class Unit(Quantity):
         name = f"({self.name})"
       u = Unit(
         self.value,
-        unit=self.unit ** -1,
+        dim=self.dim ** -1,
         name=f"1 / {name}",
         dispname=f"1 / {dispname}",
         scale=-self.scale,
@@ -2644,7 +2656,7 @@ class Unit(Quantity):
       scale = self.scale * other
       u = Unit(
         10.0 ** scale,
-        unit=self.unit ** other,
+        dim=self.dim ** other,
         name=name,
         dispname=dispname,
         scale=scale,
@@ -2680,7 +2692,7 @@ class Unit(Quantity):
 
   def __eq__(self, other):
     if isinstance(other, Unit):
-      return other.unit is self.unit and other.scale == self.scale
+      return other.dim is self.dim and other.scale == self.scale
     else:
       return Quantity.__eq__(self, other)
 
@@ -2688,7 +2700,7 @@ class Unit(Quantity):
     return not self.__eq__(other)
 
   def __hash__(self):
-    return hash((self.unit, self.scale))
+    return hash((self.dim, self.scale))
 
 
 class UnitRegistry:
@@ -2724,7 +2736,7 @@ class UnitRegistry:
   def add(self, u):
     """Add a unit to the registry"""
     self.units[repr(u)] = u
-    self.units_for_dimensions[u.unit][float(u)] = u
+    self.units_for_dimensions[u.dim][float(u)] = u
 
   def __getitem__(self, x):
     """Returns the best unit for array x
@@ -2738,7 +2750,7 @@ class UnitRegistry:
     unit where the deviations from that are the smallest. More precisely,
     the unit that minimizes the sum of (log10(m)-1)**2 over all entries).
     """
-    matching = self.units_for_dimensions.get(x.unit, {})
+    matching = self.units_for_dimensions.get(x.dim, {})
     if len(matching) == 0:
       raise KeyError("Unit not found in registry.")
 
@@ -2824,7 +2836,7 @@ def get_basic_unit(d):
   ]:
     if 1.0 in unit_register.units_for_dimensions[d]:
       return unit_register.units_for_dimensions[d][1.0]
-  return Unit(1.0, unit=d)
+  return Unit(1.0, dim=d)
 
 
 def check_units(**au):

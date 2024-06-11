@@ -32,7 +32,7 @@ bst.environ.set(precision=64)
 def assert_quantity(q, values, unit):
   values = jnp.asarray(values)
   if isinstance(q, Quantity):
-    assert q.unit == unit.unit, f"Unit mismatch: {q.unit} != {unit}"
+    assert q.unit == unit.dim, f"Unit mismatch: {q.unit} != {unit}"
     assert jnp.allclose(q.value, values), f"Values do not match: {q.value} != {values}"
   else:
     assert jnp.allclose(q, values), f"Values do not match: {q} != {values}"
