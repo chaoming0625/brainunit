@@ -436,18 +436,18 @@ def asarray(
   from builtins import all as origin_all
   from builtins import any as origin_any
   if isinstance(a, Quantity):
-    return Quantity(jnp.asarray(a.value, dtype=dtype, order=order), unit=a.unit)
+    return Quantity(jnp.asarray(a.value, dtype=dtype, order=order), dim=a.dim)
   elif isinstance(a, (jax.Array, np.ndarray)):
     return jnp.asarray(a, dtype=dtype, order=order)
   # list[Quantity]
   elif isinstance(a, Sequence) and origin_all(isinstance(x, Quantity) for x in a):
     # check all elements have the same unit
-    if origin_any(x.unit != a[0].unit for x in a):
+    if origin_any(x.dim != a[0].dim for x in a):
       raise ValueError('Units do not match for asarray operation.')
     values = [x.value for x in a]
-    unit = a[0].unit
+    unit = a[0].dim
     # Convert the values to a jnp.ndarray and create a Quantity object
-    return Quantity(jnp.asarray(values, dtype=dtype, order=order), unit=unit)
+    return Quantity(jnp.asarray(values, dtype=dtype, order=order), dim=unit)
   else:
     return jnp.asarray(a, dtype=dtype, order=order)
 
@@ -501,7 +501,7 @@ def arange(*args, **kwargs):
   if stop is None:
     raise TypeError("Missing stop argument.")
   if stop is not None and not is_unitless(stop):
-    start = Quantity(start, unit=stop.unit)
+    start = Quantity(start, dim=stop.dim)
 
   fail_for_dimension_mismatch(
     start,
@@ -533,7 +533,7 @@ def arange(*args, **kwargs):
         step=step.value if isinstance(step, Quantity) else jnp.asarray(step),
         **kwargs,
       ),
-      unit=unit,
+      dim=unit,
     )
   else:
     return Quantity(
@@ -543,7 +543,7 @@ def arange(*args, **kwargs):
         step=step.value if isinstance(step, Quantity) else jnp.asarray(step),
         **kwargs,
       ),
-      unit=unit,
+      dim=unit,
     )
 
 
@@ -575,12 +575,12 @@ def linspace(start: Union[Quantity, bst.typing.ArrayLike],
     start=start,
     stop=stop,
   )
-  unit = getattr(start, "unit", DIMENSIONLESS)
+  unit = getattr(start, "dim", DIMENSIONLESS)
   start = start.value if isinstance(start, Quantity) else start
   stop = stop.value if isinstance(stop, Quantity) else stop
 
   result = jnp.linspace(start, stop, num=num, endpoint=endpoint, retstep=retstep, dtype=dtype)
-  return Quantity(result, unit=unit)
+  return Quantity(result, dim=unit)
 
 
 @set_module_as('brainunit.math')
@@ -611,12 +611,12 @@ def logspace(start: Union[Quantity, bst.typing.ArrayLike],
     start=start,
     stop=stop,
   )
-  unit = getattr(start, "unit", DIMENSIONLESS)
+  unit = getattr(start, "dim", DIMENSIONLESS)
   start = start.value if isinstance(start, Quantity) else start
   stop = stop.value if isinstance(stop, Quantity) else stop
 
   result = jnp.logspace(start, stop, num=num, endpoint=endpoint, base=base, dtype=dtype)
-  return Quantity(result, unit=unit)
+  return Quantity(result, dim=unit)
 
 
 @set_module_as('brainunit.math')
@@ -638,7 +638,7 @@ def fill_diagonal(a: Union[Quantity, bst.typing.ArrayLike],
   '''
   if isinstance(a, Quantity) and isinstance(val, Quantity):
     fail_for_dimension_mismatch(a, val)
-    return Quantity(jnp.fill_diagonal(a.value, val.value, wrap=wrap, inplace=inplace), unit=a.unit)
+    return Quantity(jnp.fill_diagonal(a.value, val.value, wrap=wrap, inplace=inplace), dim=a.dim)
   elif isinstance(a, (jax.Array, np.ndarray)) and isinstance(val, (jax.Array, np.ndarray)):
     return jnp.fill_diagonal(a, val, wrap=wrap, inplace=inplace)
   elif is_unitless(a) or is_unitless(val):
@@ -663,7 +663,7 @@ def array_split(ary: Union[Quantity, bst.typing.ArrayLike],
     Union[jax.Array, Quantity]: Quantity if `ary` is a Quantity, else an array.
   '''
   if isinstance(ary, Quantity):
-    return [Quantity(x, unit=ary.unit) for x in jnp.array_split(ary.value, indices_or_sections, axis)]
+    return [Quantity(x, dim=ary.dim) for x in jnp.array_split(ary.value, indices_or_sections, axis)]
   elif isinstance(ary, bst.typing.ArrayLike):
     return jnp.array_split(ary, indices_or_sections, axis)
   else:
@@ -690,7 +690,7 @@ def meshgrid(*xi: Union[Quantity, bst.typing.ArrayLike],
   from builtins import all as origin_all
   if origin_all(isinstance(x, Quantity) for x in xi):
     fail_for_dimension_mismatch(*xi)
-    return Quantity(jnp.meshgrid(*[x.value for x in xi], copy=copy, sparse=sparse, indexing=indexing), unit=xi[0].unit)
+    return Quantity(jnp.meshgrid(*[x.value for x in xi], copy=copy, sparse=sparse, indexing=indexing), dim=xi[0].dim)
   elif origin_all(isinstance(x, (jax.Array, np.ndarray)) for x in xi):
     return jnp.meshgrid(*xi, copy=copy, sparse=sparse, indexing=indexing)
   else:
@@ -713,7 +713,7 @@ def vander(x: Union[Quantity, bst.typing.ArrayLike],
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
   '''
   if isinstance(x, Quantity):
-    return Quantity(jnp.vander(x.value, N=N, increasing=increasing), unit=x.unit)
+    return Quantity(jnp.vander(x.value, N=N, increasing=increasing), dim=x.dim)
   elif isinstance(x, (jax.Array, np.ndarray)):
     return jnp.vander(x, N=N, increasing=increasing)
   else:

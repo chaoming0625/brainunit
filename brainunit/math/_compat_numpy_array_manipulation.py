@@ -777,7 +777,7 @@ def wrap_function_to_method(func):
   @wraps(func)
   def f(x, *args, **kwargs):
     if isinstance(x, Quantity):
-      return Quantity(func(x.value, *args, **kwargs), unit=x.unit)
+      return Quantity(func(x.value, *args, **kwargs), dim=x.dim)
     else:
       return func(x, *args, **kwargs)
 

@@ -38,17 +38,17 @@ def wrap_math_funcs_match_unit_binary(func):
   def f(x, y, *args, **kwargs):
     if isinstance(x, Quantity) and isinstance(y, Quantity):
       fail_for_dimension_mismatch(x, y)
-      return Quantity(func(x.value, y.value, *args, **kwargs), unit=x.unit)
+      return Quantity(func(x.value, y.value, *args, **kwargs), dim=x.dim)
     elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
       return func(x, y, *args, **kwargs)
     elif isinstance(x, Quantity):
       if x.is_unitless:
-        return Quantity(func(x.value, y, *args, **kwargs), unit=x.unit)
+        return Quantity(func(x.value, y, *args, **kwargs), dim=x.dim)
       else:
         raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
     elif isinstance(y, Quantity):
       if y.is_unitless:
-        return Quantity(func(x, y.value, *args, **kwargs), unit=y.unit)
+        return Quantity(func(x, y.value, *args, **kwargs), dim=y.dim)
       else:
         raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
     else:

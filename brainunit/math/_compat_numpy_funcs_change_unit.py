@@ -49,7 +49,7 @@ def wrap_math_funcs_change_unit_unary(change_unit_func: Callable) -> Callable:
     @wraps(func)
     def f(x, *args, **kwargs):
       if isinstance(x, Quantity):
-        return _return_check_unitless(Quantity(func(x.value, *args, **kwargs), unit=change_unit_func(x.unit)))
+        return _return_check_unitless(Quantity(func(x.value, *args, **kwargs), dtype=change_unit_func(x.dim)))
       elif isinstance(x, (jnp.ndarray, np.ndarray)):
         return func(x, *args, **kwargs)
       else:
@@ -298,16 +298,16 @@ def wrap_math_funcs_change_unit_binary(change_unit_func):
     def f(x, y, *args, **kwargs):
       if isinstance(x, Quantity) and isinstance(y, Quantity):
         return _return_check_unitless(
-          Quantity(func(x.value, y.value, *args, **kwargs), unit=change_unit_func(x.unit, y.unit))
+          Quantity(func(x.value, y.value, *args, **kwargs), dim=change_unit_func(x.dim, y.dim))
         )
       elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
         return func(x, y, *args, **kwargs)
       elif isinstance(x, Quantity):
         return _return_check_unitless(
-          Quantity(func(x.value, y, *args, **kwargs), unit=change_unit_func(x.unit, DIMENSIONLESS)))
+          Quantity(func(x.value, y, *args, **kwargs), dim=change_unit_func(x.dim, DIMENSIONLESS)))
       elif isinstance(y, Quantity):
         return _return_check_unitless(
-          Quantity(func(x, y.value, *args, **kwargs), unit=change_unit_func(DIMENSIONLESS, y.unit)))
+          Quantity(func(x, y.value, *args, **kwargs), dim=change_unit_func(DIMENSIONLESS, y.dim)))
       else:
         raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
 
@@ -443,13 +443,13 @@ def power(x: Union[Quantity, bst.typing.ArrayLike],
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
   '''
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.power(x.value, y.value), unit=x.unit ** y.unit))
+    return _return_check_unitless(Quantity(jnp.power(x.value, y.value), dim=x.dim ** y.dim))
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
     return jnp.power(x, y)
   elif isinstance(x, Quantity):
-    return _return_check_unitless(Quantity(jnp.power(x.value, y), unit=x.unit ** y))
+    return _return_check_unitless(Quantity(jnp.power(x.value, y), dim=x.dim ** y))
   elif isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.power(x, y.value), unit=x ** y.unit))
+    return _return_check_unitless(Quantity(jnp.power(x, y.value), dim=x ** y.dim))
   else:
     raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {jnp.power.__name__}')
 
@@ -468,13 +468,13 @@ def floor_divide(x: Union[Quantity, bst.typing.ArrayLike],
     Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
   '''
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y.value), unit=x.unit / y.unit))
+    return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y.value), dim=x.dim / y.dim))
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
     return jnp.floor_divide(x, y)
   elif isinstance(x, Quantity):
-    return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y), unit=x.unit / y))
+    return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y), dim=x.dim / y))
   elif isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.floor_divide(x, y.value), unit=x / y.unit))
+    return _return_check_unitless(Quantity(jnp.floor_divide(x, y.value), dim=x / y.dim))
   else:
     raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {jnp.floor_divide.__name__}')
 
@@ -495,7 +495,7 @@ def float_power(x: Union[Quantity, bst.typing.ArrayLike],
   if isinstance(y, Quantity):
     assert isscalar(y), f'{jnp.float_power.__name__} only supports scalar exponent'
   if isinstance(x, Quantity):
-    return _return_check_unitless(Quantity(jnp.float_power(x.value, y), unit=x.unit ** y))
+    return _return_check_unitless(Quantity(jnp.float_power(x.value, y), dim=x.dim ** y))
   elif isinstance(x, (jax.Array, np.ndarray)):
     return jnp.float_power(x, y)
   else:
@@ -516,12 +516,12 @@ def remainder(x: Union[Quantity, bst.typing.ArrayLike],
     Union[jax.Array, Quantity]: Quantity if the final unit is the remainder of the unit of `x` and the unit of `y`, else an array.
   '''
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.remainder(x.value, y.value), unit=x.unit / y.unit))
+    return _return_check_unitless(Quantity(jnp.remainder(x.value, y.value), dim=x.dim / y.dim))
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
     return jnp.remainder(x, y)
   elif isinstance(x, Quantity):
-    return _return_check_unitless(Quantity(jnp.remainder(x.value, y), unit=x.unit % y))
+    return _return_check_unitless(Quantity(jnp.remainder(x.value, y), dim=x.dim % y))
   elif isinstance(y, Quantity):
-    return _return_check_unitless(Quantity(jnp.remainder(x, y.value), unit=x % y.unit))
+    return _return_check_unitless(Quantity(jnp.remainder(x, y.value), dim=x % y.dim))
   else:
     raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {jnp.remainder.__name__}')

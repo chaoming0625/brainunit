@@ -49,7 +49,7 @@ def wrap_math_funcs_keep_unit_unary(func):
   @wraps(func)
   def f(x, *args, **kwargs):
     if isinstance(x, Quantity):
-      return Quantity(func(x.value, *args, **kwargs), unit=x.unit)
+      return Quantity(func(x.value, *args, **kwargs), dim=x.dim)
     elif isinstance(x, (jax.Array, np.ndarray)):
       return func(x, *args, **kwargs)
     else:
@@ -578,7 +578,7 @@ def wrap_math_funcs_keep_unit_binary(func):
   @wraps(func)
   def f(x1, x2, *args, **kwargs):
     if isinstance(x1, Quantity) and isinstance(x2, Quantity):
-      return Quantity(func(x1.value, x2.value, *args, **kwargs), unit=x1.unit)
+      return Quantity(func(x1.value, x2.value, *args, **kwargs), dim=x1.dim)
     elif isinstance(x1, (jax.Array, np.ndarray)) and isinstance(x2, (jax.Array, np.ndarray)):
       return func(x1, x2, *args, **kwargs)
     else:
@@ -775,7 +775,7 @@ def interp(x: Union[Quantity, bst.typing.ArrayLike],
   '''
   unit = None
   if isinstance(x, Quantity) or isinstance(xp, Quantity) or isinstance(fp, Quantity):
-    unit = x.unit if isinstance(x, Quantity) else xp.unit if isinstance(xp, Quantity) else fp.unit
+    unit = x.dim if isinstance(x, Quantity) else xp.dim if isinstance(xp, Quantity) else fp.dim
   if isinstance(x, Quantity):
     x_value = x.value
   else:
@@ -790,7 +790,7 @@ def interp(x: Union[Quantity, bst.typing.ArrayLike],
     fp_value = fp
   result = jnp.interp(x_value, xp_value, fp_value, left=left, right=right, period=period)
   if unit is not None:
-    return Quantity(result, unit=unit)
+    return Quantity(result, dim=unit)
   else:
     return result
 
@@ -812,7 +812,7 @@ def clip(a: Union[Quantity, bst.typing.ArrayLike],
   '''
   unit = None
   if isinstance(a, Quantity) or isinstance(a_min, Quantity) or isinstance(a_max, Quantity):
-    unit = a.unit if isinstance(a, Quantity) else a_min.unit if isinstance(a_min, Quantity) else a_max.unit
+    unit = a.dim if isinstance(a, Quantity) else a_min.dim if isinstance(a_min, Quantity) else a_max.dim
   if isinstance(a, Quantity):
     a_value = a.value
   else:
@@ -827,6 +827,6 @@ def clip(a: Union[Quantity, bst.typing.ArrayLike],
     a_max_value = a_max
   result = jnp.clip(a_value, a_min_value, a_max_value)
   if unit is not None:
-    return Quantity(result, unit=unit)
+    return Quantity(result, dim=unit)
   else:
     return result

@@ -46,7 +46,6 @@ from ._compat_numpy_linear_algebra import __all__ as _compat_linear_algebra_all
 from ._compat_numpy_misc import *
 from ._compat_numpy_misc import __all__ as _compat_misc_all
 
-
 __all__ = _compat_array_creation_all + \
           _compat_array_manipulation_all + \
           _compat_funcs_change_unit_all + \
@@ -63,5 +62,18 @@ __all__ = _compat_array_creation_all + \
           _compat_misc_all + _other_all + \
           _other_all
 
-del _compat_array_creation_all, _compat_array_manipulation_all, _compat_funcs_change_unit_all, _compat_funcs_keep_unit_all, _compat_funcs_accept_unitless_all, _compat_funcs_match_unit_all, _compat_funcs_remove_unit_all, _compat_get_attribute_all, _compat_funcs_bit_operation_all, _compat_funcs_logic_all, _compat_funcs_indexing_all, _compat_funcs_window_all, _compat_linear_algebra_all, _compat_misc_all, _other_all
-
+del _compat_array_creation_all, \
+  _compat_array_manipulation_all, \
+  _compat_funcs_change_unit_all, \
+  _compat_funcs_keep_unit_all, \
+  _compat_funcs_accept_unitless_all, \
+  _compat_funcs_match_unit_all, \
+  _compat_funcs_remove_unit_all, \
+  _compat_get_attribute_all, \
+  _compat_funcs_bit_operation_all, \
+  _compat_funcs_logic_all, \
+  _compat_funcs_indexing_all, \
+  _compat_funcs_window_all, \
+  _compat_linear_algebra_all, \
+  _compat_misc_all, \
+  _other_all

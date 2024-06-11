@@ -61,7 +61,7 @@ def where(condition: Union[bool, bst.typing.ArrayLike],
       # as both arguments have the same unit, just use the first one's
       dimensionless_args = [jnp.asarray(arg.value) if isinstance(arg, Quantity) else jnp.asarray(arg) for arg in args]
       return Quantity.with_units(
-        jnp.where(condition, *dimensionless_args), args[0].unit
+        jnp.where(condition, *dimensionless_args), args[0].dim
       )
   else:
     # illegal number of arguments
@@ -155,11 +155,11 @@ def select(condlist: list[Union[bst.typing.ArrayLike]],
   from builtins import all as origin_all
   from builtins import any as origin_any
   if origin_all(isinstance(choice, Quantity) for choice in choicelist):
-    if origin_any(choice.unit != choicelist[0].unit for choice in choicelist):
+    if origin_any(choice.dim != choicelist[0].dim for choice in choicelist):
       raise ValueError("All choices must have the same unit")
     else:
       return Quantity(jnp.select(condlist, [choice.value for choice in choicelist], default=default),
-                      unit=choicelist[0].unit)
+                      dim=choicelist[0].dim)
   elif origin_all(isinstance(choice, (jax.Array, np.ndarray)) for choice in choicelist):
     return jnp.select(condlist, choicelist, default=default)
   else:

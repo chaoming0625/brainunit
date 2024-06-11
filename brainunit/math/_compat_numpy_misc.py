@@ -81,9 +81,9 @@ def broadcast_arrays(*args: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quan
   from builtins import all as origin_all
   from builtins import any as origin_any
   if origin_all(isinstance(arg, Quantity) for arg in args):
-    if origin_any(arg.unit != args[0].unit for arg in args):
+    if origin_any(arg.dim != args[0].dim for arg in args):
       raise ValueError("All arguments must have the same unit")
-    return Quantity(jnp.broadcast_arrays(*[arg.value for arg in args]), unit=args[0].unit)
+    return Quantity(jnp.broadcast_arrays(*[arg.value for arg in args]), dim=args[0].dim)
   elif origin_all(isinstance(arg, (jax.Array, np.ndarray)) for arg in args):
     return jnp.broadcast_arrays(*args)
   else:
@@ -151,7 +151,7 @@ def einsum(
     if contractions[i][4] == 'False':
 
       fail_for_dimension_mismatch(
-        Quantity([], unit=unit), operands[i + 1], 'einsum'
+        Quantity([], dim=unit), operands[i + 1], 'einsum'
       )
     elif contractions[i][4] == 'DOT' or \
         contractions[i][4] == 'TDOT' or \
@@ -159,14 +159,14 @@ def einsum(
         contractions[i][4] == 'OUTER/EINSUM':
       if i == 0:
         if isinstance(operands[i], Quantity) and isinstance(operands[i + 1], Quantity):
-          unit = operands[i].unit * operands[i + 1].unit
+          unit = operands[i].dim * operands[i + 1].dim
         elif isinstance(operands[i], Quantity):
-          unit = operands[i].unit
+          unit = operands[i].dim
         elif isinstance(operands[i + 1], Quantity):
-          unit = operands[i + 1].unit
+          unit = operands[i + 1].dim
       else:
         if isinstance(operands[i + 1], Quantity):
-          unit = unit * operands[i + 1].unit
+          unit = unit * operands[i + 1].dim
 
   contractions = tuple((a, frozenset(b), c) for a, b, c, *_ in contractions)
 
@@ -177,7 +177,7 @@ def einsum(
   r = einsum(operands, contractions, precision,  # type: ignore[operator]
              preferred_element_type, _dot_general)
   if unit is not None:
-    return Quantity(r, unit=unit)
+    return Quantity(r, dim=unit)
   else:
     return r
 
@@ -206,7 +206,7 @@ def gradient(
 
   if len(varargs) == 0:
     if isinstance(f, Quantity) and not is_unitless(f):
-      return Quantity(jnp.gradient(f.value, axis=axis), unit=f.unit)
+      return Quantity(jnp.gradient(f.value, axis=axis), dim=f.dim)
     else:
       return jnp.gradient(f)
   elif len(varargs) == 1:
@@ -214,13 +214,13 @@ def gradient(
     if unit is None or unit == DIMENSIONLESS:
       return jnp.gradient(f, varargs[0], axis=axis)
     else:
-      return [Quantity(r, unit=unit) for r in jnp.gradient(f.value, varargs[0].value, axis=axis)]
+      return [Quantity(r, dim=unit) for r in jnp.gradient(f.value, varargs[0].value, axis=axis)]
   else:
     unit_list = [get_unit(f) / get_unit(v) for v in varargs]
     f = f.value if isinstance(f, Quantity) else f
     varargs = [v.value if isinstance(v, Quantity) else v for v in varargs]
     result_list = jnp.gradient(f, *varargs, axis=axis)
-    return [Quantity(r, unit=unit) if unit is not None else r for r, unit in zip(result_list, unit_list)]
+    return [Quantity(r, dim=unit) if unit is not None else r for r, unit in zip(result_list, unit_list)]
 
 
 @set_module_as('brainunit.math')
@@ -251,12 +251,12 @@ def intersect1d(
   result = jnp.intersect1d(ar1, ar2, assume_unique=assume_unique, return_indices=return_indices)
   if return_indices:
     if unit is not None:
-      return (Quantity(result[0], unit=unit), result[1], result[2])
+      return (Quantity(result[0], dim=unit), result[1], result[2])
     else:
       return result
   else:
     if unit is not None:
-      return Quantity(result, unit=unit)
+      return Quantity(result, dim=unit)
     else:
       return result
 
