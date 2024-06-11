@@ -15,8 +15,9 @@
 
 
 import functools
-from typing import Callable
+from typing import Callable, Union
 
+import jax
 from jax.tree_util import tree_map
 
 from .._base import Quantity
@@ -38,7 +39,7 @@ def _compatible_with_quantity(
   func_to_wrap = fun.__np_wrapped__ if hasattr(fun, '__np_wrapped__') else fun
 
   @functools.wraps(func_to_wrap)
-  def new_fun(*args, **kwargs):
+  def new_fun(*args, **kwargs) -> Union[list[Quantity], Quantity, jax.Array]:
     unit = None
     if isinstance(args[0], Quantity):
       unit = args[0].unit
