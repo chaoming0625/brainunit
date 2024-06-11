@@ -664,7 +664,7 @@ def array_split(ary: Union[Quantity, bst.typing.ArrayLike],
   '''
   if isinstance(ary, Quantity):
     return [Quantity(x, dim=ary.dim) for x in jnp.array_split(ary.value, indices_or_sections, axis)]
-  elif isinstance(ary, bst.typing.ArrayLike):
+  elif isinstance(ary, (jax.Array, np.ndarray)):
     return jnp.array_split(ary, indices_or_sections, axis)
   else:
     raise ValueError(f'Unsupported type: {type(ary)} for array_split')
