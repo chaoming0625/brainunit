@@ -41,15 +41,15 @@ def _compatible_with_quantity(
   def new_fun(*args, **kwargs):
     unit = None
     if isinstance(args[0], Quantity):
-      unit = args[0].unit
+      unit = args[0].dim
     elif isinstance(args[0], tuple):
       if len(args[0]) == 1:
-        unit = args[0][0].unit if isinstance(args[0][0], Quantity) else None
+        unit = args[0][0].dim if isinstance(args[0][0], Quantity) else None
       elif len(args[0]) == 2:
         # check all args[0] have the same unit
         if all(isinstance(a, Quantity) for a in args[0]):
-          if all(a.unit == args[0][0].unit for a in args[0]):
-            unit = args[0][0].unit
+          if all(a.dim == args[0][0].dim for a in args[0]):
+            unit = args[0][0].dim
           else:
             raise ValueError(f'Units do not match for {fun.__name__} operation.')
         elif all(not isinstance(a, Quantity) for a in args[0]):
@@ -81,10 +81,10 @@ def _compatible_with_quantity(
     r = fun(*args, **kwargs)
     if unit is not None:
       if isinstance(r, (list, tuple)):
-        return [Quantity(rr, unit=unit) for rr in r]
+        return [Quantity(rr, dim=unit) for rr in r]
       else:
         if out is None:
-          return Quantity(r, unit=unit)
+          return Quantity(r, dim=unit)
         else:
           out.value = r
     if out is None:

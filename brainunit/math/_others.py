@@ -13,12 +13,16 @@
 # limitations under the License.
 # ==============================================================================
 
-from ._compat_numpy import *
-from ._compat_numpy import __all__ as _compat_numpy_all
-from ._others import *
-from ._others import __all__ as _other_all
 
-__all__ = _compat_numpy_all + _other_all
+import brainstate as bst
 
-del _compat_numpy_all, _other_all
+from ._compat_numpy import wrap_math_funcs_only_accept_unitless_unary
+
+__all__ = [
+  'exprel',
+]
+
+
+exprel = wrap_math_funcs_only_accept_unitless_unary(bst.math.exprel)
+
 
