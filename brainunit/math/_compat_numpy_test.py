@@ -87,7 +87,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertTrue(jnp.all(result == 4))
 
     q = [1, 2, 3] * bu.second
-    result_q = bu.math.full_like(q, 4 * bu.second)
+    result_q = bu.math.full_like(q, 4, unit=bu.second)
     assert_quantity(result_q, jnp.full_like(jnp.array([1, 2, 3]), 4), bu.second)
 
   def test_diag(self):
@@ -97,7 +97,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.diag(array)))
 
     q = [1, 2, 3] * bu.second
-    result_q = bu.math.diag(q)
+    result_q = bu.math.diag(q, unit=bu.second)
     assert_quantity(result_q, jnp.diag(jnp.array([1, 2, 3])), bu.second)
 
   def test_tril(self):
@@ -107,7 +107,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.tril(array)))
 
     q = jnp.ones((3, 3)) * bu.second
-    result_q = bu.math.tril(q)
+    result_q = bu.math.tril(q, unit=bu.second)
     assert_quantity(result_q, jnp.tril(jnp.ones((3, 3))), bu.second)
 
   def test_triu(self):
@@ -117,7 +117,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.triu(array)))
 
     q = jnp.ones((3, 3)) * bu.second
-    result_q = bu.math.triu(q)
+    result_q = bu.math.triu(q, unit=bu.second)
     assert_quantity(result_q, jnp.triu(jnp.ones((3, 3))), bu.second)
 
   def test_empty_like(self):
@@ -1810,22 +1810,6 @@ class TestElementwiseBitOperationsUnary(unittest.TestCase):
       q = [0b1100] * bu.second
       result_q = bu.math.invert(q)
 
-  def test_left_shift(self):
-    result = bu.math.left_shift(jnp.array([0b0100]), 2)
-    self.assertTrue(jnp.all(result == jnp.left_shift(jnp.array([0b0100]), 2)))
-
-    with pytest.raises(ValueError):
-      q = [0b0100] * bu.second
-      result_q = bu.math.left_shift(q, 2)
-
-  def test_right_shift(self):
-    result = bu.math.right_shift(jnp.array([0b0100]), 2)
-    self.assertTrue(jnp.all(result == jnp.right_shift(jnp.array([0b0100]), 2)))
-
-    with pytest.raises(ValueError):
-      q = [0b0100] * bu.second
-      result_q = bu.math.right_shift(q, 2)
-
 
 class TestElementwiseBitOperationsBinary(unittest.TestCase):
 
@@ -1855,6 +1839,22 @@ class TestElementwiseBitOperationsBinary(unittest.TestCase):
       q1 = [0b1100] * bu.second
       q2 = [0b1010] * bu.second
       result_q = bu.math.bitwise_xor(q1, q2)
+
+  def test_left_shift(self):
+    result = bu.math.left_shift(jnp.array([0b1100]), 2)
+    self.assertTrue(jnp.all(result == jnp.left_shift(jnp.array([0b1100]), 2)))
+
+    with pytest.raises(ValueError):
+      q = [0b1100] * bu.second
+      result_q = bu.math.left_shift(q, 2)
+
+  def test_right_shift(self):
+    result = bu.math.right_shift(jnp.array([0b1100]), 2)
+    self.assertTrue(jnp.all(result == jnp.right_shift(jnp.array([0b1100]), 2)))
+
+    with pytest.raises(ValueError):
+      q = [0b1100] * bu.second
+      result_q = bu.math.right_shift(q, 2)
 
 
 class TestLogicFuncsUnary(unittest.TestCase):

@@ -708,7 +708,7 @@ def fill_diagonal(a: Union[Quantity, bst.typing.ArrayLike],
 @set_module_as('brainunit.math')
 def array_split(ary: Union[Quantity, bst.typing.ArrayLike],
                 indices_or_sections: Union[int, bst.typing.ArrayLike],
-                axis: Optional[int] = 0) -> list[Quantity] | list[Array]:
+                axis: Optional[int] = 0) -> Union[list[Quantity], list[Array]]:
   '''
   Split an array into multiple sub-arrays.
 
@@ -1678,7 +1678,7 @@ reciprocal.__doc__ = '''
 def prod(x: Union[Quantity, bst.typing.ArrayLike],
          axis: Optional[int] = None,
          dtype: Optional[bst.typing.DTypeLike] = None,
-         out: Optional[...] = None,
+         out: None = None,
          keepdims: Optional[bool] = False,
          initial: Union[Quantity, bst.typing.ArrayLike] = None,
          where: Union[Quantity, bst.typing.ArrayLike] = None,
@@ -1711,8 +1711,8 @@ def prod(x: Union[Quantity, bst.typing.ArrayLike],
 def nanprod(x: Union[Quantity, bst.typing.ArrayLike],
             axis: Optional[int] = None,
             dtype: Optional[bst.typing.DTypeLike] = None,
-            out: Optional[...] = None,
-            keepdims: Optional[...] = False,
+            out: None = None,
+            keepdims: None = False,
             initial: Union[Quantity, bst.typing.ArrayLike] = None,
             where: Union[Quantity, bst.typing.ArrayLike] = None):
   '''
@@ -1743,7 +1743,7 @@ product = prod
 def cumprod(x: Union[Quantity, bst.typing.ArrayLike],
             axis: Optional[int] = None,
             dtype: Optional[bst.typing.DTypeLike] = None,
-            out: Optional[...] = None) -> Union[Quantity, bst.typing.ArrayLike]:
+            out: None = None) -> Union[Quantity, bst.typing.ArrayLike]:
   '''
   Return the cumulative product of elements along a given axis.
 
@@ -1766,7 +1766,7 @@ def cumprod(x: Union[Quantity, bst.typing.ArrayLike],
 def nancumprod(x: Union[Quantity, bst.typing.ArrayLike],
                axis: Optional[int] = None,
                dtype: Optional[bst.typing.DTypeLike] = None,
-               out: Optional[...] = None) -> Union[Quantity, bst.typing.ArrayLike]:
+               out: None = None) -> Union[Quantity, bst.typing.ArrayLike]:
   '''
   Return the cumulative product of elements along a given axis treating Not a Numbers (NaNs) as one.
 
@@ -2029,9 +2029,10 @@ def float_power(x: Union[Quantity, bst.typing.ArrayLike],
   Returns:
     out: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
   '''
-  assert isscalar(y), f'{jnp.float_power.__name__} only supports scalar exponent'
+  if isinstance(y, Quantity):
+    assert isscalar(y), f'{jnp.float_power.__name__} only supports scalar exponent'
   if isinstance(x, Quantity):
-    return _return_check_unitless(Quantity(jnp.float_power(x.value, y), unit=x.unit ** y.unit))
+    return _return_check_unitless(Quantity(jnp.float_power(x.value, y), unit=x.unit ** y))
   elif isinstance(x, (jax.Array, np.ndarray)):
     return jnp.float_power(x, y)
   else:
@@ -3228,7 +3229,7 @@ def wrap_elementwise_bit_operation_binary(func):
   def f(x, y, *args, **kwargs):
     if isinstance(x, Quantity) or isinstance(y, Quantity):
       raise ValueError(f'Expected integers, got {x} and {y}')
-    elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
+    elif isinstance(x, bst.typing.ArrayLike) and isinstance(y, bst.typing.ArrayLike):
       return func(x, y, *args, **kwargs)
     else:
       raise ValueError(f'Unsupported types {type(x)} and {type(y)} for {func.__name__}')
