@@ -22,16 +22,11 @@ import operator
 from contextlib import contextmanager
 from typing import Union, Optional, Sequence, Callable, Tuple, Any, List
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
-from jax.tree_util import register_pytree_node_class
 from jax.interpreters.partial_eval import DynamicJaxprTracer
-
-from ._misc import get_dtype
-
-
+from jax.tree_util import register_pytree_node_class
 
 __all__ = [
   'Quantity',
@@ -755,7 +750,7 @@ def in_best_unit(x, precision=None):
 def array_with_unit(
     floatval,
     unit: Dimension,
-    dtype: bst.typing.DTypeLike = None
+    dtype: jax.typing.DTypeLike = None
 ) -> 'Quantity':
   """
   Create a new `Array` with the given dimensions. Calls
@@ -961,7 +956,7 @@ class Quantity(object):
   def __init__(
       self,
       value: Any,
-      dtype: Optional[bst.typing.DTypeLike] = None,
+      dtype: Optional[jax.typing.DTypeLike] = None,
       dim: Dimension = DIMENSIONLESS,
       unit: Optional['Unit'] = None,
   ):
@@ -987,17 +982,14 @@ class Quantity(object):
 
     # array value
     if isinstance(value, Quantity):
-      dtype = dtype or get_dtype(value)
       self._dim = value.dim
       self._value = jnp.array(value.value, dtype=dtype)
       return
 
     elif isinstance(value, (np.ndarray, jax.Array)):
-      dtype = dtype or get_dtype(value)
       value = jnp.array(value, dtype=dtype)
 
     elif isinstance(value, (jnp.number, numbers.Number)):
-      dtype = dtype or get_dtype(value)
       value = jnp.array(value, dtype=dtype)
 
     elif isinstance(value, (jax.core.ShapedArray, jax.ShapeDtypeStruct)):
@@ -1279,7 +1271,20 @@ class Quantity(object):
   @property
   def dtype(self):
     """Variable dtype."""
-    return get_dtype(self._value)
+    a = self._value
+    if hasattr(a, 'dtype'):
+      return a.dtype
+    else:
+      if isinstance(a, bool):
+        return bool
+      elif isinstance(a, int):
+        return jax.dtypes.canonicalize_dtype(int)
+      elif isinstance(a, float):
+        return jax.dtypes.canonicalize_dtype(float)
+      elif isinstance(a, complex):
+        return jax.dtypes.canonicalize_dtype(complex)
+      else:
+        raise TypeError(f'Can not get dtype of {a}.')
 
   @property
   def shape(self) -> Tuple[int, ...]:
@@ -2480,7 +2485,7 @@ class Unit(Quantity):
       name: str = None,
       dispname: str = None,
       iscompound: bool = None,
-      dtype: bst.typing.DTypeLike = None,
+      dtype: jax.typing.DTypeLike = None,
   ):
     if dim is None:
       dim = DIMENSIONLESS

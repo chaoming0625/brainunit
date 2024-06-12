@@ -15,7 +15,7 @@
 from functools import wraps
 from typing import (Union)
 
-import brainstate as bst
+import jax
 import jax.numpy as jnp
 from jax import Array
 
@@ -57,12 +57,12 @@ def wrap_math_funcs_only_accept_unitless_unary(func):
 
 
 @wrap_math_funcs_only_accept_unitless_unary
-def exp(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Array, Quantity]:
+def exp(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Array, Quantity]:
   return jnp.exp(x)
 
 
 @wrap_math_funcs_only_accept_unitless_unary
-def exp2(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Array, Quantity]:
+def exp2(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Array, Quantity]:
   return jnp.exp2(x)
 
 

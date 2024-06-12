@@ -14,7 +14,6 @@
 # ==============================================================================
 from typing import (Union)
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -31,7 +30,7 @@ __all__ = [
 
 
 @set_module_as('brainunit.math')
-def ndim(a: Union[Quantity, bst.typing.ArrayLike]) -> int:
+def ndim(a: Union[Quantity, jax.typing.ArrayLike]) -> int:
   '''
   Return the number of dimensions of an array.
 
@@ -48,7 +47,7 @@ def ndim(a: Union[Quantity, bst.typing.ArrayLike]) -> int:
 
 
 @set_module_as('brainunit.math')
-def isreal(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
+def isreal(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
   '''
   Return True if the input array is real.
 
@@ -65,7 +64,7 @@ def isreal(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
 
 
 @set_module_as('brainunit.math')
-def isscalar(a: Union[Quantity, bst.typing.ArrayLike]) -> bool:
+def isscalar(a: Union[Quantity, jax.typing.ArrayLike]) -> bool:
   '''
   Return True if the input is a scalar.
 
@@ -82,7 +81,7 @@ def isscalar(a: Union[Quantity, bst.typing.ArrayLike]) -> bool:
 
 
 @set_module_as('brainunit.math')
-def isfinite(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
+def isfinite(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
   '''
   Return each element of the array is finite or not.
 
@@ -99,7 +98,7 @@ def isfinite(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
 
 
 @set_module_as('brainunit.math')
-def isinf(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
+def isinf(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
   '''
   Return each element of the array is infinite or not.
 
@@ -116,7 +115,7 @@ def isinf(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
 
 
 @set_module_as('brainunit.math')
-def isnan(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
+def isnan(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
   '''
   Return each element of the array is NaN or not.
 
@@ -133,7 +132,7 @@ def isnan(a: Union[Quantity, bst.typing.ArrayLike]) -> jax.Array:
 
 
 @set_module_as('brainunit.math')
-def shape(a: Union[Quantity, bst.typing.ArrayLike]) -> tuple[int, ...]:
+def shape(a: Union[Quantity, jax.typing.ArrayLike]) -> tuple[int, ...]:
   """
   Return the shape of an array.
 
@@ -173,7 +172,7 @@ def shape(a: Union[Quantity, bst.typing.ArrayLike]) -> tuple[int, ...]:
 
 
 @set_module_as('brainunit.math')
-def size(a: Union[Quantity, bst.typing.ArrayLike], axis: int = None) -> int:
+def size(a: Union[Quantity, jax.typing.ArrayLike], axis: int = None) -> int:
   """
   Return the number of elements along a given axis.
 

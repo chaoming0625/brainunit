@@ -14,7 +14,6 @@
 # ==============================================================================
 from typing import (Union, Optional)
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -36,8 +35,8 @@ __all__ = [
 # indexing funcs
 # --------------
 @set_module_as('brainunit.math')
-def where(condition: Union[bool, bst.typing.ArrayLike],
-          *args: Union[Quantity, bst.typing.ArrayLike],
+def where(condition: Union[bool, jax.typing.ArrayLike],
+          *args: Union[Quantity, jax.typing.ArrayLike],
           **kwds) -> Union[Quantity, jax.Array]:
   condition = jnp.asarray(condition)
   if len(args) == 0:
@@ -86,7 +85,7 @@ tril_indices.__doc__ = '''
 
 
 @set_module_as('brainunit.math')
-def tril_indices_from(arr: Union[Quantity, bst.typing.ArrayLike],
+def tril_indices_from(arr: Union[Quantity, jax.typing.ArrayLike],
                       k: Optional[int] = 0) -> tuple[jax.Array, jax.Array]:
   '''
   Return the indices for the lower-triangle of an (n, m) array.
@@ -119,7 +118,7 @@ triu_indices.__doc__ = '''
 
 
 @set_module_as('brainunit.math')
-def triu_indices_from(arr: Union[Quantity, bst.typing.ArrayLike],
+def triu_indices_from(arr: Union[Quantity, jax.typing.ArrayLike],
                       k: Optional[int] = 0) -> tuple[jax.Array, jax.Array]:
   '''
   Return the indices for the upper-triangle of an (n, m) array.
@@ -138,8 +137,8 @@ def triu_indices_from(arr: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def take(a: Union[Quantity, bst.typing.ArrayLike],
-         indices: Union[Quantity, bst.typing.ArrayLike],
+def take(a: Union[Quantity, jax.typing.ArrayLike],
+         indices: Union[Quantity, jax.typing.ArrayLike],
          axis: Optional[int] = None,
          mode: Optional[str] = None) -> Union[Quantity, jax.Array]:
   if isinstance(a, Quantity):
@@ -149,8 +148,8 @@ def take(a: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def select(condlist: list[Union[bst.typing.ArrayLike]],
-           choicelist: Union[Quantity, bst.typing.ArrayLike],
+def select(condlist: list[Union[jax.typing.ArrayLike]],
+           choicelist: Union[Quantity, jax.typing.ArrayLike],
            default: int = 0) -> Union[Quantity, jax.Array]:
   from builtins import all as origin_all
   from builtins import any as origin_any
