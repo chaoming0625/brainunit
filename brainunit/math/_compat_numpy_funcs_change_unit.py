@@ -16,7 +16,6 @@ from collections.abc import Sequence
 from functools import wraps
 from typing import (Callable, Union, Optional)
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -62,12 +61,12 @@ def wrap_math_funcs_change_unit_unary(change_unit_func: Callable) -> Callable:
 
 
 @wrap_math_funcs_change_unit_unary(lambda x: x ** -1)
-def reciprocal(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def reciprocal(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.reciprocal(x)
 
 
 @wrap_math_funcs_change_unit_unary(lambda x: x ** 2)
-def var(x: Union[Quantity, bst.typing.ArrayLike],
+def var(x: Union[Quantity, jax.typing.ArrayLike],
         axis: Optional[Union[int, Sequence[int]]] = None,
         ddof: int = 0,
         keepdims: bool = False) -> Union[Quantity, jax.Array]:
@@ -75,7 +74,7 @@ def var(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @wrap_math_funcs_change_unit_unary(lambda x: x ** 2)
-def nanvar(x: Union[Quantity, bst.typing.ArrayLike],
+def nanvar(x: Union[Quantity, jax.typing.ArrayLike],
            axis: Optional[Union[int, Sequence[int]]] = None,
            ddof: int = 0,
            keepdims: bool = False) -> Union[Quantity, jax.Array]:
@@ -83,22 +82,22 @@ def nanvar(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @wrap_math_funcs_change_unit_unary(lambda x: x * 2 ** -1)
-def frexp(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def frexp(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.frexp(x)
 
 
 @wrap_math_funcs_change_unit_unary(lambda x: x ** 0.5)
-def sqrt(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def sqrt(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.sqrt(x)
 
 
 @wrap_math_funcs_change_unit_unary(lambda x: x ** (1 / 3))
-def cbrt(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def cbrt(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.cbrt(x)
 
 
 @wrap_math_funcs_change_unit_unary(lambda x: x ** 2)
-def square(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def square(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.square(x)
 
 
@@ -176,13 +175,13 @@ square.__doc__ = '''
 
 
 @set_module_as('brainunit.math')
-def prod(x: Union[Quantity, bst.typing.ArrayLike],
+def prod(x: Union[Quantity, jax.typing.ArrayLike],
          axis: Optional[int] = None,
-         dtype: Optional[bst.typing.DTypeLike] = None,
+         dtype: Optional[jax.typing.DTypeLike] = None,
          out: None = None,
          keepdims: Optional[bool] = False,
-         initial: Union[Quantity, bst.typing.ArrayLike] = None,
-         where: Union[Quantity, bst.typing.ArrayLike] = None,
+         initial: Union[Quantity, jax.typing.ArrayLike] = None,
+         where: Union[Quantity, jax.typing.ArrayLike] = None,
          promote_integers: bool = True) -> Union[Quantity, jax.Array]:
   '''
   Return the product of array elements over a given axis.
@@ -209,13 +208,13 @@ def prod(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def nanprod(x: Union[Quantity, bst.typing.ArrayLike],
+def nanprod(x: Union[Quantity, jax.typing.ArrayLike],
             axis: Optional[int] = None,
-            dtype: Optional[bst.typing.DTypeLike] = None,
+            dtype: Optional[jax.typing.DTypeLike] = None,
             out: None = None,
             keepdims: bool = False,
-            initial: Union[Quantity, bst.typing.ArrayLike] = None,
-            where: Union[Quantity, bst.typing.ArrayLike] = None):
+            initial: Union[Quantity, jax.typing.ArrayLike] = None,
+            where: Union[Quantity, jax.typing.ArrayLike] = None):
   '''
   Return the product of array elements over a given axis treating Not a Numbers (NaNs) as one.
 
@@ -241,10 +240,10 @@ product = prod
 
 
 @set_module_as('brainunit.math')
-def cumprod(x: Union[Quantity, bst.typing.ArrayLike],
+def cumprod(x: Union[Quantity, jax.typing.ArrayLike],
             axis: Optional[int] = None,
-            dtype: Optional[bst.typing.DTypeLike] = None,
-            out: None = None) -> Union[Quantity, bst.typing.ArrayLike]:
+            dtype: Optional[jax.typing.DTypeLike] = None,
+            out: None = None) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Return the cumulative product of elements along a given axis.
 
@@ -264,10 +263,10 @@ def cumprod(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def nancumprod(x: Union[Quantity, bst.typing.ArrayLike],
+def nancumprod(x: Union[Quantity, jax.typing.ArrayLike],
                axis: Optional[int] = None,
-               dtype: Optional[bst.typing.DTypeLike] = None,
-               out: None = None) -> Union[Quantity, bst.typing.ArrayLike]:
+               dtype: Optional[jax.typing.DTypeLike] = None,
+               out: None = None) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Return the cumulative product of elements along a given axis treating Not a Numbers (NaNs) as one.
 
@@ -317,37 +316,37 @@ def wrap_math_funcs_change_unit_binary(change_unit_func):
 
 
 @wrap_math_funcs_change_unit_binary(lambda x, y: x * y)
-def multiply(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]):
+def multiply(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]):
   return jnp.multiply(x, y)
 
 
 @wrap_math_funcs_change_unit_binary(lambda x, y: x / y)
-def divide(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]):
+def divide(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]):
   return jnp.divide(x, y)
 
 
 @wrap_math_funcs_change_unit_binary(lambda x, y: x * y)
-def cross(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]):
+def cross(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]):
   return jnp.cross(x, y)
 
 
 @wrap_math_funcs_change_unit_binary(lambda x, y: x * 2 ** y)
-def ldexp(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]):
+def ldexp(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]):
   return jnp.ldexp(x, y)
 
 
 @wrap_math_funcs_change_unit_binary(lambda x, y: x / y)
-def true_divide(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]):
+def true_divide(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]):
   return jnp.true_divide(x, y)
 
 
 @wrap_math_funcs_change_unit_binary(lambda x, y: x / y)
-def divmod(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]):
+def divmod(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]):
   return jnp.divmod(x, y)
 
 
 @wrap_math_funcs_change_unit_binary(lambda x, y: x * y)
-def convolve(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]):
+def convolve(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]):
   return jnp.convolve(x, y)
 
 
@@ -430,8 +429,8 @@ convolve.__doc__ = '''
 
 
 @set_module_as('brainunit.math')
-def power(x: Union[Quantity, bst.typing.ArrayLike],
-          y: Union[Quantity, bst.typing.ArrayLike], ) -> Union[Quantity, jax.Array]:
+def power(x: Union[Quantity, jax.typing.ArrayLike],
+          y: Union[Quantity, jax.typing.ArrayLike], ) -> Union[Quantity, jax.Array]:
   '''
   First array elements raised to powers from second array, element-wise.
 
@@ -455,8 +454,8 @@ def power(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def floor_divide(x: Union[Quantity, bst.typing.ArrayLike],
-                 y: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def floor_divide(x: Union[Quantity, jax.typing.ArrayLike],
+                 y: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   '''
   Return the largest integer smaller or equal to the division of the inputs.
 
@@ -480,8 +479,8 @@ def floor_divide(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def float_power(x: Union[Quantity, bst.typing.ArrayLike],
-                y: bst.typing.ArrayLike) -> Union[Quantity, jax.Array]:
+def float_power(x: Union[Quantity, jax.typing.ArrayLike],
+                y: jax.typing.ArrayLike) -> Union[Quantity, jax.Array]:
   '''
   First array elements raised to powers from second array, element-wise.
 
@@ -503,8 +502,8 @@ def float_power(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def remainder(x: Union[Quantity, bst.typing.ArrayLike],
-              y: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def remainder(x: Union[Quantity, jax.typing.ArrayLike],
+              y: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   '''
   Return element-wise remainder of division.
 

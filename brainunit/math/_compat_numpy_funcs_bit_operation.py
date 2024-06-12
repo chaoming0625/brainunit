@@ -15,12 +15,10 @@
 from functools import wraps
 from typing import (Union)
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
 from jax import Array
-from numpy import number
 
 from .._base import (Quantity,
                      )
@@ -53,12 +51,12 @@ def wrap_elementwise_bit_operation_unary(func):
 
 
 @wrap_elementwise_bit_operation_unary
-def bitwise_not(x: Union[Quantity, bst.typing.ArrayLike]) -> Array:
+def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   return jnp.bitwise_not(x)
 
 
 @wrap_elementwise_bit_operation_unary
-def invert(x: Union[Quantity, bst.typing.ArrayLike]) -> Array:
+def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   return jnp.invert(x)
 
 
@@ -102,27 +100,27 @@ def wrap_elementwise_bit_operation_binary(func):
 
 
 @wrap_elementwise_bit_operation_binary
-def bitwise_and(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Array:
+def bitwise_and(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   return jnp.bitwise_and(x, y)
 
 
 @wrap_elementwise_bit_operation_binary
-def bitwise_or(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Array:
+def bitwise_or(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   return jnp.bitwise_or(x, y)
 
 
 @wrap_elementwise_bit_operation_binary
-def bitwise_xor(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Array:
+def bitwise_xor(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   return jnp.bitwise_xor(x, y)
 
 
 @wrap_elementwise_bit_operation_binary
-def left_shift(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Array:
+def left_shift(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   return jnp.left_shift(x, y)
 
 
 @wrap_elementwise_bit_operation_binary
-def right_shift(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Array:
+def right_shift(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   return jnp.right_shift(x, y)
 
 

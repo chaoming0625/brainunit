@@ -12,23 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from collections.abc import Sequence
-from functools import wraps
-from typing import (Callable, Union, Optional, Any)
 
-import brainstate as bst
+from collections.abc import Sequence
+from typing import (Union, Optional, Any)
+
 import jax
 import jax.numpy as jnp
 import numpy as np
 from brainstate._utils import set_module_as
 from jax import Array
 
-from .._base import (DIMENSIONLESS,
-                     Quantity,
-                     Unit,
-                     fail_for_dimension_mismatch,
-                     is_unitless,
-                     )
+from .._base import (
+  DIMENSIONLESS,
+  Quantity,
+  Unit,
+  fail_for_dimension_mismatch,
+  is_unitless,
+)
 
 __all__ = [
   # array creation
@@ -231,10 +231,12 @@ def zeros(
 
 
 @set_module_as('brainunit.math')
-def full_like(a: Union[Quantity, bst.typing.ArrayLike],
-              fill_value: Union[Quantity, bst.typing.ArrayLike],
-              dtype: Optional[bst.typing.DTypeLike] = None,
-              shape: Any = None) -> Union[Quantity, jax.Array]:
+def full_like(
+    a: Union[Quantity, jax.typing.ArrayLike],
+    fill_value: Union[Quantity, jax.typing.ArrayLike],
+    dtype: Optional[jax.typing.DTypeLike] = None,
+    shape: Any = None
+) -> Union[Quantity, jax.Array]:
   '''
   Return a Quantity if `a` and `fill_value` are Quantities that have the same unit or only `fill_value` is a Quantity.
   else return an array of `a` filled with `fill_value`.
@@ -262,7 +264,7 @@ def full_like(a: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def diag(a: Union[Quantity, bst.typing.ArrayLike],
+def diag(a: Union[Quantity, jax.typing.ArrayLike],
          k: int = 0,
          unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
   '''
@@ -292,7 +294,7 @@ def diag(a: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def tril(a: Union[Quantity, bst.typing.ArrayLike],
+def tril(a: Union[Quantity, jax.typing.ArrayLike],
          k: int = 0,
          unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
   '''
@@ -322,7 +324,7 @@ def tril(a: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def triu(a: Union[Quantity, bst.typing.ArrayLike],
+def triu(a: Union[Quantity, jax.typing.ArrayLike],
          k: int = 0,
          unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
   '''
@@ -352,8 +354,8 @@ def triu(a: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def empty_like(a: Union[Quantity, bst.typing.ArrayLike],
-               dtype: Optional[bst.typing.DTypeLike] = None,
+def empty_like(a: Union[Quantity, jax.typing.ArrayLike],
+               dtype: Optional[jax.typing.DTypeLike] = None,
                shape: Any = None,
                unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
   '''
@@ -385,8 +387,8 @@ def empty_like(a: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def ones_like(a: Union[Quantity, bst.typing.ArrayLike],
-              dtype: Optional[bst.typing.DTypeLike] = None,
+def ones_like(a: Union[Quantity, jax.typing.ArrayLike],
+              dtype: Optional[jax.typing.DTypeLike] = None,
               shape: Any = None,
               unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
   '''
@@ -418,8 +420,8 @@ def ones_like(a: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def zeros_like(a: Union[Quantity, bst.typing.ArrayLike],
-               dtype: Optional[bst.typing.DTypeLike] = None,
+def zeros_like(a: Union[Quantity, jax.typing.ArrayLike],
+               dtype: Optional[jax.typing.DTypeLike] = None,
                shape: Any = None,
                unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
   '''
@@ -452,8 +454,8 @@ def zeros_like(a: Union[Quantity, bst.typing.ArrayLike],
 
 @set_module_as('brainunit.math')
 def asarray(
-    a: Union[Quantity, bst.typing.ArrayLike, Sequence[Quantity]],
-    dtype: Optional[bst.typing.DTypeLike] = None,
+    a: Union[Quantity, jax.typing.ArrayLike, Sequence[Quantity]],
+    dtype: Optional[jax.typing.DTypeLike] = None,
     order: Optional[str] = None,
     unit: Optional[Unit] = None,
 ) -> Union[Quantity, jax.Array]:
@@ -606,12 +608,12 @@ def arange(*args, **kwargs):
 
 @set_module_as('brainunit.math')
 def linspace(
-    start: Union[Quantity, bst.typing.ArrayLike],
-    stop: Union[Quantity, bst.typing.ArrayLike],
+    start: Union[Quantity, jax.typing.ArrayLike],
+    stop: Union[Quantity, jax.typing.ArrayLike],
     num: int = 50,
     endpoint: Optional[bool] = True,
     retstep: Optional[bool] = False,
-    dtype: Optional[bst.typing.DTypeLike] = None
+    dtype: Optional[jax.typing.DTypeLike] = None
 ) -> Union[Quantity, jax.Array]:
   '''
   Return a Quantity of `linspace` and `unit`, with uninitialized values if `unit` is provided.
@@ -643,12 +645,12 @@ def linspace(
 
 
 @set_module_as('brainunit.math')
-def logspace(start: Union[Quantity, bst.typing.ArrayLike],
-             stop: Union[Quantity, bst.typing.ArrayLike],
+def logspace(start: Union[Quantity, jax.typing.ArrayLike],
+             stop: Union[Quantity, jax.typing.ArrayLike],
              num: Optional[int] = 50,
              endpoint: Optional[bool] = True,
              base: Optional[float] = 10.0,
-             dtype: Optional[bst.typing.DTypeLike] = None):
+             dtype: Optional[jax.typing.DTypeLike] = None):
   '''
   Return a Quantity of `logspace` and `unit`, with uninitialized values if `unit` is provided.
 
@@ -679,8 +681,8 @@ def logspace(start: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def fill_diagonal(a: Union[Quantity, bst.typing.ArrayLike],
-                  val: Union[Quantity, bst.typing.ArrayLike],
+def fill_diagonal(a: Union[Quantity, jax.typing.ArrayLike],
+                  val: Union[Quantity, jax.typing.ArrayLike],
                   wrap: Optional[bool] = False,
                   inplace: Optional[bool] = False) -> Union[Quantity, jax.Array]:
   '''
@@ -709,8 +711,8 @@ def fill_diagonal(a: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def array_split(ary: Union[Quantity, bst.typing.ArrayLike],
-                indices_or_sections: Union[int, bst.typing.ArrayLike],
+def array_split(ary: Union[Quantity, jax.typing.ArrayLike],
+                indices_or_sections: Union[int, jax.typing.ArrayLike],
                 axis: Optional[int] = 0) -> Union[list[Quantity], list[Array]]:
   '''
   Split an array into multiple sub-arrays.
@@ -732,7 +734,7 @@ def array_split(ary: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def meshgrid(*xi: Union[Quantity, bst.typing.ArrayLike],
+def meshgrid(*xi: Union[Quantity, jax.typing.ArrayLike],
              copy: Optional[bool] = True,
              sparse: Optional[bool] = False,
              indexing: Optional[str] = 'xy'):
@@ -759,7 +761,7 @@ def meshgrid(*xi: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def vander(x: Union[Quantity, bst.typing.ArrayLike],
+def vander(x: Union[Quantity, jax.typing.ArrayLike],
            N: Optional[bool] = None,
            increasing: Optional[bool] = False) -> Union[Quantity, jax.Array]:
   '''

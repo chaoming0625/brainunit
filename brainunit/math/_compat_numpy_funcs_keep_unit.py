@@ -15,7 +15,6 @@
 from functools import wraps
 from typing import (Union)
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -60,172 +59,172 @@ def wrap_math_funcs_keep_unit_unary(func):
 
 
 @wrap_math_funcs_keep_unit_unary
-def real(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def real(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.real(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def imag(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def imag(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.imag(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def conj(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def conj(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.conj(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def conjugate(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def conjugate(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.conjugate(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def negative(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def negative(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.negative(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def positive(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def positive(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.positive(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def abs(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def abs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.abs(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def round_(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def round_(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.round(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def around(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def around(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.around(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def round(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def round(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.round(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def rint(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def rint(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.rint(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def floor(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def floor(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.floor(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def ceil(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def ceil(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.ceil(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def trunc(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def trunc(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.trunc(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def fix(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def fix(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.fix(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def sum(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def sum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.sum(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def nancumsum(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nancumsum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.nancumsum(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def nansum(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nansum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.nansum(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def cumsum(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def cumsum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.cumsum(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def ediff1d(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def ediff1d(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.ediff1d(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def absolute(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def absolute(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.absolute(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def fabs(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def fabs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.fabs(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def median(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def median(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.median(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def nanmin(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nanmin(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.nanmin(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def nanmax(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nanmax(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.nanmax(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def ptp(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def ptp(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.ptp(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def average(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def average(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.average(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def mean(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def mean(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.mean(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def std(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def std(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.std(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def nanmedian(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nanmedian(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.nanmedian(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def nanmean(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nanmean(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.nanmean(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def nanstd(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nanstd(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.nanstd(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def diff(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def diff(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.diff(x)
 
 
 @wrap_math_funcs_keep_unit_unary
-def modf(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def modf(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   return jnp.modf(x)
 
 
@@ -753,12 +752,12 @@ gcd.__doc__ = '''
 # math funcs keep unit (n-ary)
 # ----------------------------
 @set_module_as('brainunit.math')
-def interp(x: Union[Quantity, bst.typing.ArrayLike],
-           xp: Union[Quantity, bst.typing.ArrayLike],
-           fp: Union[Quantity, bst.typing.ArrayLike],
-           left: Union[Quantity, bst.typing.ArrayLike] = None,
-           right: Union[Quantity, bst.typing.ArrayLike] = None,
-           period: Union[Quantity, bst.typing.ArrayLike] = None) -> Union[Quantity, jax.Array]:
+def interp(x: Union[Quantity, jax.typing.ArrayLike],
+           xp: Union[Quantity, jax.typing.ArrayLike],
+           fp: Union[Quantity, jax.typing.ArrayLike],
+           left: Union[Quantity, jax.typing.ArrayLike] = None,
+           right: Union[Quantity, jax.typing.ArrayLike] = None,
+           period: Union[Quantity, jax.typing.ArrayLike] = None) -> Union[Quantity, jax.Array]:
   '''
   One-dimensional linear interpolation.
 
@@ -796,9 +795,9 @@ def interp(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def clip(a: Union[Quantity, bst.typing.ArrayLike],
-         a_min: Union[Quantity, bst.typing.ArrayLike],
-         a_max: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def clip(a: Union[Quantity, jax.typing.ArrayLike],
+         a_min: Union[Quantity, jax.typing.ArrayLike],
+         a_max: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   '''
   Clip (limit) the values in an array.
 

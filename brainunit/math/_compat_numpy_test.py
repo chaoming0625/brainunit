@@ -23,8 +23,8 @@ import pytest
 import brainunit as bu
 from brainunit import DimensionMismatchError
 from brainunit._base import Quantity
-from brainunit._unit_shortcuts import ms, mV
 from brainunit._unit_common import second
+from brainunit._unit_shortcuts import ms, mV
 
 bst.environ.set(precision=64)
 
@@ -161,7 +161,6 @@ class TestArrayCreation(unittest.TestCase):
 
     result_q = bu.math.asarray([1, 2, 3], unit=bu.second)
     assert_quantity(result_q, jnp.asarray([1, 2, 3]), bu.second)
-
 
   def test_arange(self):
     result = bu.math.arange(5)

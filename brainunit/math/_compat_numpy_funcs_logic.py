@@ -15,7 +15,6 @@
 from functools import wraps
 from typing import (Union, Optional)
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -54,21 +53,21 @@ def wrap_logic_func_unary(func):
 
 
 @wrap_logic_func_unary
-def all(x: Union[Quantity, bst.typing.ArrayLike], axis: Optional[int] = None,
+def all(x: Union[Quantity, jax.typing.ArrayLike], axis: Optional[int] = None,
         out: Optional[Array] = None, keepdims: bool = False,
         where: Optional[Array] = None) -> Union[bool, Array]:
   return jnp.all(x, axis=axis, out=out, keepdims=keepdims, where=where)
 
 
 @wrap_logic_func_unary
-def any(x: Union[Quantity, bst.typing.ArrayLike], axis: Optional[int] = None,
+def any(x: Union[Quantity, jax.typing.ArrayLike], axis: Optional[int] = None,
         out: Optional[Array] = None, keepdims: bool = False,
         where: Optional[Array] = None) -> Union[bool, Array]:
   return jnp.any(x, axis=axis, out=out, keepdims=keepdims, where=where)
 
 
 @wrap_logic_func_unary
-def logical_not(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[bool, Array]:
+def logical_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
   return jnp.logical_not(x)
 
 
@@ -135,67 +134,67 @@ def wrap_logic_func_binary(func):
 
 
 @wrap_logic_func_binary
-def equal(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Union[bool, Array]:
+def equal(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
   return jnp.equal(x, y)
 
 
 @wrap_logic_func_binary
-def not_equal(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Union[bool, Array]:
+def not_equal(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
   return jnp.not_equal(x, y)
 
 
 @wrap_logic_func_binary
-def greater(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Union[bool, Array]:
+def greater(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
   return jnp.greater(x, y)
 
 
 @wrap_logic_func_binary
-def greater_equal(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Union[bool, Array]:
+def greater_equal(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
   return jnp.greater_equal(x, y)
 
 
 @wrap_logic_func_binary
-def less(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Union[bool, Array]:
+def less(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
   return jnp.less(x, y)
 
 
 @wrap_logic_func_binary
-def less_equal(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Union[bool, Array]:
+def less_equal(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
   return jnp.less_equal(x, y)
 
 
 @wrap_logic_func_binary
-def array_equal(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Union[
+def array_equal(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[
   bool, Array]:
   return jnp.array_equal(x, y)
 
 
 @wrap_logic_func_binary
-def isclose(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike],
+def isclose(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike],
             rtol: float = 1e-05, atol: float = 1e-08, equal_nan: bool = False) -> Union[bool, Array]:
   return jnp.isclose(x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @wrap_logic_func_binary
-def allclose(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike],
+def allclose(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike],
              rtol: float = 1e-05, atol: float = 1e-08, equal_nan: bool = False) -> Union[bool, Array]:
   return jnp.allclose(x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @wrap_logic_func_binary
-def logical_and(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Union[
+def logical_and(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[
   bool, Array]:
   return jnp.logical_and(x, y)
 
 
 @wrap_logic_func_binary
-def logical_or(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Union[
+def logical_or(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[
   bool, Array]:
   return jnp.logical_or(x, y)
 
 
 @wrap_logic_func_binary
-def logical_xor(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Union[
+def logical_xor(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[
   bool, Array]:
   return jnp.logical_xor(x, y)
 

@@ -1,5 +1,6 @@
 -r requirements.txt
 matplotlib
+brainstate
 
 # document requirements
 pandoc
