@@ -92,7 +92,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertTrue(jnp.all(result == 4))
 
     q = [1, 2, 3] * bu.second
-    result_q = bu.math.full_like(q, 4 * bu.second)
+    result_q = bu.math.full_like(q, 4, unit=bu.second)
     assert_quantity(result_q, jnp.full_like(jnp.array([1, 2, 3]), 4), bu.second)
 
   def test_diag(self):
