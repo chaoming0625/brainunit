@@ -162,6 +162,10 @@ class TestArrayCreation(unittest.TestCase):
     result_q = bu.math.asarray([1, 2, 3], unit=bu.second)
     assert_quantity(result_q, jnp.asarray([1, 2, 3]), bu.second)
 
+    a = bu.math.asarray([1 * bu.second, 2 * bu.second, 3 * bu.second], unit=bu.second)
+    b = bu.math.asarray([1 * bu.second, 2 * bu.second, 3 * bu.second])
+    assert bu.math.allclose(a, b)
+
   def test_arange(self):
     result = bu.math.arange(5)
     self.assertEqual(result.shape, (5,))
