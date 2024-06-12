@@ -454,7 +454,7 @@ def zeros_like(a: Union[Quantity, jax.typing.ArrayLike],
 
 @set_module_as('brainunit.math')
 def asarray(
-    a: Union[Quantity, jax.typing.ArrayLike, Sequence[Quantity]],
+    a: Union[Quantity, jax.typing.ArrayLike, Sequence[Quantity], Sequence[jax.typing.ArrayLike]],
     dtype: Optional[jax.typing.DTypeLike] = None,
     order: Optional[str] = None,
     unit: Optional[Unit] = None,
