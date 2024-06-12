@@ -226,7 +226,6 @@ def _write_subsections_v4(module_path,
     fout.write(f'.. currentmodule:: {out_path} \n')
     fout.write(f'.. automodule:: {out_path} \n\n')
 
-
     fout.write('.. autosummary::\n')
     fout.write('   :toctree: generated/\n')
     fout.write('   :nosignatures:\n')
@@ -319,14 +318,29 @@ def _section(header, numpy_mod, brainpy_mod, jax_mod, klass=None, is_jax=False):
 def main():
   os.makedirs('apis/auto/', exist_ok=True)
 
-  _write_module(module_name='brainunit',
-                filename='apis/brainunit.math.rst',
-                header='``brainunit.init`` module')
+  module_and_name = [
+    ('_compat_numpy_array_creation', 'Array Creation'),
+    ('_compat_numpy_array_manipulation', 'Array Manipulation'),
+    ('_compat_numpy_funcs_accept_unitless', 'Functions Accepting Unitless'),
+    ('_compat_numpy_funcs_bit_operation', 'Functions with Bitwise Operations'),
+    ('_compat_numpy_funcs_change_unit', 'Functions Changing Unit'),
+    ('_compat_numpy_funcs_indexing', 'Indexing Functions'),
+    ('_compat_numpy_funcs_keep_unit', 'Functions Keeping Unit'),
+    ('_compat_numpy_funcs_logic', 'Logical Functions'),
+    ('_compat_numpy_funcs_match_unit', 'Functions Matching Unit'),
+    ('_compat_numpy_funcs_remove_unit', 'Functions Removing Unit'),
+    ('_compat_numpy_funcs_window', 'Window Functions'),
+    ('_compat_numpy_get_attribute', 'Get Attribute Functions'),
+    ('_compat_numpy_linear_algebra', 'Linear Algebra Functions'),
+    ('_compat_numpy_misc', 'More Functions'),
+  ]
+
+  _write_submodules(module_name='brainunit.math',
+                    filename='apis/brainunit.math.rst',
+                    header='``brainunit.math`` module',
+                    submodule_names=[k[0] for k in module_and_name],
+                    section_names=[k[1] for k in module_and_name])
 
 
 if __name__ == '__main__':
-    main()
-
-
-
-
+  main()
