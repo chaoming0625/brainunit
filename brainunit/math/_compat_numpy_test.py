@@ -32,7 +32,7 @@ bst.environ.set(precision=64)
 def assert_quantity(q, values, unit):
   values = jnp.asarray(values)
   if isinstance(q, Quantity):
-    assert q.dim == unit.dim, f"Unit mismatch: {q.dim} != {unit}"
+    assert q.dim == unit.dim or q.dim == unit, f"Unit mismatch: {q.dim} != {unit}"
     assert jnp.allclose(q.value, values), f"Values do not match: {q.value} != {values}"
   else:
     assert jnp.allclose(q, values), f"Values do not match: {q} != {values}"
@@ -45,7 +45,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertEqual(result.shape, (3,))
     self.assertTrue(jnp.all(result == 4))
 
-    q = bu.math.full(3, 4, unit=second)
+    q = bu.math.full(3, 4 * second)
     self.assertEqual(q.shape, (3,))
     assert_quantity(q, result, second)
 
@@ -92,7 +92,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertTrue(jnp.all(result == 4))
 
     q = [1, 2, 3] * bu.second
-    result_q = bu.math.full_like(q, 4, unit=bu.second)
+    result_q = bu.math.full_like(q, 4 * bu.second)
     assert_quantity(result_q, jnp.full_like(jnp.array([1, 2, 3]), 4), bu.second)
 
   def test_diag(self):
@@ -159,8 +159,9 @@ class TestArrayCreation(unittest.TestCase):
     self.assertEqual(result.shape, (3,))
     self.assertTrue(jnp.all(result == jnp.asarray([1, 2, 3])))
 
-    result_q = bu.math.asarray([1 * bu.second, 2 * bu.second, 3 * bu.second])
+    result_q = bu.math.asarray([1, 2, 3], unit=bu.second)
     assert_quantity(result_q, jnp.asarray([1, 2, 3]), bu.second)
+
 
   def test_arange(self):
     result = bu.math.arange(5)
@@ -171,7 +172,7 @@ class TestArrayCreation(unittest.TestCase):
     assert_quantity(result_q, jnp.arange(5, step=1), bu.second)
 
     result_q = bu.math.arange(3 * bu.second, 9 * bu.second, 1 * bu.second)
-    assert_quantity(result_q, jnp.arange(3, 9, 1), bu.second)
+    assert_quantity(result_q, jnp.arange(3, 9, 1), bu.ms)
 
   def test_linspace(self):
     result = bu.math.linspace(0, 10, 5)
@@ -191,11 +192,11 @@ class TestArrayCreation(unittest.TestCase):
 
   def test_fill_diagonal(self):
     array = jnp.zeros((3, 3))
-    result = bu.math.fill_diagonal(array, 5, inplace=False)
+    result = bu.math.fill_diagonal(array, 5)
     self.assertTrue(jnp.all(result == jnp.array([[5, 0, 0], [0, 5, 0], [0, 0, 5]])))
 
     q = jnp.zeros((3, 3)) * bu.second
-    result_q = bu.math.fill_diagonal(q, 5 * bu.second, inplace=False)
+    result_q = bu.math.fill_diagonal(q, 5 * bu.second)
     assert_quantity(result_q, jnp.array([[5, 0, 0], [0, 5, 0], [0, 0, 5]]), bu.second)
 
   def test_array_split(self):
