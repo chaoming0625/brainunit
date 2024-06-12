@@ -19,9 +19,9 @@ from typing import (Union, Optional, Any)
 import jax
 import jax.numpy as jnp
 import numpy as np
-from brainstate._utils import set_module_as
 from jax import Array
 
+from ._misc import set_module_as
 from .._base import (
   DIMENSIONLESS,
   Quantity,
@@ -45,7 +45,7 @@ def full(
     fill_value: Union[Quantity, int, float],
     dtype: Optional[Any] = None,
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Returns a Quantity of `shape`, filled with `fill_value` if `fill_value` is a Quantity.
   else return an array of `shape` filled with `fill_value`.
 
@@ -57,7 +57,7 @@ def full(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if isinstance(fill_value, Quantity):
     return Quantity(jnp.full(shape, fill_value.value, dtype=dtype), dim=fill_value.dim)
   return jnp.full(shape, fill_value, dtype=dtype)
@@ -71,7 +71,7 @@ def eye(
     dtype: Optional[Any] = None,
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Returns a Quantity of `shape` and `unit`, representing an identity matrix if `unit` is provided.
   else return an identity matrix of `shape`.
 
@@ -86,7 +86,7 @@ def eye(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
     return jnp.eye(N, M, k, dtype=dtype) * unit
@@ -100,7 +100,7 @@ def identity(
     dtype: Optional[Any] = None,
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Returns a Quantity of `shape` and `unit`, representing an identity matrix if `unit` is provided.
   else return an identity matrix of `shape`.
 
@@ -112,7 +112,7 @@ def identity(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
     return jnp.identity(n, dtype=dtype) * unit
@@ -128,7 +128,7 @@ def tri(
     dtype: Optional[Any] = None,
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Returns a Quantity of `shape` and `unit`, representing a triangular matrix if `unit` is provided.
   else return a triangular matrix of `shape`.
 
@@ -144,7 +144,7 @@ def tri(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
     return jnp.tri(N, M, k, dtype=dtype) * unit
@@ -158,7 +158,7 @@ def empty(
     dtype: Optional[Any] = None,
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Returns a Quantity of `shape` and `unit`, with uninitialized values if `unit` is provided.
   else return an array of `shape` with uninitialized values.
 
@@ -170,7 +170,7 @@ def empty(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
     return jnp.empty(shape, dtype=dtype) * unit
@@ -184,7 +184,7 @@ def ones(
     dtype: Optional[Any] = None,
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Returns a Quantity of `shape` and `unit`, filled with 1 if `unit` is provided.
   else return an array of `shape` filled with 1.
 
@@ -196,7 +196,7 @@ def ones(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
     return jnp.ones(shape, dtype=dtype) * unit
@@ -210,7 +210,7 @@ def zeros(
     dtype: Optional[Any] = None,
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Returns a Quantity of `shape` and `unit`, filled with 0 if `unit` is provided.
   else return an array of `shape` filled with 0.
 
@@ -222,7 +222,7 @@ def zeros(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
     return jnp.zeros(shape, dtype=dtype) * unit
@@ -237,7 +237,7 @@ def full_like(
     dtype: Optional[jax.typing.DTypeLike] = None,
     shape: Any = None
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return a Quantity if `a` and `fill_value` are Quantities that have the same unit or only `fill_value` is a Quantity.
   else return an array of `a` filled with `fill_value`.
 
@@ -249,7 +249,7 @@ def full_like(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if isinstance(fill_value, Quantity):
     if isinstance(a, Quantity):
       fail_for_dimension_mismatch(a, fill_value, error_message="a and fill_value have to have the same units.")
@@ -267,7 +267,7 @@ def full_like(
 def diag(a: Union[Quantity, jax.typing.ArrayLike],
          k: int = 0,
          unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Extract a diagonal or construct a diagonal array.
 
   Args:
@@ -277,7 +277,7 @@ def diag(a: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if isinstance(a, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -297,7 +297,7 @@ def diag(a: Union[Quantity, jax.typing.ArrayLike],
 def tril(a: Union[Quantity, jax.typing.ArrayLike],
          k: int = 0,
          unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Lower triangle of an array.
 
   Args:
@@ -307,7 +307,7 @@ def tril(a: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if isinstance(a, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -327,7 +327,7 @@ def tril(a: Union[Quantity, jax.typing.ArrayLike],
 def triu(a: Union[Quantity, jax.typing.ArrayLike],
          k: int = 0,
          unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Upper triangle of an array.
 
   Args:
@@ -337,7 +337,7 @@ def triu(a: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if isinstance(a, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -358,7 +358,7 @@ def empty_like(a: Union[Quantity, jax.typing.ArrayLike],
                dtype: Optional[jax.typing.DTypeLike] = None,
                shape: Any = None,
                unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return a Quantity of `a` and `unit`, with uninitialized values if `unit` is provided.
   else return an array of `a` with uninitialized values.
 
@@ -370,7 +370,7 @@ def empty_like(a: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if isinstance(a, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit)
@@ -391,7 +391,7 @@ def ones_like(a: Union[Quantity, jax.typing.ArrayLike],
               dtype: Optional[jax.typing.DTypeLike] = None,
               shape: Any = None,
               unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return a Quantity of `a` and `unit`, filled with 1 if `unit` is provided.
   else return an array of `a` filled with 1.
 
@@ -403,7 +403,7 @@ def ones_like(a: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if isinstance(a, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit)
@@ -424,7 +424,7 @@ def zeros_like(a: Union[Quantity, jax.typing.ArrayLike],
                dtype: Optional[jax.typing.DTypeLike] = None,
                shape: Any = None,
                unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return a Quantity of `a` and `unit`, filled with 0 if `unit` is provided.
   else return an array of `a` filled with 0.
 
@@ -436,7 +436,7 @@ def zeros_like(a: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if isinstance(a, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit)
@@ -459,7 +459,7 @@ def asarray(
     order: Optional[str] = None,
     unit: Optional[Unit] = None,
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Convert the input to a quantity or array.
 
   If unit is provided, the input will be checked whether it has the same unit as the provided unit.
@@ -474,7 +474,7 @@ def asarray(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
-  '''
+  """
   if isinstance(a, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit)
@@ -516,7 +516,7 @@ array = asarray
 
 @set_module_as('brainunit.math')
 def arange(*args, **kwargs):
-  '''
+  """
   Return a Quantity of `arange` and `unit`, with uninitialized values if `unit` is provided.
 
   Args:
@@ -528,7 +528,7 @@ def arange(*args, **kwargs):
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if start and stop are Quantities that have the same unit, else an array.
-  '''
+  """
   # arange has a bit of a complicated argument structure unfortunately
   # we leave the actual checking of the number of arguments to numpy, though
 
@@ -615,7 +615,7 @@ def linspace(
     retstep: Optional[bool] = False,
     dtype: Optional[jax.typing.DTypeLike] = None
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return a Quantity of `linspace` and `unit`, with uninitialized values if `unit` is provided.
 
   Args:
@@ -628,7 +628,7 @@ def linspace(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if start and stop are Quantities that have the same unit, else an array.
-  '''
+  """
   fail_for_dimension_mismatch(
     start,
     stop,
@@ -651,7 +651,7 @@ def logspace(start: Union[Quantity, jax.typing.ArrayLike],
              endpoint: Optional[bool] = True,
              base: Optional[float] = 10.0,
              dtype: Optional[jax.typing.DTypeLike] = None):
-  '''
+  """
   Return a Quantity of `logspace` and `unit`, with uninitialized values if `unit` is provided.
 
   Args:
@@ -664,7 +664,7 @@ def logspace(start: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if start and stop are Quantities that have the same unit, else an array.
-  '''
+  """
   fail_for_dimension_mismatch(
     start,
     stop,
@@ -685,7 +685,7 @@ def fill_diagonal(a: Union[Quantity, jax.typing.ArrayLike],
                   val: Union[Quantity, jax.typing.ArrayLike],
                   wrap: Optional[bool] = False,
                   inplace: Optional[bool] = False) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Fill the main diagonal of the given array of `a` with `val`.
 
   Args:
@@ -696,7 +696,7 @@ def fill_diagonal(a: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `a` and `val` are Quantities that have the same unit, else an array.
-  '''
+  """
   if isinstance(val, Quantity):
     if isinstance(a, Quantity):
       fail_for_dimension_mismatch(a, val, error_message="Array and value have to have the same units.")
@@ -714,7 +714,7 @@ def fill_diagonal(a: Union[Quantity, jax.typing.ArrayLike],
 def array_split(ary: Union[Quantity, jax.typing.ArrayLike],
                 indices_or_sections: Union[int, jax.typing.ArrayLike],
                 axis: Optional[int] = 0) -> Union[list[Quantity], list[Array]]:
-  '''
+  """
   Split an array into multiple sub-arrays.
 
   Args:
@@ -724,7 +724,7 @@ def array_split(ary: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `ary` is a Quantity, else an array.
-  '''
+  """
   if isinstance(ary, Quantity):
     return [Quantity(x, dim=ary.dim) for x in jnp.array_split(ary.value, indices_or_sections, axis)]
   elif isinstance(ary, (jax.Array, np.ndarray)):
@@ -738,7 +738,7 @@ def meshgrid(*xi: Union[Quantity, jax.typing.ArrayLike],
              copy: Optional[bool] = True,
              sparse: Optional[bool] = False,
              indexing: Optional[str] = 'xy'):
-  '''
+  """
   Return coordinate matrices from coordinate vectors.
 
   Args:
@@ -749,7 +749,7 @@ def meshgrid(*xi: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `xi` are Quantities that have the same unit, else an array.
-  '''
+  """
   from builtins import all as origin_all
   if origin_all(isinstance(x, Quantity) for x in xi):
     fail_for_dimension_mismatch(*xi)
@@ -764,7 +764,7 @@ def meshgrid(*xi: Union[Quantity, jax.typing.ArrayLike],
 def vander(x: Union[Quantity, jax.typing.ArrayLike],
            N: Optional[bool] = None,
            increasing: Optional[bool] = False) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Generate a Vandermonde matrix.
 
   Args:
@@ -774,7 +774,7 @@ def vander(x: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   if isinstance(x, Quantity):
     return Quantity(jnp.vander(x.value, N=N, increasing=increasing), dim=x.dim)
   elif isinstance(x, (jax.Array, np.ndarray)):

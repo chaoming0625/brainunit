@@ -12,18 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from functools import wraps
 from typing import (Union)
 
 import jax
 import jax.numpy as jnp
 import numpy as np
-from brainstate._utils import set_module_as
 from jax import Array
 
+from _misc import set_module_as
 from .._base import (Quantity,
-                     fail_for_dimension_mismatch,
-                     )
+                     fail_for_dimension_mismatch,)
 
 __all__ = [
   # math funcs match unit (binary)
@@ -33,7 +31,6 @@ __all__ = [
 
 # math funcs match unit (binary)
 # ------------------------------
-
 
 
 def funcs_match_unit_binary(func, x, y, *args, **kwargs):
@@ -55,12 +52,13 @@ def funcs_match_unit_binary(func, x, y, *args, **kwargs):
   else:
     raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
 
+
 @set_module_as('brainunit.math')
 def add(
     x: Union[Quantity, Array],
     y: Union[Quantity, Array]
 ) -> Union[Quantity, Array]:
-  '''
+  """
   Add arguments element-wise.
 
   Args:
@@ -69,7 +67,7 @@ def add(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` and `y` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_match_unit_binary(jnp.add, x, y)
 
 
@@ -78,7 +76,7 @@ def subtract(
     x: Union[Quantity, Array],
     y: Union[Quantity, Array]
 ) -> Union[Quantity, Array]:
-  '''
+  """
   Subtract arguments element-wise.
 
   Args:
@@ -87,7 +85,7 @@ def subtract(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` and `y` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_match_unit_binary(jnp.subtract, x, y)
 
 
@@ -96,7 +94,7 @@ def nextafter(
     x: Union[Quantity, Array],
     y: Union[Quantity, Array]
 ) -> Union[Quantity, Array]:
-  '''
+  """
   Return the next floating-point value after `x1` towards `x2`.
 
   Args:
@@ -105,5 +103,5 @@ def nextafter(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_match_unit_binary(jnp.nextafter, x, y)

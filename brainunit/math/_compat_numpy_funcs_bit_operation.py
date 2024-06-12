@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from functools import wraps
 from typing import (Union)
 
 import jax
 import jax.numpy as jnp
 import numpy as np
-from brainstate._utils import set_module_as
 from jax import Array
 
-from .._base import (Quantity,
-                     )
+from _misc import set_module_as
+from .._base import Quantity
 
 __all__ = [
 
@@ -48,7 +46,7 @@ def elementwise_bit_operation_unary(func, x, *args, **kwargs):
 
 @set_module_as('brainunit.math')
 def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
-  '''
+  """
   Compute the bit-wise NOT of an array, element-wise.
 
   Args:
@@ -56,13 +54,13 @@ def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
 
   Returns:
     jax.Array: an array
-  '''
+  """
   return elementwise_bit_operation_unary(jnp.bitwise_not, x)
 
 
 @set_module_as('brainunit.math')
 def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
-  '''
+  """
   Compute bit-wise inversion, or bit-wise NOT, element-wise.
 
   Args:
@@ -70,7 +68,7 @@ def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
 
   Returns:
     jax.Array: an array
-  '''
+  """
   return elementwise_bit_operation_unary(jnp.invert, x)
 
 
@@ -86,12 +84,13 @@ def elementwise_bit_operation_binary(func, x, y, *args, **kwargs):
   else:
     raise ValueError(f'Unsupported types {type(x)} and {type(y)} for {func.__name__}')
 
+
 @set_module_as('brainunit.math')
 def bitwise_and(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Array:
-  '''
+  """
   Compute the bit-wise AND of two arrays element-wise.
 
   Args:
@@ -100,7 +99,7 @@ def bitwise_and(
 
   Returns:
     jax.Array: an array
-  '''
+  """
   return elementwise_bit_operation_binary(jnp.bitwise_and, x, y)
 
 
@@ -109,7 +108,7 @@ def bitwise_or(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Array:
-  '''
+  """
   Compute the bit-wise OR of two arrays element-wise.
 
   Args:
@@ -118,7 +117,7 @@ def bitwise_or(
 
   Returns:
     jax.Array: an array
-  '''
+  """
   return elementwise_bit_operation_binary(jnp.bitwise_or, x, y)
 
 
@@ -127,7 +126,7 @@ def bitwise_xor(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Array:
-  '''
+  """
   Compute the bit-wise XOR of two arrays element-wise.
 
   Args:
@@ -136,7 +135,7 @@ def bitwise_xor(
 
   Returns:
     jax.Array: an array
-  '''
+  """
   return elementwise_bit_operation_binary(jnp.bitwise_xor, x, y)
 
 
@@ -145,7 +144,7 @@ def left_shift(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Array:
-  '''
+  """
   Shift the bits of an integer to the left.
 
   Args:
@@ -154,7 +153,7 @@ def left_shift(
 
   Returns:
     jax.Array: an array
-  '''
+  """
   return elementwise_bit_operation_binary(jnp.left_shift, x, y)
 
 
@@ -163,7 +162,7 @@ def right_shift(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Array:
-  '''
+  """
   Shift the bits of an integer to the right.
 
   Args:
@@ -172,5 +171,5 @@ def right_shift(
 
   Returns:
     jax.Array: an array
-  '''
+  """
   return elementwise_bit_operation_binary(jnp.right_shift, x, y)

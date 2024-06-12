@@ -19,10 +19,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import opt_einsum
-from brainstate._utils import set_module_as
 from jax import Array
 from jax._src.numpy.lax_numpy import _einsum
 
+from _misc import set_module_as
 from ._compat_numpy_array_manipulation import func_array_manipulation
 from ._compat_numpy_funcs_change_unit import funcs_change_unit_binary
 from ._compat_numpy_funcs_keep_unit import funcs_keep_unit_unary
@@ -103,7 +103,7 @@ def einsum(
     preferred_element_type: Union[jax.typing.DTypeLike, None] = None,
     _dot_general: Callable[..., jax.Array] = jax.lax.dot_general,
 ) -> Union[jax.Array, Quantity]:
-  '''
+  """
   Evaluates the Einstein summation convention on the operands.
 
   Args:
@@ -124,7 +124,7 @@ def einsum(
 
     Returns:
       array containing the result of the einstein summation.
-  '''
+  """
   operands = (subscripts, *operands)
   if out is not None:
     raise NotImplementedError("The 'out' argument to jnp.einsum is not supported.")
@@ -188,7 +188,7 @@ def gradient(
     axis: Union[int, Sequence[int], None] = None,
     edge_order: Union[int, None] = None,
 ) -> Union[jax.Array, list[jax.Array], Quantity, list[Quantity]]:
-  '''
+  """
   Computes the gradient of a scalar field.
 
   Args:
@@ -199,7 +199,7 @@ def gradient(
 
   Returns:
     array containing the gradient of the scalar field.
-  '''
+  """
   if edge_order is not None:
     raise NotImplementedError("The 'edge_order' argument to jnp.gradient is not supported.")
 
@@ -229,7 +229,7 @@ def intersect1d(
     assume_unique: bool = False,
     return_indices: bool = False
 ) -> Union[jax.Array, Quantity, tuple[Union[jax.Array, Quantity], jax.Array, jax.Array]]:
-  '''
+  """
   Find the intersection of two arrays.
 
   Args:
@@ -240,7 +240,7 @@ def intersect1d(
 
   Returns:
     array containing the intersection of the two arrays.
-  '''
+  """
   fail_for_dimension_mismatch(ar1, ar2, 'intersect1d')
   unit = None
   if isinstance(ar1, Quantity):
@@ -267,7 +267,7 @@ def nan_to_num(
     posinf: float = jnp.inf,
     neginf: float = -jnp.inf
 ) -> Union[jax.Array, Quantity]:
-  '''
+  """
   Replace NaN with zero and infinity with large finite numbers (default behaviour) or with the numbers defined by the user using the `nan`, `posinf` and `neginf` arguments.
 
   Args:
@@ -278,7 +278,7 @@ def nan_to_num(
 
   Returns:
     array with NaNs replaced by zero and infinities replaced by large finite numbers.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.nan_to_num, x, nan=nan, posinf=posinf, neginf=neginf)
 
 
@@ -289,7 +289,7 @@ def rot90(
     axes: Tuple[int, int] = (0, 1)
 ) -> Union[
   jax.Array, Quantity]:
-  '''
+  """
   Return the index of the maximum value in an array, ignoring NaNs.
 
   Args:
@@ -300,7 +300,7 @@ def rot90(
 
   Returns:
     index of the maximum value in the array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.rot90, m, k=k, axes=axes)
 
 
@@ -310,7 +310,7 @@ def tensordot(
     b: Union[jax.typing.ArrayLike, Quantity],
     axes: Union[int, Tuple[int, int]] = 2
 ) -> Union[jax.Array, Quantity]:
-  '''
+  """
   Return the index of the minimum value in an array, ignoring NaNs.
 
   Args:
@@ -321,7 +321,7 @@ def tensordot(
 
   Returns:
     index of the minimum value in the array.
-  '''
+  """
   return funcs_change_unit_binary(jnp.tensordot, lambda x, y: x * y, a, b, axes=axes)
 
 
@@ -330,7 +330,7 @@ def nanargmax(
     a: Union[jax.typing.ArrayLike, Quantity],
     axis: int = None
 ) -> jax.Array:
-  '''
+  """
   Rotate an array by 90 degrees in the plane specified by axes.
 
   Args:
@@ -340,7 +340,7 @@ def nanargmax(
 
   Returns:
     rotated array.
-  '''
+  """
   return func_array_manipulation(jnp.nanargmax, a, return_quantity=False, axis=axis)
 
 
@@ -349,7 +349,7 @@ def nanargmin(
     a: Union[jax.typing.ArrayLike, Quantity],
     axis: int = None
 ) -> jax.Array:
-  '''
+  """
   Compute tensor dot product along specified axes for arrays.
 
   Args:
@@ -359,5 +359,5 @@ def nanargmin(
 
   Returns:
     tensor dot product of the two arrays.
-  '''
+  """
   return func_array_manipulation(jnp.nanargmin, a, return_quantity=False, axis=axis)

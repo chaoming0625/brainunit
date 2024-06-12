@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from functools import wraps
 
 import jax.numpy as jnp
-from brainstate._utils import set_module_as
 from jax import Array
+
+from _misc import set_module_as
 
 __all__ = [
 
@@ -31,6 +31,7 @@ __all__ = [
 
 def window_funcs(func, *args, **kwargs):
   return func(*args, **kwargs)
+
 
 @set_module_as('brainunit.math')
 def bartlett(M: int) -> Array:

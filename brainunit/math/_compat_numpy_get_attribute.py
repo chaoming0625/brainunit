@@ -17,10 +17,9 @@ from typing import (Union)
 import jax
 import jax.numpy as jnp
 import numpy as np
-from brainstate._utils import set_module_as
 
-from .._base import (Quantity,
-                     )
+from _misc import set_module_as
+from .._base import Quantity
 
 __all__ = [
   # getting attribute funcs
@@ -31,7 +30,7 @@ __all__ = [
 
 @set_module_as('brainunit.math')
 def ndim(a: Union[Quantity, jax.typing.ArrayLike]) -> int:
-  '''
+  """
   Return the number of dimensions of an array.
 
   Args:
@@ -39,7 +38,7 @@ def ndim(a: Union[Quantity, jax.typing.ArrayLike]) -> int:
 
   Returns:
     Union[jax.Array, Quantity]: int
-  '''
+  """
   if isinstance(a, Quantity):
     return a.ndim
   else:
@@ -48,7 +47,7 @@ def ndim(a: Union[Quantity, jax.typing.ArrayLike]) -> int:
 
 @set_module_as('brainunit.math')
 def isreal(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
-  '''
+  """
   Return True if the input array is real.
 
   Args:
@@ -56,7 +55,7 @@ def isreal(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
 
   Returns:
     Union[jax.Array, Quantity]: boolean array
-  '''
+  """
   if isinstance(a, Quantity):
     return a.isreal
   else:
@@ -65,7 +64,7 @@ def isreal(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
 
 @set_module_as('brainunit.math')
 def isscalar(a: Union[Quantity, jax.typing.ArrayLike]) -> bool:
-  '''
+  """
   Return True if the input is a scalar.
 
   Args:
@@ -73,7 +72,7 @@ def isscalar(a: Union[Quantity, jax.typing.ArrayLike]) -> bool:
 
   Returns:
     Union[jax.Array, Quantity]: boolean array
-  '''
+  """
   if isinstance(a, Quantity):
     return a.isscalar
   else:
@@ -82,7 +81,7 @@ def isscalar(a: Union[Quantity, jax.typing.ArrayLike]) -> bool:
 
 @set_module_as('brainunit.math')
 def isfinite(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
-  '''
+  """
   Return each element of the array is finite or not.
 
   Args:
@@ -90,7 +89,7 @@ def isfinite(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
 
   Returns:
     Union[jax.Array, Quantity]: boolean array
-  '''
+  """
   if isinstance(a, Quantity):
     return a.isfinite
   else:
@@ -99,7 +98,7 @@ def isfinite(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
 
 @set_module_as('brainunit.math')
 def isinf(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
-  '''
+  """
   Return each element of the array is infinite or not.
 
   Args:
@@ -107,7 +106,7 @@ def isinf(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
 
   Returns:
     Union[jax.Array, Quantity]: boolean array
-  '''
+  """
   if isinstance(a, Quantity):
     return a.isinf
   else:
@@ -116,7 +115,7 @@ def isinf(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
 
 @set_module_as('brainunit.math')
 def isnan(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
-  '''
+  """
   Return each element of the array is NaN or not.
 
   Args:
@@ -124,7 +123,7 @@ def isnan(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
 
   Returns:
     Union[jax.Array, Quantity]: boolean array
-  '''
+  """
   if isinstance(a, Quantity):
     return a.isnan
   else:

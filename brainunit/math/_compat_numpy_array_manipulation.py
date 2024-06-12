@@ -12,18 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+
 from collections.abc import Sequence
-from functools import wraps
-from typing import (Union, Optional, Tuple, List, Callable)
+from typing import (Union, Optional, Tuple, List)
 
 import jax
 import jax.numpy as jnp
-from brainstate._utils import set_module_as
 from jax import Array
 
-from .._base import (Quantity,
-                     )
-
+from ._misc import set_module_as
+from .._base import Quantity
 __all__ = [
   # array manipulation
   'reshape', 'moveaxis', 'transpose', 'swapaxes', 'row_stack',
@@ -82,7 +80,7 @@ def func_array_manipulation(fun, *args, return_quantity=True, **kwargs) -> Union
     if 'out' in kwargs:
       out = kwargs.pop('out')
       if out is not None and not isinstance(out, Quantity):
-          raise TypeError(f'"out" must be an instance of brainpy Array. While we got {type(out)}')
+        raise TypeError(f'"out" must be an instance of brainpy Array. While we got {type(out)}')
     # format
     kwargs = tree_map(_as_jax_array_, kwargs, is_leaf=_is_leaf)
 

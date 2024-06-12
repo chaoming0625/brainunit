@@ -13,10 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 
-# from ._compat_numpy import *
-# from ._compat_numpy import __all__ as _compat_numpy_all
-from ._others import *
-from ._others import __all__ as _other_all
 from ._compat_numpy_array_creation import *
 from ._compat_numpy_array_creation import __all__ as _compat_array_creation_all
 from ._compat_numpy_array_manipulation import *
@@ -45,6 +41,10 @@ from ._compat_numpy_linear_algebra import *
 from ._compat_numpy_linear_algebra import __all__ as _compat_linear_algebra_all
 from ._compat_numpy_misc import *
 from ._compat_numpy_misc import __all__ as _compat_misc_all
+# from ._compat_numpy import *
+# from ._compat_numpy import __all__ as _compat_numpy_all
+from ._others import *
+from ._others import __all__ as _other_all
 
 __all__ = _compat_array_creation_all + \
           _compat_array_manipulation_all + \

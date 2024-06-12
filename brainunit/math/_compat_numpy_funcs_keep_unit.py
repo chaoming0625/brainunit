@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from functools import wraps
-from typing import (Union, Callable)
+from typing import (Union)
 
 import jax
 import jax.numpy as jnp
 import numpy as np
-from brainstate._utils import set_module_as
 
-from .._base import (Quantity,
-                     )
+from _misc import set_module_as
+from .._base import Quantity
 
 __all__ = [
   # math funcs keep unit (unary)
@@ -56,7 +54,7 @@ def funcs_keep_unit_unary(func, x, *args, **kwargs):
 
 @set_module_as('brainunit.math')
 def real(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the real part of the complex argument.
 
   Args:
@@ -64,13 +62,13 @@ def real(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.real, x)
 
 
 @set_module_as('brainunit.math')
 def imag(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the imaginary part of the complex argument.
 
   Args:
@@ -78,13 +76,13 @@ def imag(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.imag, x)
 
 
 @set_module_as('brainunit.math')
 def conj(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the complex conjugate of the argument.
 
   Args:
@@ -92,13 +90,13 @@ def conj(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.conj, x)
 
 
 @set_module_as('brainunit.math')
 def conjugate(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the complex conjugate of the argument.
 
   Args:
@@ -106,13 +104,13 @@ def conjugate(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.A
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.conjugate, x)
 
 
 @set_module_as('brainunit.math')
 def negative(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the negative of the argument.
 
   Args:
@@ -120,13 +118,13 @@ def negative(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Ar
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.negative, x)
 
 
 @set_module_as('brainunit.math')
 def positive(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the positive of the argument.
 
   Args:
@@ -134,13 +132,13 @@ def positive(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Ar
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.positive, x)
 
 
 @set_module_as('brainunit.math')
 def abs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the absolute value of the argument.
 
   Args:
@@ -148,13 +146,13 @@ def abs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.abs, x)
 
 
 @set_module_as('brainunit.math')
 def round_(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Round an array to the nearest integer.
 
   Args:
@@ -162,13 +160,13 @@ def round_(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arra
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.round_, x)
 
 
 @set_module_as('brainunit.math')
 def around(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Round an array to the nearest integer.
 
   Args:
@@ -176,13 +174,13 @@ def around(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arra
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.around, x)
 
 
 @set_module_as('brainunit.math')
 def round(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Round an array to the nearest integer.
 
   Args:
@@ -190,13 +188,13 @@ def round(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.round, x)
 
 
 @set_module_as('brainunit.math')
 def rint(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Round an array to the nearest integer.
 
   Args:
@@ -204,13 +202,13 @@ def rint(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.rint, x)
 
 
 @set_module_as('brainunit.math')
 def floor(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the floor of the argument.
 
   Args:
@@ -218,13 +216,13 @@ def floor(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.floor, x)
 
 
 @set_module_as('brainunit.math')
 def ceil(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the ceiling of the argument.
 
   Args:
@@ -232,13 +230,13 @@ def ceil(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.ceil, x)
 
 
 @set_module_as('brainunit.math')
 def trunc(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the truncated value of the argument.
 
   Args:
@@ -246,13 +244,13 @@ def trunc(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.trunc, x)
 
 
 @set_module_as('brainunit.math')
 def fix(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the nearest integer towards zero.
 
   Args:
@@ -260,13 +258,13 @@ def fix(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.fix, x)
 
 
 @set_module_as('brainunit.math')
 def sum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the sum of the array elements.
 
   Args:
@@ -274,13 +272,13 @@ def sum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.sum, x)
 
 
 @set_module_as('brainunit.math')
 def nancumsum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the cumulative sum of the array elements, ignoring NaNs.
 
   Args:
@@ -288,13 +286,13 @@ def nancumsum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.A
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.nancumsum, x)
 
 
 @set_module_as('brainunit.math')
 def nansum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the sum of the array elements, ignoring NaNs.
 
   Args:
@@ -302,13 +300,13 @@ def nansum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arra
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.nansum, x)
 
 
 @set_module_as('brainunit.math')
 def cumsum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the cumulative sum of the array elements.
 
   Args:
@@ -316,13 +314,13 @@ def cumsum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arra
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.cumsum, x)
 
 
 @set_module_as('brainunit.math')
 def ediff1d(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the differences between consecutive elements of the array.
 
   Args:
@@ -330,13 +328,13 @@ def ediff1d(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arr
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.ediff1d, x)
 
 
 @set_module_as('brainunit.math')
 def absolute(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the absolute value of the argument.
 
   Args:
@@ -344,13 +342,13 @@ def absolute(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Ar
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.absolute, x)
 
 
 @set_module_as('brainunit.math')
 def fabs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the absolute value of the argument.
 
   Args:
@@ -358,13 +356,13 @@ def fabs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.fabs, x)
 
 
 @set_module_as('brainunit.math')
 def median(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the median of the array elements.
 
   Args:
@@ -372,13 +370,13 @@ def median(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arra
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.median, x)
 
 
 @set_module_as('brainunit.math')
 def nanmin(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the minimum of the array elements, ignoring NaNs.
 
   Args:
@@ -386,13 +384,13 @@ def nanmin(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arra
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.nanmin, x)
 
 
 @set_module_as('brainunit.math')
 def nanmax(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the maximum of the array elements, ignoring NaNs.
 
   Args:
@@ -400,13 +398,13 @@ def nanmax(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arra
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.nanmax, x)
 
 
 @set_module_as('brainunit.math')
 def ptp(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the range of the array elements (maximum - minimum).
 
   Args:
@@ -414,13 +412,13 @@ def ptp(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.ptp, x)
 
 
 @set_module_as('brainunit.math')
 def average(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the weighted average of the array elements.
 
   Args:
@@ -428,13 +426,13 @@ def average(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arr
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.average, x)
 
 
 @set_module_as('brainunit.math')
 def mean(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the mean of the array elements.
 
   Args:
@@ -442,13 +440,13 @@ def mean(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.mean, x)
 
 
 @set_module_as('brainunit.math')
 def std(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the standard deviation of the array elements.
 
   Args:
@@ -456,13 +454,13 @@ def std(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.std, x)
 
 
 @set_module_as('brainunit.math')
 def nanmedian(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the median of the array elements, ignoring NaNs.
 
   Args:
@@ -470,13 +468,13 @@ def nanmedian(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.A
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.nanmedian, x)
 
 
 @set_module_as('brainunit.math')
 def nanmean(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the mean of the array elements, ignoring NaNs.
 
   Args:
@@ -484,13 +482,13 @@ def nanmean(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arr
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.nanmean, x)
 
 
 @set_module_as('brainunit.math')
 def nanstd(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the standard deviation of the array elements, ignoring NaNs.
 
   Args:
@@ -498,13 +496,13 @@ def nanstd(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arra
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.nanstd, x)
 
 
 @set_module_as('brainunit.math')
 def diff(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the differences between consecutive elements of the array.
 
   Args:
@@ -512,13 +510,13 @@ def diff(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.diff, x)
 
 
 @set_module_as('brainunit.math')
 def modf(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the fractional and integer parts of the array elements.
 
   Args:
@@ -526,7 +524,7 @@ def modf(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
 
   Returns:
     Union[jax.Array, Quantity]: Quantity tuple if `x` is a Quantity, else an array tuple.
-  '''
+  """
   return funcs_keep_unit_unary(jnp.modf, x)
 
 
@@ -541,9 +539,10 @@ def funcs_keep_unit_binary(func, x1, x2, *args, **kwargs):
   else:
     raise ValueError(f'Unsupported type: {type(x1)} and {type(x2)} for {func.__name__}')
 
+
 @set_module_as('brainunit.math')
 def fmod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the element-wise remainder of division.
 
   Args:
@@ -552,13 +551,13 @@ def fmod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Unio
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_keep_unit_binary(jnp.fmod, x1, x2)
 
 
 @set_module_as('brainunit.math')
 def mod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the element-wise modulus of division.
 
   Args:
@@ -567,13 +566,13 @@ def mod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_keep_unit_binary(jnp.mod, x1, x2)
 
 
 @set_module_as('brainunit.math')
 def copysign(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return a copy of the first array elements with the sign of the second array.
 
   Args:
@@ -582,13 +581,13 @@ def copysign(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> 
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_keep_unit_binary(jnp.copysign, x1, x2)
 
 
 @set_module_as('brainunit.math')
 def heaviside(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Compute the Heaviside step function.
 
   Args:
@@ -597,13 +596,13 @@ def heaviside(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) ->
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_keep_unit_binary(jnp.heaviside, x1, x2)
 
 
 @set_module_as('brainunit.math')
 def maximum(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Element-wise maximum of array elements.
 
   Args:
@@ -612,13 +611,13 @@ def maximum(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> U
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_keep_unit_binary(jnp.maximum, x1, x2)
 
 
 @set_module_as('brainunit.math')
 def minimum(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Element-wise minimum of array elements.
 
   Args:
@@ -627,13 +626,13 @@ def minimum(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> U
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_keep_unit_binary(jnp.minimum, x1, x2)
 
 
 @set_module_as('brainunit.math')
 def fmax(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Element-wise maximum of array elements ignoring NaNs.
 
   Args:
@@ -642,13 +641,13 @@ def fmax(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Unio
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_keep_unit_binary(jnp.fmax, x1, x2)
 
 
 @set_module_as('brainunit.math')
 def fmin(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Element-wise minimum of array elements ignoring NaNs.
 
   Args:
@@ -657,13 +656,13 @@ def fmin(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Unio
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_keep_unit_binary(jnp.fmin, x1, x2)
 
 
 @set_module_as('brainunit.math')
 def lcm(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the least common multiple of `x1` and `x2`.
 
   Args:
@@ -672,13 +671,13 @@ def lcm(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_keep_unit_binary(jnp.lcm, x1, x2)
 
 
 @set_module_as('brainunit.math')
 def gcd(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the greatest common divisor of `x1` and `x2`.
 
   Args:
@@ -687,7 +686,7 @@ def gcd(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  '''
+  """
   return funcs_keep_unit_binary(jnp.gcd, x1, x2)
 
 
@@ -700,7 +699,7 @@ def interp(x: Union[Quantity, jax.typing.ArrayLike],
            left: Union[Quantity, jax.typing.ArrayLike] = None,
            right: Union[Quantity, jax.typing.ArrayLike] = None,
            period: Union[Quantity, jax.typing.ArrayLike] = None) -> Union[Quantity, jax.Array]:
-  '''
+  """
   One-dimensional linear interpolation.
 
   Args:
@@ -713,7 +712,7 @@ def interp(x: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x`, `xp`, and `fp` are Quantities that have the same unit, else an array.
-  '''
+  """
   unit = None
   if isinstance(x, Quantity) or isinstance(xp, Quantity) or isinstance(fp, Quantity):
     unit = x.dim if isinstance(x, Quantity) else xp.dim if isinstance(xp, Quantity) else fp.dim
@@ -740,7 +739,7 @@ def interp(x: Union[Quantity, jax.typing.ArrayLike],
 def clip(a: Union[Quantity, jax.typing.ArrayLike],
          a_min: Union[Quantity, jax.typing.ArrayLike],
          a_max: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Clip (limit) the values in an array.
 
   Args:
@@ -750,7 +749,7 @@ def clip(a: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `a`, `a_min`, and `a_max` are Quantities that have the same unit, else an array.
-  '''
+  """
   unit = None
   if isinstance(a, Quantity) or isinstance(a_min, Quantity) or isinstance(a_max, Quantity):
     unit = a.dim if isinstance(a, Quantity) else a_min.dim if isinstance(a_min, Quantity) else a_max.dim

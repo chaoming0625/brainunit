@@ -16,6 +16,7 @@ Base Classes
 
     Quantity
     Unit
+    Dimension
     DIMENSIONLESS
     DimensionMismatchError
 

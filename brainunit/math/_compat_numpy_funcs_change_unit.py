@@ -13,18 +13,16 @@
 # limitations under the License.
 # ==============================================================================
 from collections.abc import Sequence
-from functools import wraps
-from typing import (Callable, Union, Optional)
+from typing import (Union, Optional)
 
 import jax
 import jax.numpy as jnp
 import numpy as np
-from brainstate._utils import set_module_as
 
+from _misc import set_module_as
 from ._compat_numpy_get_attribute import isscalar
 from .._base import (DIMENSIONLESS,
-                     Quantity,
-                     )
+                     Quantity,)
 from .._base import _return_check_unitless
 
 __all__ = [
@@ -57,7 +55,7 @@ def funcs_change_unit_unary(func, change_unit_func, x, *args, **kwargs):
 def reciprocal(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the reciprocal of the argument.
 
   Args:
@@ -65,7 +63,7 @@ def reciprocal(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   return funcs_change_unit_unary(jnp.reciprocal,
                                  lambda x: x ** -1,
                                  x)
@@ -78,7 +76,7 @@ def var(
     ddof: int = 0,
     keepdims: bool = False
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Compute the variance along the specified axis.
 
   Args:
@@ -86,7 +84,7 @@ def var(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
-  '''
+  """
   return funcs_change_unit_unary(jnp.var,
                                  lambda x: x ** 2,
                                  x,
@@ -102,7 +100,7 @@ def nanvar(
     ddof: int = 0,
     keepdims: bool = False
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Compute the variance along the specified axis, ignoring NaNs.
 
   Args:
@@ -110,7 +108,7 @@ def nanvar(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
-  '''
+  """
   return funcs_change_unit_unary(jnp.nanvar,
                                  lambda x: x ** 2,
                                  x,
@@ -123,7 +121,7 @@ def nanvar(
 def frexp(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Decompose a floating-point number into its mantissa and exponent.
 
   Args:
@@ -131,7 +129,7 @@ def frexp(
 
   Returns:
     Union[jax.Array, Quantity]: Tuple of Quantity if the final unit is the product of the unit of `x` and 2 raised to the power of the exponent, else a tuple of arrays.
-  '''
+  """
   return funcs_change_unit_unary(jnp.frexp,
                                  lambda x: x * 2 ** -1,
                                  x)
@@ -141,7 +139,7 @@ def frexp(
 def sqrt(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Compute the square root of each element.
 
   Args:
@@ -149,7 +147,7 @@ def sqrt(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the square root of the unit of `x`, else an array.
-  '''
+  """
   return funcs_change_unit_unary(jnp.sqrt,
                                  lambda x: x ** 0.5,
                                  x)
@@ -159,7 +157,7 @@ def sqrt(
 def cbrt(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Compute the cube root of each element.
 
   Args:
@@ -167,7 +165,7 @@ def cbrt(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the cube root of the unit of `x`, else an array.
-  '''
+  """
   return funcs_change_unit_unary(jnp.cbrt,
                                  lambda x: x ** (1 / 3),
                                  x)
@@ -177,7 +175,7 @@ def cbrt(
 def square(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Compute the square of each element.
 
   Args:
@@ -185,7 +183,7 @@ def square(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
-  '''
+  """
   return funcs_change_unit_unary(jnp.square,
                                  lambda x: x ** 2,
                                  x)
@@ -200,7 +198,7 @@ def prod(x: Union[Quantity, jax.typing.ArrayLike],
          initial: Union[Quantity, jax.typing.ArrayLike] = None,
          where: Union[Quantity, jax.typing.ArrayLike] = None,
          promote_integers: bool = True) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the product of array elements over a given axis.
 
   Args:
@@ -215,7 +213,7 @@ def prod(x: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   if isinstance(x, Quantity):
     return x.prod(axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial, where=where,
                   promote_integers=promote_integers)
@@ -232,7 +230,7 @@ def nanprod(x: Union[Quantity, jax.typing.ArrayLike],
             keepdims: bool = False,
             initial: Union[Quantity, jax.typing.ArrayLike] = None,
             where: Union[Quantity, jax.typing.ArrayLike] = None):
-  '''
+  """
   Return the product of array elements over a given axis treating Not a Numbers (NaNs) as one.
 
   Args:
@@ -246,7 +244,7 @@ def nanprod(x: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   if isinstance(x, Quantity):
     return x.nanprod(axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial, where=where)
   else:
@@ -261,7 +259,7 @@ def cumprod(x: Union[Quantity, jax.typing.ArrayLike],
             axis: Optional[int] = None,
             dtype: Optional[jax.typing.DTypeLike] = None,
             out: None = None) -> Union[Quantity, jax.typing.ArrayLike]:
-  '''
+  """
   Return the cumulative product of elements along a given axis.
 
   Args:
@@ -272,7 +270,7 @@ def cumprod(x: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   if isinstance(x, Quantity):
     return x.cumprod(axis=axis, dtype=dtype, out=out)
   else:
@@ -284,7 +282,7 @@ def nancumprod(x: Union[Quantity, jax.typing.ArrayLike],
                axis: Optional[int] = None,
                dtype: Optional[jax.typing.DTypeLike] = None,
                out: None = None) -> Union[Quantity, jax.typing.ArrayLike]:
-  '''
+  """
   Return the cumulative product of elements along a given axis treating Not a Numbers (NaNs) as one.
 
   Args:
@@ -295,7 +293,7 @@ def nancumprod(x: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
-  '''
+  """
   if isinstance(x, Quantity):
     return x.nancumprod(axis=axis, dtype=dtype, out=out)
   else:
@@ -331,7 +329,7 @@ def multiply(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.typing.ArrayLike]:
-  '''
+  """
   Multiply arguments element-wise.
 
   Args:
@@ -340,7 +338,7 @@ def multiply(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
-  '''
+  """
   return funcs_change_unit_binary(jnp.multiply,
                                   lambda x, y: x * y,
                                   x, y)
@@ -351,7 +349,7 @@ def divide(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.typing.ArrayLike]:
-  '''
+  """
   Divide arguments element-wise.
 
   Args:
@@ -359,7 +357,7 @@ def divide(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
-  '''
+  """
   return funcs_change_unit_binary(jnp.divide,
                                   lambda x, y: x / y,
                                   x, y)
@@ -370,7 +368,7 @@ def cross(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.typing.ArrayLike]:
-  '''
+  """
   Return the cross product of two (arrays of) vectors.
 
   Args:
@@ -379,7 +377,7 @@ def cross(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
-  '''
+  """
   return funcs_change_unit_binary(jnp.cross,
                                   lambda x, y: x * y,
                                   x, y)
@@ -390,7 +388,7 @@ def ldexp(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.typing.ArrayLike]:
-  '''
+  """
   Return x1 * 2**x2, element-wise.
 
   Args:
@@ -399,11 +397,10 @@ def ldexp(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and 2 raised to the power of the unit of `y`, else an array.
-  '''
+  """
   return funcs_change_unit_binary(jnp.ldexp,
                                   lambda x, y: x * 2 ** y,
                                   x, y)
-
 
 
 @set_module_as('brainunit.math')
@@ -411,7 +408,7 @@ def true_divide(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.typing.ArrayLike]:
-  '''
+  """
   Returns a true division of the inputs, element-wise.
 
   Args:
@@ -420,7 +417,7 @@ def true_divide(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
-  '''
+  """
   return funcs_change_unit_binary(jnp.true_divide,
                                   lambda x, y: x / y,
                                   x, y)
@@ -431,7 +428,7 @@ def divmod(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.typing.ArrayLike]:
-  '''
+  """
   Return element-wise quotient and remainder simultaneously.
 
   Args:
@@ -440,7 +437,7 @@ def divmod(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
-  '''
+  """
   return funcs_change_unit_binary(jnp.divmod,
                                   lambda x, y: x / y,
                                   x, y)
@@ -451,7 +448,7 @@ def convolve(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.typing.ArrayLike]:
-  '''
+  """
   Returns the discrete, linear convolution of two one-dimensional sequences.
 
   Args:
@@ -460,7 +457,7 @@ def convolve(
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
-  '''
+  """
   return funcs_change_unit_binary(jnp.convolve,
                                   lambda x, y: x * y,
                                   x, y)
@@ -469,7 +466,7 @@ def convolve(
 @set_module_as('brainunit.math')
 def power(x: Union[Quantity, jax.typing.ArrayLike],
           y: Union[Quantity, jax.typing.ArrayLike], ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   First array elements raised to powers from second array, element-wise.
 
   Args:
@@ -478,7 +475,7 @@ def power(x: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
-  '''
+  """
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     return _return_check_unitless(Quantity(jnp.power(x.value, y.value), dim=x.dim ** y.dim))
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
@@ -494,7 +491,7 @@ def power(x: Union[Quantity, jax.typing.ArrayLike],
 @set_module_as('brainunit.math')
 def floor_divide(x: Union[Quantity, jax.typing.ArrayLike],
                  y: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return the largest integer smaller or equal to the division of the inputs.
 
   Args:
@@ -503,7 +500,7 @@ def floor_divide(x: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
-  '''
+  """
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y.value), dim=x.dim / y.dim))
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
@@ -519,7 +516,7 @@ def floor_divide(x: Union[Quantity, jax.typing.ArrayLike],
 @set_module_as('brainunit.math')
 def float_power(x: Union[Quantity, jax.typing.ArrayLike],
                 y: jax.typing.ArrayLike) -> Union[Quantity, jax.Array]:
-  '''
+  """
   First array elements raised to powers from second array, element-wise.
 
   Args:
@@ -528,7 +525,7 @@ def float_power(x: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
-  '''
+  """
   if isinstance(y, Quantity):
     assert isscalar(y), f'{jnp.float_power.__name__} only supports scalar exponent'
   if isinstance(x, Quantity):
@@ -542,7 +539,7 @@ def float_power(x: Union[Quantity, jax.typing.ArrayLike],
 @set_module_as('brainunit.math')
 def remainder(x: Union[Quantity, jax.typing.ArrayLike],
               y: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return element-wise remainder of division.
 
   Args:
@@ -551,7 +548,7 @@ def remainder(x: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the remainder of the unit of `x` and the unit of `y`, else an array.
-  '''
+  """
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     return _return_check_unitless(Quantity(jnp.remainder(x.value, y.value), dim=x.dim / y.dim))
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
