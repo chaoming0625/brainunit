@@ -15,7 +15,7 @@
 
 import jax.numpy as jnp
 
-from _misc import set_module_as
+from brainunit._misc import set_module_as
 from ._compat_numpy_funcs_accept_unitless import funcs_only_accept_unitless_unary
 
 __all__ = [

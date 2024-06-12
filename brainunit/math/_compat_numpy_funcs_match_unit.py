@@ -19,9 +19,9 @@ import jax.numpy as jnp
 import numpy as np
 from jax import Array
 
-from _misc import set_module_as
+from brainunit._misc import set_module_as
 from .._base import (Quantity,
-                     fail_for_dimension_mismatch,)
+                     fail_for_dimension_mismatch, )
 
 __all__ = [
   # math funcs match unit (binary)

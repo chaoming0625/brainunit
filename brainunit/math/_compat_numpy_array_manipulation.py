@@ -20,8 +20,9 @@ import jax
 import jax.numpy as jnp
 from jax import Array
 
-from ._misc import set_module_as
+from brainunit._misc import set_module_as
 from .._base import Quantity
+
 __all__ = [
   # array manipulation
   'reshape', 'moveaxis', 'transpose', 'swapaxes', 'row_stack',

@@ -21,7 +21,7 @@ import jax.numpy as jnp
 import numpy as np
 from jax import Array
 
-from ._misc import set_module_as
+from brainunit._misc import set_module_as
 from .._base import (
   DIMENSIONLESS,
   Quantity,

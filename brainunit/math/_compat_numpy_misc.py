@@ -22,7 +22,7 @@ import opt_einsum
 from jax import Array
 from jax._src.numpy.lax_numpy import _einsum
 
-from _misc import set_module_as
+from brainunit._misc import set_module_as
 from ._compat_numpy_array_manipulation import func_array_manipulation
 from ._compat_numpy_funcs_change_unit import funcs_change_unit_binary
 from ._compat_numpy_funcs_keep_unit import funcs_keep_unit_unary

@@ -17,7 +17,7 @@ from typing import (Union)
 import jax.numpy as jnp
 from jax import Array
 
-from _misc import set_module_as
+from brainunit._misc import set_module_as
 from ._compat_numpy_funcs_change_unit import funcs_change_unit_binary
 from ._compat_numpy_funcs_keep_unit import funcs_keep_unit_unary
 from .._base import Quantity
