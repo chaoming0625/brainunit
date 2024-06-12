@@ -18,9 +18,9 @@ from typing import (Union, Optional, Tuple, List, Callable)
 
 import jax
 import jax.numpy as jnp
+from brainstate._utils import set_module_as
 from jax import Array
 
-from ._utils import _compatible_with_quantity
 from .._base import (Quantity,
                      )
 
@@ -36,12 +36,75 @@ __all__ = [
   'diagflat', 'diagonal', 'choose', 'ravel',
 ]
 
-
 # array manipulation
 # ------------------
+from jax.tree_util import tree_map
 
 
-@_compatible_with_quantity(jnp.reshape)
+def _as_jax_array_(obj):
+  return obj.value if isinstance(obj, Quantity) else obj
+
+
+def _is_leaf(a):
+  return isinstance(a, Quantity)
+
+
+def func_array_manipulation(fun, *args, return_quantity=True, **kwargs) -> Union[list[Quantity], Quantity, jax.Array]:
+  unit = None
+  if isinstance(args[0], Quantity):
+    unit = args[0].dim
+  elif isinstance(args[0], tuple):
+    if len(args[0]) == 1:
+      unit = args[0][0].dim if isinstance(args[0][0], Quantity) else None
+    elif len(args[0]) == 2:
+      # check all args[0] have the same unit
+      if all(isinstance(a, Quantity) for a in args[0]):
+        if all(a.dim == args[0][0].dim for a in args[0]):
+          unit = args[0][0].dim
+        else:
+          raise ValueError(f'Units do not match for {fun.__name__} operation.')
+      elif all(not isinstance(a, Quantity) for a in args[0]):
+        unit = None
+      else:
+        raise ValueError(f'Units do not match for {fun.__name__} operation.')
+  args = tree_map(_as_jax_array_, args, is_leaf=_is_leaf)
+  out = None
+  if len(kwargs):
+    # compatible with PyTorch syntax
+    if 'dim' in kwargs:
+      kwargs['axis'] = kwargs.pop('dim')
+    if 'keepdim' in kwargs:
+      kwargs['keepdims'] = kwargs.pop('keepdim')
+    # compatible with TensorFlow syntax
+    if 'keep_dims' in kwargs:
+      kwargs['keepdims'] = kwargs.pop('keep_dims')
+    # compatible with NumPy/PyTorch syntax
+    if 'out' in kwargs:
+      out = kwargs.pop('out')
+      if out is not None and not isinstance(out, Quantity):
+          raise TypeError(f'"out" must be an instance of brainpy Array. While we got {type(out)}')
+    # format
+    kwargs = tree_map(_as_jax_array_, kwargs, is_leaf=_is_leaf)
+
+  if not return_quantity:
+    unit = None
+
+  r = fun(*args, **kwargs)
+  if unit is not None:
+    if isinstance(r, (list, tuple)):
+      return [Quantity(rr, dim=unit) for rr in r]
+    else:
+      if out is None:
+        return Quantity(r, dim=unit)
+      else:
+        out.value = r
+  if out is None:
+    return r
+  else:
+    out.value = r
+
+
+@set_module_as('brainunit.math')
 def reshape(
     a: Union[Array, Quantity],
     shape: Union[int, Tuple[int, ...]],
@@ -62,10 +125,10 @@ def reshape(
   Returns:
     reshaped copy of input array with the specified shape.
   """
-  ...
+  return func_array_manipulation(jnp.reshape, a, shape, order=order)
 
 
-@_compatible_with_quantity(jnp.moveaxis)
+@set_module_as('brainunit.math')
 def moveaxis(
     a: Union[Array, Quantity],
     source: Union[int, Tuple[int, ...]],
@@ -82,10 +145,10 @@ def moveaxis(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.moveaxis, a, source, destination)
 
 
-@_compatible_with_quantity(jnp.transpose)
+@set_module_as('brainunit.math')
 def transpose(
     a: Union[Array, Quantity],
     axes: Optional[Union[int, Tuple[int, ...]]] = None
@@ -100,10 +163,10 @@ def transpose(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.transpose, a, axes)
 
 
-@_compatible_with_quantity(jnp.swapaxes)
+@set_module_as('brainunit.math')
 def swapaxes(
     a: Union[Array, Quantity], axis1: int, axis2: int
 ) -> Union[Array, Quantity]:
@@ -118,10 +181,10 @@ def swapaxes(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.swapaxes, a, axis1, axis2)
 
 
-@_compatible_with_quantity(jnp.concatenate)
+@set_module_as('brainunit.math')
 def concatenate(
     arrays: Union[Sequence[Array], Sequence[Quantity]],
     axis: Optional[int] = None
@@ -136,10 +199,10 @@ def concatenate(
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.concatenate, arrays, axis=axis)
 
 
-@_compatible_with_quantity(jnp.stack)
+@set_module_as('brainunit.math')
 def stack(
     arrays: Union[Sequence[Array], Sequence[Quantity]],
     axis: int = 0
@@ -154,10 +217,10 @@ def stack(
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.stack, arrays, axis=axis)
 
 
-@_compatible_with_quantity(jnp.vstack)
+@set_module_as('brainunit.math')
 def vstack(
     arrays: Union[Sequence[Array], Sequence[Quantity]]
 ) -> Union[Array, Quantity]:
@@ -170,13 +233,13 @@ def vstack(
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.numpy.Array
   """
-  ...
+  return func_array_manipulation(jnp.vstack, arrays)
 
 
 row_stack = vstack
 
 
-@_compatible_with_quantity(jnp.hstack)
+@set_module_as('brainunit.math')
 def hstack(
     arrays: Union[Sequence[Array], Sequence[Quantity]]
 ) -> Union[Array, Quantity]:
@@ -189,10 +252,10 @@ def hstack(
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.hstack, arrays)
 
 
-@_compatible_with_quantity(jnp.dstack)
+@set_module_as('brainunit.math')
 def dstack(
     arrays: Union[Sequence[Array], Sequence[Quantity]]
 ) -> Union[Array, Quantity]:
@@ -205,10 +268,10 @@ def dstack(
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.dstack, arrays)
 
 
-@_compatible_with_quantity(jnp.column_stack)
+@set_module_as('brainunit.math')
 def column_stack(
     arrays: Union[Sequence[Array], Sequence[Quantity]]
 ) -> Union[Array, Quantity]:
@@ -221,10 +284,10 @@ def column_stack(
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.column_stack, arrays)
 
 
-@_compatible_with_quantity(jnp.split)
+@set_module_as('brainunit.math')
 def split(
     a: Union[Array, Quantity],
     indices_or_sections: Union[int, Sequence[int]],
@@ -241,10 +304,10 @@ def split(
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.split, a, indices_or_sections, axis=axis)
 
 
-@_compatible_with_quantity(jnp.dsplit)
+@set_module_as('brainunit.math')
 def dsplit(
     a: Union[Array, Quantity],
     indices_or_sections: Union[int, Sequence[int]]
@@ -259,10 +322,10 @@ def dsplit(
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.dsplit, a, indices_or_sections)
 
 
-@_compatible_with_quantity(jnp.hsplit)
+@set_module_as('brainunit.math')
 def hsplit(
     a: Union[Array, Quantity],
     indices_or_sections: Union[int, Sequence[int]]
@@ -277,10 +340,10 @@ def hsplit(
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.hsplit, a, indices_or_sections)
 
 
-@_compatible_with_quantity(jnp.vsplit)
+@set_module_as('brainunit.math')
 def vsplit(
     a: Union[Array, Quantity],
     indices_or_sections: Union[int, Sequence[int]]
@@ -295,10 +358,10 @@ def vsplit(
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.vsplit, a, indices_or_sections)
 
 
-@_compatible_with_quantity(jnp.tile)
+@set_module_as('brainunit.math')
 def tile(
     A: Union[Array, Quantity],
     reps: Union[int, Tuple[int, ...]]
@@ -313,10 +376,10 @@ def tile(
   Returns:
     Union[jax.Array, Quantity] a Quantity if A is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.tile, A, reps)
 
 
-@_compatible_with_quantity(jnp.repeat)
+@set_module_as('brainunit.math')
 def repeat(
     a: Union[Array, Quantity],
     repeats: Union[int, Tuple[int, ...]],
@@ -333,10 +396,10 @@ def repeat(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.repeat, a, repeats, axis=axis)
 
 
-@_compatible_with_quantity(jnp.unique)
+@set_module_as('brainunit.math')
 def unique(
     a: Union[Array, Quantity],
     return_index: bool = False,
@@ -357,10 +420,11 @@ def unique(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.unique, a, return_index=return_index, return_inverse=return_inverse,
+                                 return_counts=return_counts, axis=axis)
 
 
-@_compatible_with_quantity(jnp.append)
+@set_module_as('brainunit.math')
 def append(
     arr: Union[Array, Quantity],
     values: Union[Array, Quantity],
@@ -377,10 +441,10 @@ def append(
   Returns:
     Union[jax.Array, Quantity] a Quantity if arr and values are Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.append, arr, values, axis=axis)
 
 
-@_compatible_with_quantity(jnp.flip)
+@set_module_as('brainunit.math')
 def flip(
     m: Union[Array, Quantity],
     axis: Optional[Union[int, Tuple[int, ...]]] = None
@@ -395,10 +459,10 @@ def flip(
   Returns:
     Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.flip, m, axis=axis)
 
 
-@_compatible_with_quantity(jnp.fliplr)
+@set_module_as('brainunit.math')
 def fliplr(
     m: Union[Array, Quantity]
 ) -> Union[Array, Quantity]:
@@ -411,10 +475,10 @@ def fliplr(
   Returns:
     Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.fliplr, m)
 
 
-@_compatible_with_quantity(jnp.flipud)
+@set_module_as('brainunit.math')
 def flipud(
     m: Union[Array, Quantity]
 ) -> Union[Array, Quantity]:
@@ -427,10 +491,10 @@ def flipud(
   Returns:
     Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.flipud, m)
 
 
-@_compatible_with_quantity(jnp.roll)
+@set_module_as('brainunit.math')
 def roll(
     a: Union[Array, Quantity],
     shift: Union[int, Tuple[int, ...]],
@@ -447,10 +511,10 @@ def roll(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.roll, a, shift, axis=axis)
 
 
-@_compatible_with_quantity(jnp.atleast_1d)
+@set_module_as('brainunit.math')
 def atleast_1d(
     *arys: Union[Array, Quantity]
 ) -> Union[Array, Quantity]:
@@ -463,10 +527,10 @@ def atleast_1d(
   Returns:
     Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.atleast_1d, *arys)
 
 
-@_compatible_with_quantity(jnp.atleast_2d)
+@set_module_as('brainunit.math')
 def atleast_2d(
     *arys: Union[Array, Quantity]
 ) -> Union[Array, Quantity]:
@@ -479,10 +543,10 @@ def atleast_2d(
   Returns:
     Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.atleast_2d, *arys)
 
 
-@_compatible_with_quantity(jnp.atleast_3d)
+@set_module_as('brainunit.math')
 def atleast_3d(
     *arys: Union[Array, Quantity]
 ) -> Union[Array, Quantity]:
@@ -495,10 +559,10 @@ def atleast_3d(
   Returns:
     Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.atleast_3d, *arys)
 
 
-@_compatible_with_quantity(jnp.expand_dims)
+@set_module_as('brainunit.math')
 def expand_dims(
     a: Union[Array, Quantity],
     axis: int
@@ -513,10 +577,10 @@ def expand_dims(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.expand_dims, a, axis)
 
 
-@_compatible_with_quantity(jnp.squeeze)
+@set_module_as('brainunit.math')
 def squeeze(
     a: Union[Array, Quantity],
     axis: Optional[Union[int, Tuple[int, ...]]] = None
@@ -531,10 +595,10 @@ def squeeze(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.squeeze, a, axis)
 
 
-@_compatible_with_quantity(jnp.sort)
+@set_module_as('brainunit.math')
 def sort(
     a: Union[Array, Quantity],
     axis: Optional[int] = -1,
@@ -557,10 +621,10 @@ def sort(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.sort, a, axis=axis, kind=kind, order=order, stable=stable, descending=descending)
 
 
-@_compatible_with_quantity(jnp.argsort)
+@set_module_as('brainunit.math')
 def argsort(
     a: Union[Array, Quantity],
     axis: Optional[int] = -1,
@@ -583,10 +647,11 @@ def argsort(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.argsort, a, axis=axis, kind=kind, order=order, stable=stable,
+                                 descending=descending)
 
 
-@_compatible_with_quantity(jnp.max)
+@set_module_as('brainunit.math')
 def max(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
@@ -603,10 +668,10 @@ def max(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.max, a, axis=axis, keepdims=keepdims)
 
 
-@_compatible_with_quantity(jnp.min)
+@set_module_as('brainunit.math')
 def min(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
@@ -623,10 +688,10 @@ def min(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.min, a, axis=axis, keepdims=keepdims)
 
 
-@_compatible_with_quantity(jnp.choose)
+@set_module_as('brainunit.math')
 def choose(
     a: Union[Array, Quantity],
     choices: Sequence[Union[Array, Quantity]]
@@ -641,10 +706,10 @@ def choose(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a and choices are Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.choose, a, choices)
 
 
-@_compatible_with_quantity(jnp.block)
+@set_module_as('brainunit.math')
 def block(
     arrays: Sequence[Union[Array, Quantity]]
 ) -> Union[Array, Quantity]:
@@ -657,10 +722,10 @@ def block(
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.block, arrays)
 
 
-@_compatible_with_quantity(jnp.compress)
+@set_module_as('brainunit.math')
 def compress(
     condition: Union[Array, Quantity],
     a: Union[Array, Quantity],
@@ -677,10 +742,10 @@ def compress(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.compress, condition, a, axis=axis)
 
 
-@_compatible_with_quantity(jnp.diagflat)
+@set_module_as('brainunit.math')
 def diagflat(
     v: Union[Array, Quantity],
     k: int = 0
@@ -695,12 +760,12 @@ def diagflat(
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
   """
-  ...
+  return func_array_manipulation(jnp.diagflat, v, k)
 
 
 # return jax.numpy.Array, not Quantity
 
-@_compatible_with_quantity(jnp.argmax, return_quantity=False)
+@set_module_as('brainunit.math')
 def argmax(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
@@ -717,10 +782,10 @@ def argmax(
   Returns:
     jax.Array: an array (does not return a Quantity)
   """
-  ...
+  return func_array_manipulation(jnp.argmax, a, axis=axis, out=out, return_quantity=False)
 
 
-@_compatible_with_quantity(jnp.argmin, return_quantity=False)
+@set_module_as('brainunit.math')
 def argmin(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
@@ -737,10 +802,10 @@ def argmin(
   Returns:
     jax.Array: an array (does not return a Quantity)
   """
-  ...
+  return func_array_manipulation(jnp.argmin, a, axis=axis, out=out, return_quantity=False)
 
 
-@_compatible_with_quantity(jnp.argwhere, return_quantity=False)
+@set_module_as('brainunit.math')
 def argwhere(
     a: Union[Array, Quantity]
 ) -> Array:
@@ -753,10 +818,10 @@ def argwhere(
   Returns:
     jax.Array: an array (does not return a Quantity)
   """
-  ...
+  return func_array_manipulation(jnp.argwhere, a, return_quantity=False)
 
 
-@_compatible_with_quantity(jnp.nonzero, return_quantity=False)
+@set_module_as('brainunit.math')
 def nonzero(
     a: Union[Array, Quantity]
 ) -> Tuple[Array, ...]:
@@ -769,10 +834,10 @@ def nonzero(
   Returns:
     jax.Array: an array (does not return a Quantity)
   """
-  ...
+  return func_array_manipulation(jnp.nonzero, a, return_quantity=False)
 
 
-@_compatible_with_quantity(jnp.flatnonzero, return_quantity=False)
+@set_module_as('brainunit.math')
 def flatnonzero(
     a: Union[Array, Quantity]
 ) -> Array:
@@ -785,10 +850,10 @@ def flatnonzero(
   Returns:
     jax.Array: an array (does not return a Quantity)
   """
-  ...
+  return func_array_manipulation(jnp.flatnonzero, a, return_quantity=False)
 
 
-@_compatible_with_quantity(jnp.searchsorted, return_quantity=False)
+@set_module_as('brainunit.math')
 def searchsorted(
     a: Union[Array, Quantity],
     v: Union[Array, Quantity],
@@ -806,10 +871,10 @@ def searchsorted(
   Returns:
     jax.Array: an array (does not return a Quantity)
   """
-  ...
+  return func_array_manipulation(jnp.searchsorted, a, v, side=side, sorter=sorter, return_quantity=False)
 
 
-@_compatible_with_quantity(jnp.extract, return_quantity=False)
+@set_module_as('brainunit.math')
 def extract(
     condition: Union[Array, Quantity],
     arr: Union[Array, Quantity]
@@ -824,10 +889,10 @@ def extract(
   Returns:
     jax.Array: an array (does not return a Quantity)
   """
-  ...
+  return func_array_manipulation(jnp.extract, condition, arr, return_quantity=False)
 
 
-@_compatible_with_quantity(jnp.count_nonzero, return_quantity=False)
+@set_module_as('brainunit.math')
 def count_nonzero(
     a: Union[Array, Quantity], axis: Optional[int] = None
 ) -> Array:
@@ -841,29 +906,21 @@ def count_nonzero(
   Returns:
     jax.Array: an array (does not return a Quantity)
   """
-  ...
+  return func_array_manipulation(jnp.count_nonzero, a, axis=axis, return_quantity=False)
 
 
 amax = max
 amin = min
 
 
-def wrap_function_to_method(func: Callable):
-  @wraps(func)
-  def decorator(*args, **kwargs) -> Callable:
-    def f(x, *args, **kwargs):
-      if isinstance(x, Quantity):
-        return Quantity(func(x.value, *args, **kwargs), dim=x.dim)
-      else:
-        return func(x, *args, **kwargs)
-
-    f.__module__ = 'brainunit.math'
-    return f
-
-  return decorator
+def function_to_method(func, x, *args, **kwargs):
+  if isinstance(x, Quantity):
+    return Quantity(func(x.value, *args, **kwargs), dim=x.dim)
+  else:
+    return func(x, *args, **kwargs)
 
 
-@wrap_function_to_method(jnp.diagonal)
+@set_module_as('brainunit.math')
 def diagonal(
     a: Union[jax.Array, Quantity],
     offset: int = 0,
@@ -882,10 +939,10 @@ def diagonal(
   Returns:
     Union[jax.Array, Quantity]: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
   """
-  ...
+  return function_to_method(jnp.diagonal, a, offset, axis1, axis2)
 
 
-@wrap_function_to_method(jnp.ravel)
+@set_module_as('brainunit.math')
 def ravel(
     a: Union[jax.Array, Quantity],
     order: str = 'C'
@@ -900,4 +957,4 @@ def ravel(
   Returns:
     Union[jax.Array, Quantity]: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
   """
-  ...
+  return function_to_method(jnp.ravel, a, order)

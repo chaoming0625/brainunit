@@ -23,9 +23,9 @@ from brainstate._utils import set_module_as
 from jax import Array
 from jax._src.numpy.lax_numpy import _einsum
 
-from ._compat_numpy_funcs_change_unit import wrap_math_funcs_change_unit_binary
-from ._compat_numpy_funcs_keep_unit import wrap_math_funcs_keep_unit_unary
-from ._utils import _compatible_with_quantity
+from ._compat_numpy_array_manipulation import func_array_manipulation
+from ._compat_numpy_funcs_change_unit import funcs_change_unit_binary
+from ._compat_numpy_funcs_keep_unit import funcs_keep_unit_unary
 from .._base import (DIMENSIONLESS,
                      Quantity,
                      fail_for_dimension_mismatch,
@@ -260,7 +260,7 @@ def intersect1d(
       return result
 
 
-@wrap_math_funcs_keep_unit_unary(jnp.nan_to_num)
+@set_module_as('brainunit.math')
 def nan_to_num(
     x: Union[jax.typing.ArrayLike, Quantity],
     nan: float = 0.0,
@@ -279,10 +279,10 @@ def nan_to_num(
   Returns:
     array with NaNs replaced by zero and infinities replaced by large finite numbers.
   '''
-  ...
+  return funcs_keep_unit_unary(jnp.nan_to_num, x, nan=nan, posinf=posinf, neginf=neginf)
 
 
-@wrap_math_funcs_keep_unit_unary(jnp.rot90)
+@set_module_as('brainunit.math')
 def rot90(
     m: Union[jax.typing.ArrayLike, Quantity],
     k: int = 1,
@@ -301,10 +301,10 @@ def rot90(
   Returns:
     index of the maximum value in the array.
   '''
-  ...
+  return funcs_keep_unit_unary(jnp.rot90, m, k=k, axes=axes)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.tensordot, lambda x, y: x * y)
+@set_module_as('brainunit.math')
 def tensordot(
     a: Union[jax.typing.ArrayLike, Quantity],
     b: Union[jax.typing.ArrayLike, Quantity],
@@ -322,10 +322,10 @@ def tensordot(
   Returns:
     index of the minimum value in the array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.tensordot, lambda x, y: x * y, a, b, axes=axes)
 
 
-@_compatible_with_quantity(jnp.nanargmax, return_quantity=False)
+@set_module_as('brainunit.math')
 def nanargmax(
     a: Union[jax.typing.ArrayLike, Quantity],
     axis: int = None
@@ -341,10 +341,10 @@ def nanargmax(
   Returns:
     rotated array.
   '''
-  ...
+  return func_array_manipulation(jnp.nanargmax, a, return_quantity=False, axis=axis)
 
 
-@_compatible_with_quantity(jnp.nanargmin, return_quantity=False)
+@set_module_as('brainunit.math')
 def nanargmin(
     a: Union[jax.typing.ArrayLike, Quantity],
     axis: int = None
@@ -360,4 +360,4 @@ def nanargmin(
   Returns:
     tensor dot product of the two arrays.
   '''
-  ...
+  return func_array_manipulation(jnp.nanargmin, a, return_quantity=False, axis=axis)

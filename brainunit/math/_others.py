@@ -15,14 +15,15 @@
 
 
 import brainstate as bst
+from brainstate._utils import set_module_as
 
-from ._compat_numpy_funcs_accept_unitless import wrap_math_funcs_only_accept_unitless_unary
+from ._compat_numpy_funcs_accept_unitless import funcs_only_accept_unitless_unary
 
 __all__ = [
   'exprel',
 ]
 
 
-exprel = wrap_math_funcs_only_accept_unitless_unary(bst.math.exprel)
-
-
+@set_module_as('brainunit.math')
+def exprel(x):
+  return funcs_only_accept_unitless_unary(bst.math.exprel, x)

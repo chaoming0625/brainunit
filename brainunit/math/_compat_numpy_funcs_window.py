@@ -15,6 +15,7 @@
 from functools import wraps
 
 import jax.numpy as jnp
+from brainstate._utils import set_module_as
 from jax import Array
 
 __all__ = [
@@ -27,39 +28,33 @@ __all__ = [
 # window funcs
 # ------------
 
-def wrap_window_funcs(func):
-  @wraps(func)
-  def decorator(*args, **kwargs):
-    def f(*args, **kwargs):
-      return func(*args, **kwargs)
-  
-    f.__module__ = 'brainunit.math'
-    return f
-  return decorator
 
-@wrap_window_funcs(jnp.bartlett)
+def window_funcs(func, *args, **kwargs):
+  return func(*args, **kwargs)
+
+@set_module_as('brainunit.math')
 def bartlett(M: int) -> Array:
-  ...
+  return window_funcs(jnp.bartlett, M)
 
 
-@wrap_window_funcs(jnp.blackman)
+@set_module_as('brainunit.math')
 def blackman(M: int) -> Array:
-  ...
+  return window_funcs(jnp.blackman, M)
 
 
-@wrap_window_funcs(jnp.hamming)
+@set_module_as('brainunit.math')
 def hamming(M: int) -> Array:
-  ...
+  return window_funcs(jnp.hamming, M)
 
 
-@wrap_window_funcs(jnp.hanning)
+@set_module_as('brainunit.math')
 def hanning(M: int) -> Array:
-  ...
+  return window_funcs(jnp.hanning, M)
 
 
-@wrap_window_funcs(jnp.kaiser)
+@set_module_as('brainunit.math')
 def kaiser(M: int, beta: float) -> Array:
-  ...
+  return window_funcs(jnp.kaiser, M, beta)
 
 
 # docs for functions above

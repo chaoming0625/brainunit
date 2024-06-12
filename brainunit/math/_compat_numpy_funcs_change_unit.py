@@ -43,28 +43,17 @@ __all__ = [
 # math funcs change unit (unary)
 # ------------------------------
 
-def wrap_math_funcs_change_unit_unary(
-    func: Callable,
-    change_unit_func: Callable
-) -> Callable:
-  @wraps(func)
-  def decorator(*args, **kwargs) -> Callable:
 
-    def f(x, *args, **kwargs):
-      if isinstance(x, Quantity):
-        return _return_check_unitless(Quantity(func(x.value, *args, **kwargs), dim=change_unit_func(x.dim)))
-      elif isinstance(x, (jnp.ndarray, np.ndarray)):
-        return func(x, *args, **kwargs)
-      else:
-        raise ValueError(f'Unsupported type: {type(x)} for {func.__name__}')
-
-    f.__module__ = 'brainunit.math'
-    return f
-
-  return decorator
+def funcs_change_unit_unary(func, change_unit_func, x, *args, **kwargs):
+  if isinstance(x, Quantity):
+    return _return_check_unitless(Quantity(func(x.value, *args, **kwargs), dim=change_unit_func(x.dim)))
+  elif isinstance(x, (jnp.ndarray, np.ndarray)):
+    return func(x, *args, **kwargs)
+  else:
+    raise ValueError(f'Unsupported type: {type(x)} for {func.__name__}')
 
 
-@wrap_math_funcs_change_unit_unary(jnp.reciprocal, lambda x: x ** -1)
+@set_module_as('brainunit.math')
 def reciprocal(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
@@ -77,10 +66,12 @@ def reciprocal(
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
   '''
-  ...
+  return funcs_change_unit_unary(jnp.reciprocal,
+                                 lambda x: x ** -1,
+                                 x)
 
 
-@wrap_math_funcs_change_unit_unary(jnp.var, lambda x: x ** 2)
+@set_module_as('brainunit.math')
 def var(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
@@ -96,10 +87,15 @@ def var(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
   '''
-  ...
+  return funcs_change_unit_unary(jnp.var,
+                                 lambda x: x ** 2,
+                                 x,
+                                 axis=axis,
+                                 ddof=ddof,
+                                 keepdims=keepdims)
 
 
-@wrap_math_funcs_change_unit_unary(jnp.nanvar, lambda x: x ** 2)
+@set_module_as('brainunit.math')
 def nanvar(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
@@ -115,10 +111,15 @@ def nanvar(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
   '''
-  ...
+  return funcs_change_unit_unary(jnp.nanvar,
+                                 lambda x: x ** 2,
+                                 x,
+                                 axis=axis,
+                                 ddof=ddof,
+                                 keepdims=keepdims)
 
 
-@wrap_math_funcs_change_unit_unary(jnp.frexp, lambda x: x * 2 ** -1)
+@set_module_as('brainunit.math')
 def frexp(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
@@ -131,10 +132,12 @@ def frexp(
   Returns:
     Union[jax.Array, Quantity]: Tuple of Quantity if the final unit is the product of the unit of `x` and 2 raised to the power of the exponent, else a tuple of arrays.
   '''
-  ...
+  return funcs_change_unit_unary(jnp.frexp,
+                                 lambda x: x * 2 ** -1,
+                                 x)
 
 
-@wrap_math_funcs_change_unit_unary(jnp.sqrt, lambda x: x ** 0.5)
+@set_module_as('brainunit.math')
 def sqrt(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
@@ -147,10 +150,12 @@ def sqrt(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the square root of the unit of `x`, else an array.
   '''
-  ...
+  return funcs_change_unit_unary(jnp.sqrt,
+                                 lambda x: x ** 0.5,
+                                 x)
 
 
-@wrap_math_funcs_change_unit_unary(jnp.cbrt, lambda x: x ** (1 / 3))
+@set_module_as('brainunit.math')
 def cbrt(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
@@ -163,10 +168,12 @@ def cbrt(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the cube root of the unit of `x`, else an array.
   '''
-  ...
+  return funcs_change_unit_unary(jnp.cbrt,
+                                 lambda x: x ** (1 / 3),
+                                 x)
 
 
-@wrap_math_funcs_change_unit_unary(jnp.square, lambda x: x ** 2)
+@set_module_as('brainunit.math')
 def square(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
@@ -179,7 +186,9 @@ def square(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
   '''
-  ...
+  return funcs_change_unit_unary(jnp.square,
+                                 lambda x: x ** 2,
+                                 x)
 
 
 @set_module_as('brainunit.math')
@@ -299,35 +308,25 @@ cumproduct = cumprod
 # math funcs change unit (binary)
 # -------------------------------
 
-def wrap_math_funcs_change_unit_binary(
-    func: Callable,
-    change_unit_func: Callable
-):
-  @wraps(func)
-  def decorator(*args, **kwargs) -> Callable:
-    def f(x, y, *args, **kwargs):
-      if isinstance(x, Quantity) and isinstance(y, Quantity):
-        return _return_check_unitless(
-          Quantity(func(x.value, y.value, *args, **kwargs), dim=change_unit_func(x.dim, y.dim))
-        )
-      elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
-        return func(x, y, *args, **kwargs)
-      elif isinstance(x, Quantity):
-        return _return_check_unitless(
-          Quantity(func(x.value, y, *args, **kwargs), dim=change_unit_func(x.dim, DIMENSIONLESS)))
-      elif isinstance(y, Quantity):
-        return _return_check_unitless(
-          Quantity(func(x, y.value, *args, **kwargs), dim=change_unit_func(DIMENSIONLESS, y.dim)))
-      else:
-        raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
 
-    f.__module__ = 'brainunit.math'
-    return f
-
-  return decorator
+def funcs_change_unit_binary(func, change_unit_func, x, y, *args, **kwargs):
+  if isinstance(x, Quantity) and isinstance(y, Quantity):
+    return _return_check_unitless(
+      Quantity(func(x.value, y.value, *args, **kwargs), dim=change_unit_func(x.dim, y.dim))
+    )
+  elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
+    return func(x, y, *args, **kwargs)
+  elif isinstance(x, Quantity):
+    return _return_check_unitless(
+      Quantity(func(x.value, y, *args, **kwargs), dim=change_unit_func(x.dim, DIMENSIONLESS)))
+  elif isinstance(y, Quantity):
+    return _return_check_unitless(
+      Quantity(func(x, y.value, *args, **kwargs), dim=change_unit_func(DIMENSIONLESS, y.dim)))
+  else:
+    raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
 
 
-@wrap_math_funcs_change_unit_binary(jnp.multiply, lambda x, y: x * y)
+@set_module_as('brainunit.math')
 def multiply(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
@@ -342,13 +341,15 @@ def multiply(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.multiply,
+                                  lambda x, y: x * y,
+                                  x, y)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.divide, lambda x, y: x / y)
+@set_module_as('brainunit.math')
 def divide(
     x: Union[Quantity, jax.typing.ArrayLike],
-           y: Union[Quantity, jax.typing.ArrayLike]
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Divide arguments element-wise.
@@ -359,10 +360,12 @@ def divide(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.divide,
+                                  lambda x, y: x / y,
+                                  x, y)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.cross, lambda x, y: x * y)
+@set_module_as('brainunit.math')
 def cross(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
@@ -377,10 +380,12 @@ def cross(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.cross,
+                                  lambda x, y: x * y,
+                                  x, y)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.ldexp, lambda x, y: x * 2 ** y)
+@set_module_as('brainunit.math')
 def ldexp(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
@@ -395,10 +400,13 @@ def ldexp(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and 2 raised to the power of the unit of `y`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.ldexp,
+                                  lambda x, y: x * 2 ** y,
+                                  x, y)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.true_divide, lambda x, y: x / y)
+
+@set_module_as('brainunit.math')
 def true_divide(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
@@ -413,10 +421,12 @@ def true_divide(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.true_divide,
+                                  lambda x, y: x / y,
+                                  x, y)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.divmod, lambda x, y: x / y)
+@set_module_as('brainunit.math')
 def divmod(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
@@ -431,10 +441,12 @@ def divmod(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.divmod,
+                                  lambda x, y: x / y,
+                                  x, y)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.convolve, lambda x, y: x * y)
+@set_module_as('brainunit.math')
 def convolve(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
@@ -449,7 +461,9 @@ def convolve(
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.convolve,
+                                  lambda x, y: x * y,
+                                  x, y)
 
 
 @set_module_as('brainunit.math')

@@ -15,10 +15,11 @@
 from typing import (Union)
 
 import jax.numpy as jnp
+from brainstate._utils import set_module_as
 from jax import Array
 
-from ._compat_numpy_funcs_change_unit import wrap_math_funcs_change_unit_binary
-from ._compat_numpy_funcs_keep_unit import wrap_math_funcs_keep_unit_unary
+from ._compat_numpy_funcs_change_unit import funcs_change_unit_binary
+from ._compat_numpy_funcs_keep_unit import funcs_keep_unit_unary
 from .._base import (Quantity,
                      )
 
@@ -33,7 +34,7 @@ __all__ = [
 # linear algebra
 # --------------
 
-@wrap_math_funcs_change_unit_binary(jnp.dot, lambda x, y: x * y)
+@set_module_as('brainunit.math')
 def dot(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
   '''
   Dot product of two arrays or quantities.
@@ -45,10 +46,12 @@ def dot(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Qu
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.dot,
+                                  lambda x, y: x * y,
+                                  a, b)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.vdot, lambda x, y: x * y)
+@set_module_as('brainunit.math')
 def vdot(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
   '''
   Return the dot product of two vectors or quantities.
@@ -60,10 +63,12 @@ def vdot(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Q
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.vdot,
+                                  lambda x, y: x * y,
+                                  a, b)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.inner, lambda x, y: x * y)
+@set_module_as('brainunit.math')
 def inner(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
   '''
   Inner product of two arrays or quantities.
@@ -75,10 +80,12 @@ def inner(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.inner,
+                                  lambda x, y: x * y,
+                                  a, b)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.outer, lambda x, y: x * y)
+@set_module_as('brainunit.math')
 def outer(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
   '''
   Compute the outer product of two vectors or quantities.
@@ -90,10 +97,12 @@ def outer(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.outer,
+                                  lambda x, y: x * y,
+                                  a, b)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.kron, lambda x, y: x * y)
+@set_module_as('brainunit.math')
 def kron(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
   '''
   Compute the Kronecker product of two arrays or quantities.
@@ -105,10 +114,12 @@ def kron(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Q
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.kron,
+                                  lambda x, y: x * y,
+                                  a, b)
 
 
-@wrap_math_funcs_change_unit_binary(jnp.matmul, lambda x, y: x * y)
+@set_module_as('brainunit.math')
 def matmul(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
   '''
   Matrix product of two arrays or quantities.
@@ -120,10 +131,12 @@ def matmul(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array,
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
   '''
-  ...
+  return funcs_change_unit_binary(jnp.matmul,
+                                  lambda x, y: x * y,
+                                  a, b)
 
 
-@wrap_math_funcs_keep_unit_unary(jnp.trace)
+@set_module_as('brainunit.math')
 def trace(a: Union[Array, Quantity]) -> Union[Array, Quantity]:
   '''
   Return the sum of the diagonal elements of a matrix or quantity.
@@ -135,4 +148,4 @@ def trace(a: Union[Array, Quantity]) -> Union[Array, Quantity]:
   Returns:
     Union[jax.Array, Quantity]: Quantity if the input is a Quantity, else an array.
   '''
-  ...
+  return funcs_keep_unit_unary(jnp.trace, a)
