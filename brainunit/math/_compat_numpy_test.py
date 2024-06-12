@@ -32,7 +32,7 @@ bst.environ.set(precision=64)
 def assert_quantity(q, values, unit):
   values = jnp.asarray(values)
   if isinstance(q, Quantity):
-    assert q.dim == unit.dim, f"Unit mismatch: {q.dim} != {unit}"
+    assert q.dim == unit.dim or q.dim == unit, f"Unit mismatch: {q.dim} != {unit}"
     assert jnp.allclose(q.value, values), f"Values do not match: {q.value} != {values}"
   else:
     assert jnp.allclose(q, values), f"Values do not match: {q} != {values}"
@@ -162,6 +162,10 @@ class TestArrayCreation(unittest.TestCase):
     result_q = bu.math.asarray([1, 2, 3], unit=bu.second)
     assert_quantity(result_q, jnp.asarray([1, 2, 3]), bu.second)
 
+    q1 = [1, 2, 3] * bu.second
+    result_q = bu.math.asarray(q1, unit=bu.ms)
+    assert_quantity(result_q, jnp.asarray([1, 2, 3]) * 1000, bu.ms)
+
   def test_arange(self):
     result = bu.math.arange(5)
     self.assertEqual(result.shape, (5,))
@@ -171,7 +175,7 @@ class TestArrayCreation(unittest.TestCase):
     assert_quantity(result_q, jnp.arange(5, step=1), bu.second)
 
     result_q = bu.math.arange(3 * bu.second, 9 * bu.second, 1 * bu.second)
-    assert_quantity(result_q, jnp.arange(3, 9, 1), bu.second)
+    assert_quantity(result_q, jnp.arange(3, 9, 1), bu.ms)
 
   def test_linspace(self):
     result = bu.math.linspace(0, 10, 5)

@@ -498,6 +498,7 @@ def asarray(
   Convert the input to a quantity or array.
 
   If unit is provided, the input will be checked whether it has the same unit as the provided unit.
+  (If they have same dimension but different magnitude, the input will be converted to the provided unit.)
   If unit is not provided, the input will be converted to an array.
 
   Args:
@@ -513,9 +514,13 @@ def asarray(
     if unit is not None:
       assert isinstance(unit, Unit)
       fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
-      return Quantity(jnp.asarray(a.value, dtype=dtype, order=order), dim=a.dim)
+      if a.dim == unit:
+        return a
+      else:
+        # Convert to the magnitude of the provided unit
+        return Quantity(a.value / unit.value, dim=unit)
     else:
-      return Quantity(jnp.asarray(a.value, dtype=dtype, order=order), dim=a.dim)
+      return Quantity(jnp.asarray(a.value, dtype=dtype, order=order) / unit.value, dim=a.dim)
   elif isinstance(a, (jax.Array, np.ndarray)):
     if unit is not None:
       assert isinstance(unit, Unit)
