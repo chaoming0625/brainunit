@@ -32,6 +32,7 @@ __all__ = [
   'Quantity',
   'Unit',
   'UnitRegistry',
+  'Dimension',
   'DIMENSIONLESS',
   'DimensionMismatchError',
   'get_or_create_dimension',
@@ -458,6 +459,7 @@ def get_or_create_dimension(*args, **kwds):
     return new_dim
 
 
+'''The dimensionless unit, used for quantities without a unit.'''
 DIMENSIONLESS = Dimension((0, 0, 0, 0, 0, 0, 0))
 _dimensions = {(0, 0, 0, 0, 0, 0, 0): DIMENSIONLESS}
 
