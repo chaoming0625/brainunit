@@ -538,7 +538,7 @@ def get_unit(obj) -> Dimension:
       The physical dimensions of the `obj`.
   """
   try:
-    return obj.unit
+    return obj.dim
   except AttributeError:
     # The following is not very pretty, but it will avoid the costly
     # isinstance check for the common types
