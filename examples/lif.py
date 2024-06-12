@@ -9,9 +9,9 @@ from brainstate.mixin import Mode
 from brainstate.nn import exp_euler_step, Neuron
 from brainstate.typing import ArrayLike, DTypeLike, Size
 
-from brainunit import mV, ms
+from brainunit import mV, ms, nA, second
 
-bst.environ.set(dt=0.01)
+bst.environ.set(dt=(0.01 * ms).value)
 
 
 class LIF(Neuron):
@@ -21,8 +21,8 @@ class LIF(Neuron):
       self,
       in_size: Size,
       keep_size: bool = False,
-      tau: ArrayLike = 5000. * ms,
-      V_th: ArrayLike = 1000. * mV,
+      tau: ArrayLike = 20. * ms,
+      V_th: ArrayLike = 10. * mV,
       V_reset: ArrayLike = 0. * mV,
       V_rest: ArrayLike = 0. * mV,
       spk_fun: Callable = surrogate.ReluGrad(),
@@ -81,9 +81,10 @@ def run(i, inp):
   return lif.V.value
 
 
-n = 1000
+n = 100
 indices = jnp.arange(n)
-vs = bst.transform.for_loop(run, indices, bst.random.uniform(1., 10., n),
+inp = bst.random.uniform(0., 10., n)
+vs = bst.transform.for_loop(run, indices, inp,
                             pbar=bst.transform.ProgressBar(count=10))
 
 plt.plot(indices * bst.environ.get_dt(), vs)
