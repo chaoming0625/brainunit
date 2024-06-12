@@ -15,7 +15,6 @@
 from functools import wraps
 from typing import (Union, Optional)
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np

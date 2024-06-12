@@ -15,7 +15,6 @@
 from functools import wraps
 from typing import (Union, Callable)
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -555,7 +554,15 @@ def wrap_math_funcs_keep_unit_binary(func):
     f.__module__ = 'brainunit.math'
     return f
 
-  return decorator
+
+@wrap_math_funcs_keep_unit_binary(jnp.fmod)
+def fmod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+  return jnp.fmod(x1, x2)
+
+
+@wrap_math_funcs_keep_unit_binary
+def mod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+  return jnp.mod(x1, x2)
 
 
 @wrap_math_funcs_keep_unit_binary(jnp.fmod)
@@ -711,12 +718,12 @@ def gcd(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
 # math funcs keep unit (n-ary)
 # ----------------------------
 @set_module_as('brainunit.math')
-def interp(x: Union[Quantity, bst.typing.ArrayLike],
-           xp: Union[Quantity, bst.typing.ArrayLike],
-           fp: Union[Quantity, bst.typing.ArrayLike],
-           left: Union[Quantity, bst.typing.ArrayLike] = None,
-           right: Union[Quantity, bst.typing.ArrayLike] = None,
-           period: Union[Quantity, bst.typing.ArrayLike] = None) -> Union[Quantity, jax.Array]:
+def interp(x: Union[Quantity, jax.typing.ArrayLike],
+           xp: Union[Quantity, jax.typing.ArrayLike],
+           fp: Union[Quantity, jax.typing.ArrayLike],
+           left: Union[Quantity, jax.typing.ArrayLike] = None,
+           right: Union[Quantity, jax.typing.ArrayLike] = None,
+           period: Union[Quantity, jax.typing.ArrayLike] = None) -> Union[Quantity, jax.Array]:
   '''
   One-dimensional linear interpolation.
 
@@ -754,9 +761,9 @@ def interp(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def clip(a: Union[Quantity, bst.typing.ArrayLike],
-         a_min: Union[Quantity, bst.typing.ArrayLike],
-         a_max: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def clip(a: Union[Quantity, jax.typing.ArrayLike],
+         a_min: Union[Quantity, jax.typing.ArrayLike],
+         a_max: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   '''
   Clip (limit) the values in an array.
 

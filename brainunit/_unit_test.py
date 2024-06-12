@@ -16,12 +16,11 @@
 import itertools
 import warnings
 
+import brainstate as bst
 import jax.numpy as jnp
 import numpy as np
 import pytest
 from numpy.testing import assert_equal
-
-import brainstate as bst
 
 array = np.array
 bst.environ.set(precision=64)

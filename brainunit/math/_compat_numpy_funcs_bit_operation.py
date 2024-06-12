@@ -15,12 +15,10 @@
 from functools import wraps
 from typing import (Union)
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
 from jax import Array
-from numpy import number
 
 from .._base import (Quantity,
                      )
@@ -53,12 +51,12 @@ def wrap_elementwise_bit_operation_unary(func):
 
 
 @wrap_elementwise_bit_operation_unary
-def bitwise_not(x: Union[Quantity, bst.typing.ArrayLike]) -> Array:
+def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   return jnp.bitwise_not(x)
 
 
 @wrap_elementwise_bit_operation_unary
-def invert(x: Union[Quantity, bst.typing.ArrayLike]) -> Array:
+def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   return jnp.invert(x)
 
 

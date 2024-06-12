@@ -1,5 +1,6 @@
 -r requirements.txt
 brainpy
+brainstate
 
 # test requirements
 pytest

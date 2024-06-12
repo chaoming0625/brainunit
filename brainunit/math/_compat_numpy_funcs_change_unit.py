@@ -16,7 +16,6 @@ from collections.abc import Sequence
 from functools import wraps
 from typing import (Callable, Union, Optional)
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -184,13 +183,13 @@ def square(
 
 
 @set_module_as('brainunit.math')
-def prod(x: Union[Quantity, bst.typing.ArrayLike],
+def prod(x: Union[Quantity, jax.typing.ArrayLike],
          axis: Optional[int] = None,
-         dtype: Optional[bst.typing.DTypeLike] = None,
+         dtype: Optional[jax.typing.DTypeLike] = None,
          out: None = None,
          keepdims: Optional[bool] = False,
-         initial: Union[Quantity, bst.typing.ArrayLike] = None,
-         where: Union[Quantity, bst.typing.ArrayLike] = None,
+         initial: Union[Quantity, jax.typing.ArrayLike] = None,
+         where: Union[Quantity, jax.typing.ArrayLike] = None,
          promote_integers: bool = True) -> Union[Quantity, jax.Array]:
   '''
   Return the product of array elements over a given axis.
@@ -217,13 +216,13 @@ def prod(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def nanprod(x: Union[Quantity, bst.typing.ArrayLike],
+def nanprod(x: Union[Quantity, jax.typing.ArrayLike],
             axis: Optional[int] = None,
-            dtype: Optional[bst.typing.DTypeLike] = None,
+            dtype: Optional[jax.typing.DTypeLike] = None,
             out: None = None,
             keepdims: bool = False,
-            initial: Union[Quantity, bst.typing.ArrayLike] = None,
-            where: Union[Quantity, bst.typing.ArrayLike] = None):
+            initial: Union[Quantity, jax.typing.ArrayLike] = None,
+            where: Union[Quantity, jax.typing.ArrayLike] = None):
   '''
   Return the product of array elements over a given axis treating Not a Numbers (NaNs) as one.
 
@@ -249,10 +248,10 @@ product = prod
 
 
 @set_module_as('brainunit.math')
-def cumprod(x: Union[Quantity, bst.typing.ArrayLike],
+def cumprod(x: Union[Quantity, jax.typing.ArrayLike],
             axis: Optional[int] = None,
-            dtype: Optional[bst.typing.DTypeLike] = None,
-            out: None = None) -> Union[Quantity, bst.typing.ArrayLike]:
+            dtype: Optional[jax.typing.DTypeLike] = None,
+            out: None = None) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Return the cumulative product of elements along a given axis.
 
@@ -272,10 +271,10 @@ def cumprod(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def nancumprod(x: Union[Quantity, bst.typing.ArrayLike],
+def nancumprod(x: Union[Quantity, jax.typing.ArrayLike],
                axis: Optional[int] = None,
-               dtype: Optional[bst.typing.DTypeLike] = None,
-               out: None = None) -> Union[Quantity, bst.typing.ArrayLike]:
+               dtype: Optional[jax.typing.DTypeLike] = None,
+               out: None = None) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Return the cumulative product of elements along a given axis treating Not a Numbers (NaNs) as one.
 
@@ -454,8 +453,8 @@ def convolve(
 
 
 @set_module_as('brainunit.math')
-def power(x: Union[Quantity, bst.typing.ArrayLike],
-          y: Union[Quantity, bst.typing.ArrayLike], ) -> Union[Quantity, jax.Array]:
+def power(x: Union[Quantity, jax.typing.ArrayLike],
+          y: Union[Quantity, jax.typing.ArrayLike], ) -> Union[Quantity, jax.Array]:
   '''
   First array elements raised to powers from second array, element-wise.
 
@@ -479,8 +478,8 @@ def power(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def floor_divide(x: Union[Quantity, bst.typing.ArrayLike],
-                 y: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def floor_divide(x: Union[Quantity, jax.typing.ArrayLike],
+                 y: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   '''
   Return the largest integer smaller or equal to the division of the inputs.
 
@@ -504,8 +503,8 @@ def floor_divide(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def float_power(x: Union[Quantity, bst.typing.ArrayLike],
-                y: bst.typing.ArrayLike) -> Union[Quantity, jax.Array]:
+def float_power(x: Union[Quantity, jax.typing.ArrayLike],
+                y: jax.typing.ArrayLike) -> Union[Quantity, jax.Array]:
   '''
   First array elements raised to powers from second array, element-wise.
 
@@ -527,8 +526,8 @@ def float_power(x: Union[Quantity, bst.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def remainder(x: Union[Quantity, bst.typing.ArrayLike],
-              y: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def remainder(x: Union[Quantity, jax.typing.ArrayLike],
+              y: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   '''
   Return element-wise remainder of division.
 

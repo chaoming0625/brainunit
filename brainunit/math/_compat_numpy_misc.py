@@ -15,7 +15,6 @@
 from collections.abc import Sequence
 from typing import (Callable, Union, Tuple)
 
-import brainstate as bst
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -59,7 +58,7 @@ dtype = jnp.dtype
 
 
 @set_module_as('brainunit.math')
-def finfo(a: Union[Quantity, bst.typing.ArrayLike]) -> jnp.finfo:
+def finfo(a: Union[Quantity, jax.typing.ArrayLike]) -> jnp.finfo:
   if isinstance(a, Quantity):
     return jnp.finfo(a.value)
   else:
@@ -67,7 +66,7 @@ def finfo(a: Union[Quantity, bst.typing.ArrayLike]) -> jnp.finfo:
 
 
 @set_module_as('brainunit.math')
-def iinfo(a: Union[Quantity, bst.typing.ArrayLike]) -> jnp.iinfo:
+def iinfo(a: Union[Quantity, jax.typing.ArrayLike]) -> jnp.iinfo:
   if isinstance(a, Quantity):
     return jnp.iinfo(a.value)
   else:
@@ -77,7 +76,7 @@ def iinfo(a: Union[Quantity, bst.typing.ArrayLike]) -> jnp.iinfo:
 # more
 # ----
 @set_module_as('brainunit.math')
-def broadcast_arrays(*args: Union[Quantity, bst.typing.ArrayLike]) -> Union[Quantity, list[Array]]:
+def broadcast_arrays(*args: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, list[Array]]:
   from builtins import all as origin_all
   from builtins import any as origin_any
   if origin_all(isinstance(arg, Quantity) for arg in args):
@@ -184,8 +183,8 @@ def einsum(
 
 @set_module_as('brainunit.math')
 def gradient(
-    f: Union[bst.typing.ArrayLike, Quantity],
-    *varargs: Union[bst.typing.ArrayLike, Quantity],
+    f: Union[jax.typing.ArrayLike, Quantity],
+    *varargs: Union[jax.typing.ArrayLike, Quantity],
     axis: Union[int, Sequence[int], None] = None,
     edge_order: Union[int, None] = None,
 ) -> Union[jax.Array, list[jax.Array], Quantity, list[Quantity]]:
@@ -225,8 +224,8 @@ def gradient(
 
 @set_module_as('brainunit.math')
 def intersect1d(
-    ar1: Union[bst.typing.ArrayLike],
-    ar2: Union[bst.typing.ArrayLike],
+    ar1: Union[jax.typing.ArrayLike],
+    ar2: Union[jax.typing.ArrayLike],
     assume_unique: bool = False,
     return_indices: bool = False
 ) -> Union[jax.Array, Quantity, tuple[Union[jax.Array, Quantity], jax.Array, jax.Array]]:
