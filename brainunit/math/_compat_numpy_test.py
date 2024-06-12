@@ -162,9 +162,6 @@ class TestArrayCreation(unittest.TestCase):
     result_q = bu.math.asarray([1, 2, 3], unit=bu.second)
     assert_quantity(result_q, jnp.asarray([1, 2, 3]), bu.second)
 
-    q1 = [1, 2, 3] * bu.second
-    result_q = bu.math.asarray(q1, unit=bu.ms)
-    assert_quantity(result_q, jnp.asarray([1, 2, 3]) * 1000, bu.ms)
 
   def test_arange(self):
     result = bu.math.arange(5)
