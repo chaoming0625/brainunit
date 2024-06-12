@@ -45,7 +45,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertEqual(result.shape, (3,))
     self.assertTrue(jnp.all(result == 4))
 
-    q = bu.math.full(3, 4, unit=second)
+    q = bu.math.full(3, 4 * second)
     self.assertEqual(q.shape, (3,))
     assert_quantity(q, result, second)
 
@@ -192,11 +192,11 @@ class TestArrayCreation(unittest.TestCase):
 
   def test_fill_diagonal(self):
     array = jnp.zeros((3, 3))
-    result = bu.math.fill_diagonal(array, 5, inplace=False)
+    result = bu.math.fill_diagonal(array, 5)
     self.assertTrue(jnp.all(result == jnp.array([[5, 0, 0], [0, 5, 0], [0, 0, 5]])))
 
     q = jnp.zeros((3, 3)) * bu.second
-    result_q = bu.math.fill_diagonal(q, 5 * bu.second, inplace=False)
+    result_q = bu.math.fill_diagonal(q, 5 * bu.second)
     assert_quantity(result_q, jnp.array([[5, 0, 0], [0, 5, 0], [0, 0, 5]]), bu.second)
 
   def test_array_split(self):

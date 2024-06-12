@@ -59,7 +59,7 @@ def full(
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
   '''
   if isinstance(fill_value, Quantity):
-    return jnp.full(shape, fill_value.magnitude, dtype=dtype) * fill_value.unit
+    return Quantity(jnp.full(shape, fill_value.value, dtype=dtype), dim=fill_value.dim)
   return jnp.full(shape, fill_value, dtype=dtype)
 
 
@@ -498,7 +498,7 @@ def asarray(
       # Convert the values to a jnp.ndarray and create a Quantity object
       return Quantity(jnp.asarray(values, dtype=dtype, order=order), dim=unit)
     else:
-      values = jax.tree.unflatten(tree, [x.value for x in a])
+      values = jax.tree.unflatten(tree, leaves)
       val = jnp.asarray(values, dtype=dtype, order=order)
       if unit is not None:
         assert isinstance(unit, Unit)
@@ -681,7 +681,8 @@ def logspace(start: Union[Quantity, bst.typing.ArrayLike],
 @set_module_as('brainunit.math')
 def fill_diagonal(a: Union[Quantity, bst.typing.ArrayLike],
                   val: Union[Quantity, bst.typing.ArrayLike],
-                  wrap: Optional[bool] = False) -> Union[Quantity, jax.Array]:
+                  wrap: Optional[bool] = False,
+                  inplace: Optional[bool] = False) -> Union[Quantity, jax.Array]:
   '''
   Fill the main diagonal of the given array of `a` with `val`.
 
@@ -697,14 +698,14 @@ def fill_diagonal(a: Union[Quantity, bst.typing.ArrayLike],
   if isinstance(val, Quantity):
     if isinstance(a, Quantity):
       fail_for_dimension_mismatch(a, val, error_message="Array and value have to have the same units.")
-      return Quantity(jnp.fill_diagonal(a.value, val.value, wrap), dim=a.dim)
+      return Quantity(jnp.fill_diagonal(a.value, val.value, wrap, inplace=inplace), dim=a.dim)
     else:
-      return Quantity(jnp.fill_diagonal(a, val.value, wrap), dim=val.dim)
+      return Quantity(jnp.fill_diagonal(a, val.value, wrap, inplace=inplace), dim=val.dim)
   else:
     if isinstance(a, Quantity):
-      return jnp.fill_diagonal(a.value, val, wrap)
+      return jnp.fill_diagonal(a.value, val, wrap, inplace=inplace)
     else:
-      return jnp.fill_diagonal(a, val, wrap)
+      return jnp.fill_diagonal(a, val, wrap, inplace=inplace)
 
 
 @set_module_as('brainunit.math')
