@@ -475,9 +475,10 @@ def asarray(
   Returns:
     Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
   """
+  if unit is not None:
+    assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
   if isinstance(a, Quantity):
     if unit is not None:
-      assert isinstance(unit, Unit)
       fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
     return Quantity(jnp.asarray(a.value, dtype=dtype, order=order), dim=a.dim)
   elif isinstance(a, (jax.Array, np.ndarray)):
@@ -494,8 +495,8 @@ def asarray(
       if any(x.dim != leaves[0].dim for x in leaves):
         raise ValueError('Units do not match for asarray operation.')
       values = jax.tree.unflatten(tree, [x.value for x in a])
-
-      fail_for_dimension_mismatch(a[0], unit, error_message="a and unit have to have the same units.")
+      if unit is not None:
+        fail_for_dimension_mismatch(a[0], unit, error_message="a and unit have to have the same units.")
       unit = a[0].dim
       # Convert the values to a jnp.ndarray and create a Quantity object
       return Quantity(jnp.asarray(values, dtype=dtype, order=order), dim=unit)
@@ -503,7 +504,6 @@ def asarray(
       values = jax.tree.unflatten(tree, leaves)
       val = jnp.asarray(values, dtype=dtype, order=order)
       if unit is not None:
-        assert isinstance(unit, Unit)
         return val * unit
       else:
         return val
