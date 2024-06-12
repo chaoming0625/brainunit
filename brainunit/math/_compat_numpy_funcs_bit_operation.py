@@ -89,45 +89,27 @@ invert.__doc__ = '''
 
 def wrap_elementwise_bit_operation_binary(func):
   @wraps(func)
-  def f(x, y, *args, **kwargs):
-    if isinstance(x, Quantity) or isinstance(y, Quantity):
-      raise ValueError(f'Expected integers, got {x} and {y}')
-    elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray, int, float)):
-      return func(x, y, *args, **kwargs)
-    else:
-      raise ValueError(f'Unsupported types {type(x)} and {type(y)} for {func.__name__}')
+  def decorator(*args, **kwargs):
+    def f(x, y, *args, **kwargs):
+      if isinstance(x, Quantity) or isinstance(y, Quantity):
+        raise ValueError(f'Expected integers, got {x} and {y}')
+      elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray, int, float)):
+        return func(x, y, *args, **kwargs)
+      else:
+        raise ValueError(f'Unsupported types {type(x)} and {type(y)} for {func.__name__}')
 
-  f.__module__ = 'brainunit.math'
-  return f
+    f.__module__ = 'brainunit.math'
+    return f
 
-
-@wrap_elementwise_bit_operation_binary
-def bitwise_and(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Array:
-  return jnp.bitwise_and(x, y)
+  return decorator
 
 
-@wrap_elementwise_bit_operation_binary
-def bitwise_or(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Array:
-  return jnp.bitwise_or(x, y)
-
-
-@wrap_elementwise_bit_operation_binary
-def bitwise_xor(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Array:
-  return jnp.bitwise_xor(x, y)
-
-
-@wrap_elementwise_bit_operation_binary
-def left_shift(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Array:
-  return jnp.left_shift(x, y)
-
-
-@wrap_elementwise_bit_operation_binary
-def right_shift(x: Union[Quantity, bst.typing.ArrayLike], y: Union[Quantity, bst.typing.ArrayLike]) -> Array:
-  return jnp.right_shift(x, y)
-
-
-# docs for functions above
-bitwise_and.__doc__ = '''
+@wrap_elementwise_bit_operation_binary(jnp.bitwise_and)
+def bitwise_and(
+    x: Union[Quantity, bst.typing.ArrayLike],
+    y: Union[Quantity, bst.typing.ArrayLike]
+) -> Array:
+  '''
   Compute the bit-wise AND of two arrays element-wise.
 
   Args:
@@ -136,9 +118,16 @@ bitwise_and.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  '''
+  ...
 
-bitwise_or.__doc__ = '''
+
+@wrap_elementwise_bit_operation_binary(jnp.bitwise_or)
+def bitwise_or(
+    x: Union[Quantity, bst.typing.ArrayLike],
+    y: Union[Quantity, bst.typing.ArrayLike]
+) -> Array:
+  '''
   Compute the bit-wise OR of two arrays element-wise.
 
   Args:
@@ -147,9 +136,16 @@ bitwise_or.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  '''
+  ...
 
-bitwise_xor.__doc__ = '''
+
+@wrap_elementwise_bit_operation_binary(jnp.bitwise_xor)
+def bitwise_xor(
+    x: Union[Quantity, bst.typing.ArrayLike],
+    y: Union[Quantity, bst.typing.ArrayLike]
+) -> Array:
+  '''
   Compute the bit-wise XOR of two arrays element-wise.
 
   Args:
@@ -158,9 +154,16 @@ bitwise_xor.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  '''
+  ...
 
-left_shift.__doc__ = '''
+
+@wrap_elementwise_bit_operation_binary(jnp.left_shift)
+def left_shift(
+    x: Union[Quantity, bst.typing.ArrayLike],
+    y: Union[Quantity, bst.typing.ArrayLike]
+) -> Array:
+  '''
   Shift the bits of an integer to the left.
 
   Args:
@@ -169,9 +172,16 @@ left_shift.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  '''
+  ...
 
-right_shift.__doc__ = '''
+
+@wrap_elementwise_bit_operation_binary(jnp.right_shift)
+def right_shift(
+    x: Union[Quantity, bst.typing.ArrayLike],
+    y: Union[Quantity, bst.typing.ArrayLike]
+) -> Array:
+  '''
   Shift the bits of an integer to the right.
 
   Args:
@@ -180,4 +190,5 @@ right_shift.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  '''
+  ...

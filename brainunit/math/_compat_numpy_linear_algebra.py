@@ -30,59 +30,27 @@ __all__ = [
 ]
 
 
-
-
 # linear algebra
 # --------------
 
-@wrap_math_funcs_change_unit_binary(lambda x, y: x * y)
+@wrap_math_funcs_change_unit_binary(jnp.dot, lambda x, y: x * y)
 def dot(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.dot(a, b)
-
-
-@wrap_math_funcs_change_unit_binary(lambda x, y: x * y)
-def vdot(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.vdot(a, b)
-
-
-@wrap_math_funcs_change_unit_binary(lambda x, y: x * y)
-def inner(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.inner(a, b)
-
-
-@wrap_math_funcs_change_unit_binary(lambda x, y: x * y)
-def outer(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.outer(a, b)
-
-
-@wrap_math_funcs_change_unit_binary(lambda x, y: x * y)
-def kron(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.kron(a, b)
-
-
-@wrap_math_funcs_change_unit_binary(lambda x, y: x * y)
-def matmul(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.matmul(a, b)
-
-
-@wrap_math_funcs_keep_unit_unary
-def trace(a: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.trace(a)
-
-
-# docs for functions above
-dot.__doc__ = '''
+  '''
   Dot product of two arrays or quantities.
-  
+
   Args:
     a: array_like, Quantity
     b: array_like, Quantity
-    
+
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
-'''
+  '''
+  ...
 
-vdot.__doc__ = '''
+
+@wrap_math_funcs_change_unit_binary(jnp.vdot, lambda x, y: x * y)
+def vdot(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
+  '''
   Return the dot product of two vectors or quantities.
 
   Args:
@@ -91,9 +59,13 @@ vdot.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
-'''
+  '''
+  ...
 
-inner.__doc__ = '''
+
+@wrap_math_funcs_change_unit_binary(jnp.inner, lambda x, y: x * y)
+def inner(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
+  '''
   Inner product of two arrays or quantities.
 
   Args:
@@ -102,9 +74,13 @@ inner.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
-'''
+  '''
+  ...
 
-outer.__doc__ = '''
+
+@wrap_math_funcs_change_unit_binary(jnp.outer, lambda x, y: x * y)
+def outer(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
+  '''
   Compute the outer product of two vectors or quantities.
 
   Args:
@@ -113,9 +89,13 @@ outer.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
-'''
+  '''
+  ...
 
-kron.__doc__ = '''
+
+@wrap_math_funcs_change_unit_binary(jnp.kron, lambda x, y: x * y)
+def kron(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
+  '''
   Compute the Kronecker product of two arrays or quantities.
 
   Args:
@@ -124,9 +104,13 @@ kron.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
-'''
+  '''
+  ...
 
-matmul.__doc__ = '''
+
+@wrap_math_funcs_change_unit_binary(jnp.matmul, lambda x, y: x * y)
+def matmul(a: Union[Array, Quantity], b: Union[Array, Quantity]) -> Union[Array, Quantity]:
+  '''
   Matrix product of two arrays or quantities.
 
   Args:
@@ -135,9 +119,13 @@ matmul.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
-'''
+  '''
+  ...
 
-trace.__doc__ = '''
+
+@wrap_math_funcs_keep_unit_unary(jnp.trace)
+def trace(a: Union[Array, Quantity]) -> Union[Array, Quantity]:
+  '''
   Return the sum of the diagonal elements of a matrix or quantity.
 
   Args:
@@ -146,4 +134,5 @@ trace.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the input is a Quantity, else an array.
-'''
+  '''
+  ...

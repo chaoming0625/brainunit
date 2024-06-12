@@ -29,36 +29,37 @@ __all__ = [
 
 def wrap_window_funcs(func):
   @wraps(func)
-  def f(*args, **kwargs):
-    return func(*args, **kwargs)
+  def decorator(*args, **kwargs):
+    def f(*args, **kwargs):
+      return func(*args, **kwargs)
+  
+    f.__module__ = 'brainunit.math'
+    return f
+  return decorator
 
-  f.__module__ = 'brainunit.math'
-  return f
-
-
-@wrap_window_funcs
+@wrap_window_funcs(jnp.bartlett)
 def bartlett(M: int) -> Array:
-  return jnp.bartlett(M)
+  ...
 
 
-@wrap_window_funcs
+@wrap_window_funcs(jnp.blackman)
 def blackman(M: int) -> Array:
-  return jnp.blackman(M)
+  ...
 
 
-@wrap_window_funcs
+@wrap_window_funcs(jnp.hamming)
 def hamming(M: int) -> Array:
-  return jnp.hamming(M)
+  ...
 
 
-@wrap_window_funcs
+@wrap_window_funcs(jnp.hanning)
 def hanning(M: int) -> Array:
-  return jnp.hanning(M)
+  ...
 
 
-@wrap_window_funcs
+@wrap_window_funcs(jnp.kaiser)
 def kaiser(M: int, beta: float) -> Array:
-  return jnp.kaiser(M, beta)
+  ...
 
 
 # docs for functions above

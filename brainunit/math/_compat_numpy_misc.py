@@ -261,36 +261,14 @@ def intersect1d(
       return result
 
 
-@wrap_math_funcs_keep_unit_unary
-def nan_to_num(x: Union[bst.typing.ArrayLike, Quantity], nan: float = 0.0, posinf: float = jnp.inf,
-               neginf: float = -jnp.inf) -> Union[jax.Array, Quantity]:
-  return jnp.nan_to_num(x, nan=nan, posinf=posinf, neginf=neginf)
-
-
-@wrap_math_funcs_keep_unit_unary
-def rot90(m: Union[bst.typing.ArrayLike, Quantity], k: int = 1, axes: Tuple[int, int] = (0, 1)) -> Union[
-  jax.Array, Quantity]:
-  return jnp.rot90(m, k=k, axes=axes)
-
-
-@wrap_math_funcs_change_unit_binary(lambda x, y: x * y)
-def tensordot(a: Union[bst.typing.ArrayLike, Quantity], b: Union[bst.typing.ArrayLike, Quantity],
-              axes: Union[int, Tuple[int, int]] = 2) -> Union[jax.Array, Quantity]:
-  return jnp.tensordot(a, b, axes=axes)
-
-
-@_compatible_with_quantity(return_quantity=False)
-def nanargmax(a: Union[bst.typing.ArrayLike, Quantity], axis: int = None) -> jax.Array:
-  return jnp.nanargmax(a, axis=axis)
-
-
-@_compatible_with_quantity(return_quantity=False)
-def nanargmin(a: Union[bst.typing.ArrayLike, Quantity], axis: int = None) -> jax.Array:
-  return jnp.nanargmin(a, axis=axis)
-
-
-# docs for functions above
-nan_to_num.__doc__ = '''
+@wrap_math_funcs_keep_unit_unary(jnp.nan_to_num)
+def nan_to_num(
+    x: Union[bst.typing.ArrayLike, Quantity],
+    nan: float = 0.0,
+    posinf: float = jnp.inf,
+    neginf: float = -jnp.inf
+) -> Union[jax.Array, Quantity]:
+  '''
   Replace NaN with zero and infinity with large finite numbers (default behaviour) or with the numbers defined by the user using the `nan`, `posinf` and `neginf` arguments.
 
   Args:
@@ -301,9 +279,18 @@ nan_to_num.__doc__ = '''
 
   Returns:
     array with NaNs replaced by zero and infinities replaced by large finite numbers.
-'''
+  '''
+  ...
 
-nanargmax.__doc__ = '''
+
+@wrap_math_funcs_keep_unit_unary(jnp.rot90)
+def rot90(
+    m: Union[bst.typing.ArrayLike, Quantity],
+    k: int = 1,
+    axes: Tuple[int, int] = (0, 1)
+) -> Union[
+  jax.Array, Quantity]:
+  '''
   Return the index of the maximum value in an array, ignoring NaNs.
 
   Args:
@@ -314,9 +301,17 @@ nanargmax.__doc__ = '''
 
   Returns:
     index of the maximum value in the array.
-'''
+  '''
+  ...
 
-nanargmin.__doc__ = '''
+
+@wrap_math_funcs_change_unit_binary(jnp.tensordot, lambda x, y: x * y)
+def tensordot(
+    a: Union[bst.typing.ArrayLike, Quantity],
+    b: Union[bst.typing.ArrayLike, Quantity],
+    axes: Union[int, Tuple[int, int]] = 2
+) -> Union[jax.Array, Quantity]:
+  '''
   Return the index of the minimum value in an array, ignoring NaNs.
 
   Args:
@@ -327,9 +322,16 @@ nanargmin.__doc__ = '''
 
   Returns:
     index of the minimum value in the array.
-'''
+  '''
+  ...
 
-rot90.__doc__ = '''
+
+@_compatible_with_quantity(jnp.nanargmax, return_quantity=False)
+def nanargmax(
+    a: Union[bst.typing.ArrayLike, Quantity],
+    axis: int = None
+) -> jax.Array:
+  '''
   Rotate an array by 90 degrees in the plane specified by axes.
 
   Args:
@@ -339,9 +341,16 @@ rot90.__doc__ = '''
 
   Returns:
     rotated array.
-'''
+  '''
+  ...
 
-tensordot.__doc__ = '''
+
+@_compatible_with_quantity(jnp.nanargmin, return_quantity=False)
+def nanargmin(
+    a: Union[bst.typing.ArrayLike, Quantity],
+    axis: int = None
+) -> jax.Array:
+  '''
   Compute tensor dot product along specified axes for arrays.
 
   Args:
@@ -351,4 +360,5 @@ tensordot.__doc__ = '''
 
   Returns:
     tensor dot product of the two arrays.
-'''
+  '''
+  ...

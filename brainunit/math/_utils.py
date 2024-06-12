@@ -32,10 +32,11 @@ def _is_leaf(a):
 
 
 def _compatible_with_quantity(
+    fun: Callable,
     return_quantity: bool = True,
 ):
-  def decorator(fun: Callable) -> Callable:
-    @functools.wraps(fun)
+  @functools.wraps(fun)
+  def decorator(*args, **kwargs) -> Callable:
     def new_fun(*args, **kwargs) -> Union[list[Quantity], Quantity, jax.Array]:
       unit = None
       if isinstance(args[0], Quantity):
