@@ -19,7 +19,7 @@
 </p>
 
 
-[``brainunit``](https://github.com/brainpy/brainunit) provides common toolboxes for brain dynamics programming (BDP). 
+[``brainunit``](https://github.com/brainpy/brainunit) provides a unit-aware mathematical system for brain dynamics programming (BDP). 
 
 
 ## Installation
