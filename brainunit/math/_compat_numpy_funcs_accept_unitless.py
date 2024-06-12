@@ -60,7 +60,7 @@ def wrap_math_funcs_only_accept_unitless_unary(func):
 
 
 @wrap_math_funcs_only_accept_unitless_unary(jnp.exp)
-def exp(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Array, Quantity]:
+def exp(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Array, Quantity]:
   '''
   Calculate the exponential of all elements in the input array.
 
@@ -74,7 +74,7 @@ def exp(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Array, Quantity]:
 
 
 @wrap_math_funcs_only_accept_unitless_unary(jnp.exp2)
-def exp2(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[Array, Quantity]:
+def exp2(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Array, Quantity]:
   '''
   Calculate 2 raised to the power of the input elements.
 

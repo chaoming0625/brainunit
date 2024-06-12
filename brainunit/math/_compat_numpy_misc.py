@@ -262,7 +262,7 @@ def intersect1d(
 
 @wrap_math_funcs_keep_unit_unary(jnp.nan_to_num)
 def nan_to_num(
-    x: Union[bst.typing.ArrayLike, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     nan: float = 0.0,
     posinf: float = jnp.inf,
     neginf: float = -jnp.inf
@@ -284,7 +284,7 @@ def nan_to_num(
 
 @wrap_math_funcs_keep_unit_unary(jnp.rot90)
 def rot90(
-    m: Union[bst.typing.ArrayLike, Quantity],
+    m: Union[jax.typing.ArrayLike, Quantity],
     k: int = 1,
     axes: Tuple[int, int] = (0, 1)
 ) -> Union[
@@ -306,8 +306,8 @@ def rot90(
 
 @wrap_math_funcs_change_unit_binary(jnp.tensordot, lambda x, y: x * y)
 def tensordot(
-    a: Union[bst.typing.ArrayLike, Quantity],
-    b: Union[bst.typing.ArrayLike, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
+    b: Union[jax.typing.ArrayLike, Quantity],
     axes: Union[int, Tuple[int, int]] = 2
 ) -> Union[jax.Array, Quantity]:
   '''
@@ -327,7 +327,7 @@ def tensordot(
 
 @_compatible_with_quantity(jnp.nanargmax, return_quantity=False)
 def nanargmax(
-    a: Union[bst.typing.ArrayLike, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
     axis: int = None
 ) -> jax.Array:
   '''
@@ -346,7 +346,7 @@ def nanargmax(
 
 @_compatible_with_quantity(jnp.nanargmin, return_quantity=False)
 def nanargmin(
-    a: Union[bst.typing.ArrayLike, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
     axis: int = None
 ) -> jax.Array:
   '''

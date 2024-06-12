@@ -66,7 +66,7 @@ def wrap_math_funcs_change_unit_unary(
 
 @wrap_math_funcs_change_unit_unary(jnp.reciprocal, lambda x: x ** -1)
 def reciprocal(
-    x: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
   '''
   Return the reciprocal of the argument.
@@ -82,7 +82,7 @@ def reciprocal(
 
 @wrap_math_funcs_change_unit_unary(jnp.var, lambda x: x ** 2)
 def var(
-    x: Union[Quantity, bst.typing.ArrayLike],
+    x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
     ddof: int = 0,
     keepdims: bool = False
@@ -101,7 +101,7 @@ def var(
 
 @wrap_math_funcs_change_unit_unary(jnp.nanvar, lambda x: x ** 2)
 def nanvar(
-    x: Union[Quantity, bst.typing.ArrayLike],
+    x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
     ddof: int = 0,
     keepdims: bool = False
@@ -120,7 +120,7 @@ def nanvar(
 
 @wrap_math_funcs_change_unit_unary(jnp.frexp, lambda x: x * 2 ** -1)
 def frexp(
-    x: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
   '''
   Decompose a floating-point number into its mantissa and exponent.
@@ -136,7 +136,7 @@ def frexp(
 
 @wrap_math_funcs_change_unit_unary(jnp.sqrt, lambda x: x ** 0.5)
 def sqrt(
-    x: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
   '''
   Compute the square root of each element.
@@ -152,7 +152,7 @@ def sqrt(
 
 @wrap_math_funcs_change_unit_unary(jnp.cbrt, lambda x: x ** (1 / 3))
 def cbrt(
-    x: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
   '''
   Compute the cube root of each element.
@@ -168,7 +168,7 @@ def cbrt(
 
 @wrap_math_funcs_change_unit_unary(jnp.square, lambda x: x ** 2)
 def square(
-    x: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
   '''
   Compute the square of each element.
@@ -329,9 +329,9 @@ def wrap_math_funcs_change_unit_binary(
 
 @wrap_math_funcs_change_unit_binary(jnp.multiply, lambda x, y: x * y)
 def multiply(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
-) -> Union[Quantity, bst.typing.ArrayLike]:
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Multiply arguments element-wise.
 
@@ -347,9 +347,9 @@ def multiply(
 
 @wrap_math_funcs_change_unit_binary(jnp.divide, lambda x, y: x / y)
 def divide(
-    x: Union[Quantity, bst.typing.ArrayLike],
-           y: Union[Quantity, bst.typing.ArrayLike]
-) -> Union[Quantity, bst.typing.ArrayLike]:
+    x: Union[Quantity, jax.typing.ArrayLike],
+           y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Divide arguments element-wise.
 
@@ -364,9 +364,9 @@ def divide(
 
 @wrap_math_funcs_change_unit_binary(jnp.cross, lambda x, y: x * y)
 def cross(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
-) -> Union[Quantity, bst.typing.ArrayLike]:
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Return the cross product of two (arrays of) vectors.
 
@@ -382,9 +382,9 @@ def cross(
 
 @wrap_math_funcs_change_unit_binary(jnp.ldexp, lambda x, y: x * 2 ** y)
 def ldexp(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
-) -> Union[Quantity, bst.typing.ArrayLike]:
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Return x1 * 2**x2, element-wise.
 
@@ -400,9 +400,9 @@ def ldexp(
 
 @wrap_math_funcs_change_unit_binary(jnp.true_divide, lambda x, y: x / y)
 def true_divide(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
-) -> Union[Quantity, bst.typing.ArrayLike]:
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Returns a true division of the inputs, element-wise.
 
@@ -418,9 +418,9 @@ def true_divide(
 
 @wrap_math_funcs_change_unit_binary(jnp.divmod, lambda x, y: x / y)
 def divmod(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
-) -> Union[Quantity, bst.typing.ArrayLike]:
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Return element-wise quotient and remainder simultaneously.
 
@@ -436,9 +436,9 @@ def divmod(
 
 @wrap_math_funcs_change_unit_binary(jnp.convolve, lambda x, y: x * y)
 def convolve(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
-) -> Union[Quantity, bst.typing.ArrayLike]:
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[Quantity, jax.typing.ArrayLike]:
   '''
   Returns the discrete, linear convolution of two one-dimensional sequences.
 

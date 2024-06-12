@@ -104,8 +104,8 @@ def wrap_elementwise_bit_operation_binary(func):
 
 @wrap_elementwise_bit_operation_binary(jnp.bitwise_and)
 def bitwise_and(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Array:
   '''
   Compute the bit-wise AND of two arrays element-wise.
@@ -122,8 +122,8 @@ def bitwise_and(
 
 @wrap_elementwise_bit_operation_binary(jnp.bitwise_or)
 def bitwise_or(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Array:
   '''
   Compute the bit-wise OR of two arrays element-wise.
@@ -140,8 +140,8 @@ def bitwise_or(
 
 @wrap_elementwise_bit_operation_binary(jnp.bitwise_xor)
 def bitwise_xor(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Array:
   '''
   Compute the bit-wise XOR of two arrays element-wise.
@@ -158,8 +158,8 @@ def bitwise_xor(
 
 @wrap_elementwise_bit_operation_binary(jnp.left_shift)
 def left_shift(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Array:
   '''
   Shift the bits of an integer to the left.
@@ -176,8 +176,8 @@ def left_shift(
 
 @wrap_elementwise_bit_operation_binary(jnp.right_shift)
 def right_shift(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Array:
   '''
   Shift the bits of an integer to the right.

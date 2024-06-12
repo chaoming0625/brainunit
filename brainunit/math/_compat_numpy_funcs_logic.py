@@ -57,7 +57,7 @@ def wrap_logic_func_unary(func):
 
 @wrap_logic_func_unary(jnp.all)
 def all(
-    x: Union[Quantity, bst.typing.ArrayLike],
+    x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[int] = None,
     out: Optional[Array] = None,
     keepdims: bool = False,
@@ -81,7 +81,7 @@ def all(
 
 @wrap_logic_func_unary(jnp.any)
 def any(
-    x: Union[Quantity, bst.typing.ArrayLike],
+    x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[int] = None,
     out: Optional[Array] = None,
     keepdims: bool = False,
@@ -104,7 +104,7 @@ def any(
 
 
 @wrap_logic_func_unary(jnp.logical_not)
-def logical_not(x: Union[Quantity, bst.typing.ArrayLike]) -> Union[bool, Array]:
+def logical_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
   '''
   Compute the truth value of NOT x element-wise.
 
@@ -145,8 +145,8 @@ def wrap_logic_func_binary(func):
 
 @wrap_logic_func_binary(jnp.equal)
 def equal(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[bool, Array]:
   '''
   Return (x == y) element-wise and have the same unit if x and y are Quantity.
@@ -163,8 +163,8 @@ def equal(
 
 @wrap_logic_func_binary(jnp.not_equal)
 def not_equal(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[bool, Array]:
   '''
   Return (x != y) element-wise and have the same unit if x and y are Quantity.
@@ -181,8 +181,8 @@ def not_equal(
 
 @wrap_logic_func_binary(jnp.greater)
 def greater(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[bool, Array]:
   '''
   Return (x > y) element-wise and have the same unit if x and y are Quantity.
@@ -199,8 +199,8 @@ def greater(
 
 @wrap_logic_func_binary(jnp.greater_equal)
 def greater_equal(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[
   bool, Array]:
   '''
@@ -218,8 +218,8 @@ def greater_equal(
 
 @wrap_logic_func_binary(jnp.less)
 def less(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[bool, Array]:
   '''
   Return (x < y) element-wise and have the same unit if x and y are Quantity.
@@ -236,8 +236,8 @@ def less(
 
 @wrap_logic_func_binary(jnp.less_equal)
 def less_equal(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[
   bool, Array]:
   '''
@@ -255,8 +255,8 @@ def less_equal(
 
 @wrap_logic_func_binary(jnp.array_equal)
 def array_equal(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[
   bool, Array]:
   '''
@@ -274,8 +274,8 @@ def array_equal(
 
 @wrap_logic_func_binary(jnp.isclose)
 def isclose(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike],
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike],
     rtol: float = 1e-05,
     atol: float = 1e-08,
     equal_nan: bool = False
@@ -298,8 +298,8 @@ def isclose(
 
 @wrap_logic_func_binary(jnp.allclose)
 def allclose(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike],
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike],
     rtol: float = 1e-05,
     atol: float = 1e-08,
     equal_nan: bool = False
@@ -322,8 +322,8 @@ def allclose(
 
 @wrap_logic_func_binary(jnp.logical_and)
 def logical_and(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[
   bool, Array]:
   '''
@@ -342,8 +342,8 @@ def logical_and(
 
 @wrap_logic_func_binary(jnp.logical_or)
 def logical_or(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[
   bool, Array]:
   '''
@@ -362,8 +362,8 @@ def logical_or(
 
 @wrap_logic_func_binary(jnp.logical_xor)
 def logical_xor(
-    x: Union[Quantity, bst.typing.ArrayLike],
-    y: Union[Quantity, bst.typing.ArrayLike]
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[
   bool, Array]:
   '''
