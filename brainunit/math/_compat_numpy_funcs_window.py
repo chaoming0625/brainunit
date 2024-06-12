@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from functools import wraps
 
 import jax.numpy as jnp
 from jax import Array
+
+from brainunit._misc import set_module_as
 
 __all__ = [
 
@@ -27,38 +28,34 @@ __all__ = [
 # window funcs
 # ------------
 
-def wrap_window_funcs(func):
-  @wraps(func)
-  def f(*args, **kwargs):
-    return func(*args, **kwargs)
 
-  f.__module__ = 'brainunit.math'
-  return f
+def window_funcs(func, *args, **kwargs):
+  return func(*args, **kwargs)
 
 
-@wrap_window_funcs
+@set_module_as('brainunit.math')
 def bartlett(M: int) -> Array:
-  return jnp.bartlett(M)
+  return window_funcs(jnp.bartlett, M)
 
 
-@wrap_window_funcs
+@set_module_as('brainunit.math')
 def blackman(M: int) -> Array:
-  return jnp.blackman(M)
+  return window_funcs(jnp.blackman, M)
 
 
-@wrap_window_funcs
+@set_module_as('brainunit.math')
 def hamming(M: int) -> Array:
-  return jnp.hamming(M)
+  return window_funcs(jnp.hamming, M)
 
 
-@wrap_window_funcs
+@set_module_as('brainunit.math')
 def hanning(M: int) -> Array:
-  return jnp.hanning(M)
+  return window_funcs(jnp.hanning, M)
 
 
-@wrap_window_funcs
+@set_module_as('brainunit.math')
 def kaiser(M: int, beta: float) -> Array:
-  return jnp.kaiser(M, beta)
+  return window_funcs(jnp.kaiser, M, beta)
 
 
 # docs for functions above

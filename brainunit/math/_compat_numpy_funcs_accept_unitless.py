@@ -12,16 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from functools import wraps
+
 from typing import (Union)
 
 import jax
 import jax.numpy as jnp
 from jax import Array
 
-from .._base import (Quantity,
-                     fail_for_dimension_mismatch,
-                     )
+from brainunit._misc import set_module_as
+from .._base import (Quantity, fail_for_dimension_mismatch, )
 
 __all__ = [
   # math funcs only accept unitless (unary)
@@ -39,150 +38,21 @@ __all__ = [
 # math funcs only accept unitless (unary)
 # ---------------------------------------
 
-def wrap_math_funcs_only_accept_unitless_unary(func):
-  @wraps(func)
-  def f(x, *args, **kwargs):
-    if isinstance(x, Quantity):
-      fail_for_dimension_mismatch(
-        x,
-        error_message="%s expects a dimensionless argument but got {value}" % func.__name__,
-        value=x,
-      )
-      return func(jnp.array(x.value), *args, **kwargs)
-    else:
-      return func(x, *args, **kwargs)
-
-  f.__module__ = 'brainunit.math'
-  return f
+def funcs_only_accept_unitless_unary(func, x, *args, **kwargs):
+  if isinstance(x, Quantity):
+    fail_for_dimension_mismatch(
+      x,
+      error_message="%s expects a dimensionless argument but got {value}" % func.__name__,
+      value=x,
+    )
+    return func(jnp.array(x.value), *args, **kwargs)
+  else:
+    return func(x, *args, **kwargs)
 
 
-@wrap_math_funcs_only_accept_unitless_unary
+@set_module_as('brainunit.math')
 def exp(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Array, Quantity]:
-  return jnp.exp(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def exp2(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Array, Quantity]:
-  return jnp.exp2(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def expm1(x: Union[Array, Quantity]) -> Array:
-  return jnp.expm1(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def log(x: Union[Array, Quantity]) -> Array:
-  return jnp.log(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def log10(x: Union[Array, Quantity]) -> Array:
-  return jnp.log10(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def log1p(x: Union[Array, Quantity]) -> Array:
-  return jnp.log1p(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def log2(x: Union[Array, Quantity]) -> Array:
-  return jnp.log2(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def arccos(x: Union[Array, Quantity]) -> Array:
-  return jnp.arccos(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def arccosh(x: Union[Array, Quantity]) -> Array:
-  return jnp.arccosh(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def arcsin(x: Union[Array, Quantity]) -> Array:
-  return jnp.arcsin(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def arcsinh(x: Union[Array, Quantity]) -> Array:
-  return jnp.arcsinh(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def arctan(x: Union[Array, Quantity]) -> Array:
-  return jnp.arctan(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def arctanh(x: Union[Array, Quantity]) -> Array:
-  return jnp.arctanh(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def cos(x: Union[Array, Quantity]) -> Array:
-  return jnp.cos(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def cosh(x: Union[Array, Quantity]) -> Array:
-  return jnp.cosh(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def sin(x: Union[Array, Quantity]) -> Array:
-  return jnp.sin(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def sinc(x: Union[Array, Quantity]) -> Array:
-  return jnp.sinc(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def sinh(x: Union[Array, Quantity]) -> Array:
-  return jnp.sinh(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def tan(x: Union[Array, Quantity]) -> Array:
-  return jnp.tan(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def tanh(x: Union[Array, Quantity]) -> Array:
-  return jnp.tanh(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def deg2rad(x: Union[Array, Quantity]) -> Array:
-  return jnp.deg2rad(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def rad2deg(x: Union[Array, Quantity]) -> Array:
-  return jnp.rad2deg(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def degrees(x: Union[Array, Quantity]) -> Array:
-  return jnp.degrees(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def radians(x: Union[Array, Quantity]) -> Array:
-  return jnp.radians(x)
-
-
-@wrap_math_funcs_only_accept_unitless_unary
-def angle(x: Union[Array, Quantity]) -> Array:
-  return jnp.angle(x)
-
-
-# docs for the functions above
-exp.__doc__ = '''
+  """
   Calculate the exponential of all elements in the input array.
 
   Args:
@@ -190,9 +60,13 @@ exp.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.exp, x)
 
-exp2.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def exp2(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Array, Quantity]:
+  """
   Calculate 2 raised to the power of the input elements.
 
   Args:
@@ -200,9 +74,13 @@ exp2.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.exp2, x)
 
-expm1.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def expm1(x: Union[Array, Quantity]) -> Array:
+  """
   Calculate the exponential of the input elements minus 1.
 
   Args:
@@ -210,9 +88,13 @@ expm1.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.expm1, x)
 
-log.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def log(x: Union[Array, Quantity]) -> Array:
+  """
   Natural logarithm, element-wise.
 
   Args:
@@ -220,9 +102,13 @@ log.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.log, x)
 
-log10.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def log10(x: Union[Array, Quantity]) -> Array:
+  """
   Base-10 logarithm of the input elements.
 
   Args:
@@ -230,9 +116,13 @@ log10.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.log10, x)
 
-log1p.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def log1p(x: Union[Array, Quantity]) -> Array:
+  """
   Natural logarithm of 1 + the input elements.
 
   Args:
@@ -240,9 +130,13 @@ log1p.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.log1p, x)
 
-log2.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def log2(x: Union[Array, Quantity]) -> Array:
+  """
   Base-2 logarithm of the input elements.
 
   Args:
@@ -250,9 +144,13 @@ log2.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.log2, x)
 
-arccos.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def arccos(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the arccosine of the input elements.
 
   Args:
@@ -260,9 +158,13 @@ arccos.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.arccos, x)
 
-arccosh.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def arccosh(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the hyperbolic arccosine of the input elements.
 
   Args:
@@ -270,9 +172,13 @@ arccosh.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.arccosh, x)
 
-arcsin.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def arcsin(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the arcsine of the input elements.
 
   Args:
@@ -280,9 +186,13 @@ arcsin.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.arcsin, x)
 
-arcsinh.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def arcsinh(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the hyperbolic arcsine of the input elements.
 
   Args:
@@ -290,9 +200,13 @@ arcsinh.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.arcsinh, x)
 
-arctan.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def arctan(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the arctangent of the input elements.
 
   Args:
@@ -300,9 +214,13 @@ arctan.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.arctan, x)
 
-arctanh.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def arctanh(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the hyperbolic arctangent of the input elements.
 
   Args:
@@ -310,9 +228,13 @@ arctanh.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.arctanh, x)
 
-cos.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def cos(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the cosine of the input elements.
 
   Args:
@@ -320,9 +242,13 @@ cos.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.cos, x)
 
-cosh.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def cosh(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the hyperbolic cosine of the input elements.
 
   Args:
@@ -330,9 +256,13 @@ cosh.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.cosh, x)
 
-sin.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def sin(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the sine of the input elements.
 
   Args:
@@ -340,9 +270,13 @@ sin.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.sin, x)
 
-sinc.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def sinc(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the sinc function of the input elements.
 
   Args:
@@ -350,9 +284,13 @@ sinc.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.sinc, x)
 
-sinh.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def sinh(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the hyperbolic sine of the input elements.
 
   Args:
@@ -360,9 +298,13 @@ sinh.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.sinh, x)
 
-tan.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def tan(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the tangent of the input elements.
 
   Args:
@@ -370,9 +312,13 @@ tan.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.tan, x)
 
-tanh.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def tanh(x: Union[Array, Quantity]) -> Array:
+  """
   Compute the hyperbolic tangent of the input elements.
 
   Args:
@@ -380,9 +326,13 @@ tanh.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.tanh, x)
 
-deg2rad.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def deg2rad(x: Union[Array, Quantity]) -> Array:
+  """
   Convert angles from degrees to radians.
 
   Args:
@@ -390,9 +340,13 @@ deg2rad.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.deg2rad, x)
 
-rad2deg.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def rad2deg(x: Union[Array, Quantity]) -> Array:
+  """
   Convert angles from radians to degrees.
 
   Args:
@@ -400,9 +354,13 @@ rad2deg.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.rad2deg, x)
 
-degrees.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def degrees(x: Union[Array, Quantity]) -> Array:
+  """
   Convert angles from radians to degrees.
 
   Args:
@@ -410,9 +368,13 @@ degrees.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.degrees, x)
 
-radians.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def radians(x: Union[Array, Quantity]) -> Array:
+  """
   Convert angles from degrees to radians.
 
   Args:
@@ -420,9 +382,13 @@ radians.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.radians, x)
 
-angle.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def angle(x: Union[Array, Quantity]) -> Array:
+  """
   Return the angle of the complex argument.
 
   Args:
@@ -430,80 +396,38 @@ angle.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_unary(jnp.angle, x)
 
 
 # math funcs only accept unitless (binary)
 # ----------------------------------------
 
-def wrap_math_funcs_only_accept_unitless_binary(func):
-  @wraps(func)
-  def f(x, y, *args, **kwargs):
-    if isinstance(x, Quantity):
-      x_value = x.value
-    if isinstance(y, Quantity):
-      y_value = y.value
-    if isinstance(x, Quantity) or isinstance(y, Quantity):
-      fail_for_dimension_mismatch(
-        x,
-        error_message="%s expects a dimensionless argument but got {value}" % func.__name__,
-        value=x,
-      )
-      fail_for_dimension_mismatch(
-        y,
-        error_message="%s expects a dimensionless argument but got {value}" % func.__name__,
-        value=y,
-      )
-      return func(jnp.array(x_value), jnp.array(y_value), *args, **kwargs)
-    else:
-      return func(x, y, *args, **kwargs)
 
-  f.__module__ = 'brainunit.math'
-  return f
+def funcs_only_accept_unitless_binary(func, x, y, *args, **kwargs):
+  if isinstance(x, Quantity):
+    x_value = x.value
+  if isinstance(y, Quantity):
+    y_value = y.value
+  if isinstance(x, Quantity) or isinstance(y, Quantity):
+    fail_for_dimension_mismatch(
+      x,
+      error_message="%s expects a dimensionless argument but got {value}" % func.__name__,
+      value=x,
+    )
+    fail_for_dimension_mismatch(
+      y,
+      error_message="%s expects a dimensionless argument but got {value}" % func.__name__,
+      value=y,
+    )
+    return func(jnp.array(x_value), jnp.array(y_value), *args, **kwargs)
+  else:
+    return func(x, y, *args, **kwargs)
 
 
-@wrap_math_funcs_only_accept_unitless_binary
+@set_module_as('brainunit.math')
 def hypot(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
-  return jnp.hypot(x, y)
-
-
-@wrap_math_funcs_only_accept_unitless_binary
-def arctan2(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
-  return jnp.arctan2(x, y)
-
-
-@wrap_math_funcs_only_accept_unitless_binary
-def logaddexp(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
-  return jnp.logaddexp(x, y)
-
-
-@wrap_math_funcs_only_accept_unitless_binary
-def logaddexp2(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
-  return jnp.logaddexp2(x, y)
-
-
-@wrap_math_funcs_only_accept_unitless_binary
-def percentile(a: Union[Array, Quantity], q: Union[Array, Quantity], *args, **kwargs) -> Array:
-  return jnp.percentile(a, q, *args, **kwargs)
-
-
-@wrap_math_funcs_only_accept_unitless_binary
-def nanpercentile(a: Union[Array, Quantity], q: Union[Array, Quantity], *args, **kwargs) -> Array:
-  return jnp.nanpercentile(a, q, *args, **kwargs)
-
-
-@wrap_math_funcs_only_accept_unitless_binary
-def quantile(a: Union[Array, Quantity], q: Union[Array, Quantity], *args, **kwargs) -> Array:
-  return jnp.quantile(a, q, *args, **kwargs)
-
-
-@wrap_math_funcs_only_accept_unitless_binary
-def nanquantile(a: Union[Array, Quantity], q: Union[Array, Quantity], *args, **kwargs) -> Array:
-  return jnp.nanquantile(a, q, *args, **kwargs)
-
-
-# docs for the functions above
-hypot.__doc__ = '''
+  """
   Given the “legs” of a right triangle, return its hypotenuse.
 
   Args:
@@ -512,9 +436,13 @@ hypot.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_binary(jnp.hypot, x, y)
 
-arctan2.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def arctan2(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
+  """
   Element-wise arc tangent of `x1/x2` choosing the quadrant correctly.
 
   Args:
@@ -523,9 +451,13 @@ arctan2.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_binary(jnp.arctan2, x, y)
 
-logaddexp.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def logaddexp(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
+  """
   Logarithm of the sum of exponentiations of the inputs.
 
   Args:
@@ -534,9 +466,13 @@ logaddexp.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_binary(jnp.logaddexp, x, y)
 
-logaddexp2.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def logaddexp2(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
+  """
   Logarithm of the sum of exponentiations of the inputs in base-2.
 
   Args:
@@ -545,9 +481,13 @@ logaddexp2.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_binary(jnp.logaddexp2, x, y)
 
-percentile.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def percentile(a: Union[Array, Quantity], q: Union[Array, Quantity], *args, **kwargs) -> Array:
+  """
   Compute the nth percentile of the input array along the specified axis.
 
   Args:
@@ -555,9 +495,13 @@ percentile.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_binary(jnp.percentile, a, q, *args, **kwargs)
 
-nanpercentile.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def nanpercentile(a: Union[Array, Quantity], q: Union[Array, Quantity], *args, **kwargs) -> Array:
+  """
   Compute the nth percentile of the input array along the specified axis, ignoring NaNs.
 
   Args:
@@ -565,9 +509,13 @@ nanpercentile.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_binary(jnp.nanpercentile, a, q, *args, **kwargs)
 
-quantile.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def quantile(a: Union[Array, Quantity], q: Union[Array, Quantity], *args, **kwargs) -> Array:
+  """
   Compute the qth quantile of the input array along the specified axis.
 
   Args:
@@ -575,9 +523,13 @@ quantile.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_binary(jnp.quantile, a, q, *args, **kwargs)
 
-nanquantile.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def nanquantile(a: Union[Array, Quantity], q: Union[Array, Quantity], *args, **kwargs) -> Array:
+  """
   Compute the qth quantile of the input array along the specified axis, ignoring NaNs.
 
   Args:
@@ -585,4 +537,5 @@ nanquantile.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_only_accept_unitless_binary(jnp.nanquantile, a, q, *args, **kwargs)

@@ -19,13 +19,13 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import opt_einsum
-from brainstate._utils import set_module_as
 from jax import Array
 from jax._src.numpy.lax_numpy import _einsum
 
-from ._compat_numpy_funcs_change_unit import wrap_math_funcs_change_unit_binary
-from ._compat_numpy_funcs_keep_unit import wrap_math_funcs_keep_unit_unary
-from ._utils import _compatible_with_quantity
+from brainunit._misc import set_module_as
+from ._compat_numpy_array_manipulation import func_array_manipulation
+from ._compat_numpy_funcs_change_unit import funcs_change_unit_binary
+from ._compat_numpy_funcs_keep_unit import funcs_keep_unit_unary
 from .._base import (DIMENSIONLESS,
                      Quantity,
                      fail_for_dimension_mismatch,
@@ -103,7 +103,7 @@ def einsum(
     preferred_element_type: Union[jax.typing.DTypeLike, None] = None,
     _dot_general: Callable[..., jax.Array] = jax.lax.dot_general,
 ) -> Union[jax.Array, Quantity]:
-  '''
+  """
   Evaluates the Einstein summation convention on the operands.
 
   Args:
@@ -124,7 +124,7 @@ def einsum(
 
     Returns:
       array containing the result of the einstein summation.
-  '''
+  """
   operands = (subscripts, *operands)
   if out is not None:
     raise NotImplementedError("The 'out' argument to jnp.einsum is not supported.")
@@ -188,7 +188,7 @@ def gradient(
     axis: Union[int, Sequence[int], None] = None,
     edge_order: Union[int, None] = None,
 ) -> Union[jax.Array, list[jax.Array], Quantity, list[Quantity]]:
-  '''
+  """
   Computes the gradient of a scalar field.
 
   Args:
@@ -199,7 +199,7 @@ def gradient(
 
   Returns:
     array containing the gradient of the scalar field.
-  '''
+  """
   if edge_order is not None:
     raise NotImplementedError("The 'edge_order' argument to jnp.gradient is not supported.")
 
@@ -229,7 +229,7 @@ def intersect1d(
     assume_unique: bool = False,
     return_indices: bool = False
 ) -> Union[jax.Array, Quantity, tuple[Union[jax.Array, Quantity], jax.Array, jax.Array]]:
-  '''
+  """
   Find the intersection of two arrays.
 
   Args:
@@ -240,7 +240,7 @@ def intersect1d(
 
   Returns:
     array containing the intersection of the two arrays.
-  '''
+  """
   fail_for_dimension_mismatch(ar1, ar2, 'intersect1d')
   unit = None
   if isinstance(ar1, Quantity):
@@ -260,36 +260,14 @@ def intersect1d(
       return result
 
 
-@wrap_math_funcs_keep_unit_unary
-def nan_to_num(x: Union[jax.typing.ArrayLike, Quantity], nan: float = 0.0, posinf: float = jnp.inf,
-               neginf: float = -jnp.inf) -> Union[jax.Array, Quantity]:
-  return jnp.nan_to_num(x, nan=nan, posinf=posinf, neginf=neginf)
-
-
-@wrap_math_funcs_keep_unit_unary
-def rot90(m: Union[jax.typing.ArrayLike, Quantity], k: int = 1, axes: Tuple[int, int] = (0, 1)) -> Union[
-  jax.Array, Quantity]:
-  return jnp.rot90(m, k=k, axes=axes)
-
-
-@wrap_math_funcs_change_unit_binary(lambda x, y: x * y)
-def tensordot(a: Union[jax.typing.ArrayLike, Quantity], b: Union[jax.typing.ArrayLike, Quantity],
-              axes: Union[int, Tuple[int, int]] = 2) -> Union[jax.Array, Quantity]:
-  return jnp.tensordot(a, b, axes=axes)
-
-
-@_compatible_with_quantity(return_quantity=False)
-def nanargmax(a: Union[jax.typing.ArrayLike, Quantity], axis: int = None) -> jax.Array:
-  return jnp.nanargmax(a, axis=axis)
-
-
-@_compatible_with_quantity(return_quantity=False)
-def nanargmin(a: Union[jax.typing.ArrayLike, Quantity], axis: int = None) -> jax.Array:
-  return jnp.nanargmin(a, axis=axis)
-
-
-# docs for functions above
-nan_to_num.__doc__ = '''
+@set_module_as('brainunit.math')
+def nan_to_num(
+    x: Union[jax.typing.ArrayLike, Quantity],
+    nan: float = 0.0,
+    posinf: float = jnp.inf,
+    neginf: float = -jnp.inf
+) -> Union[jax.Array, Quantity]:
+  """
   Replace NaN with zero and infinity with large finite numbers (default behaviour) or with the numbers defined by the user using the `nan`, `posinf` and `neginf` arguments.
 
   Args:
@@ -300,9 +278,18 @@ nan_to_num.__doc__ = '''
 
   Returns:
     array with NaNs replaced by zero and infinities replaced by large finite numbers.
-'''
+  """
+  return funcs_keep_unit_unary(jnp.nan_to_num, x, nan=nan, posinf=posinf, neginf=neginf)
 
-nanargmax.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def rot90(
+    m: Union[jax.typing.ArrayLike, Quantity],
+    k: int = 1,
+    axes: Tuple[int, int] = (0, 1)
+) -> Union[
+  jax.Array, Quantity]:
+  """
   Return the index of the maximum value in an array, ignoring NaNs.
 
   Args:
@@ -313,9 +300,17 @@ nanargmax.__doc__ = '''
 
   Returns:
     index of the maximum value in the array.
-'''
+  """
+  return funcs_keep_unit_unary(jnp.rot90, m, k=k, axes=axes)
 
-nanargmin.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def tensordot(
+    a: Union[jax.typing.ArrayLike, Quantity],
+    b: Union[jax.typing.ArrayLike, Quantity],
+    axes: Union[int, Tuple[int, int]] = 2
+) -> Union[jax.Array, Quantity]:
+  """
   Return the index of the minimum value in an array, ignoring NaNs.
 
   Args:
@@ -326,9 +321,16 @@ nanargmin.__doc__ = '''
 
   Returns:
     index of the minimum value in the array.
-'''
+  """
+  return funcs_change_unit_binary(jnp.tensordot, lambda x, y: x * y, a, b, axes=axes)
 
-rot90.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def nanargmax(
+    a: Union[jax.typing.ArrayLike, Quantity],
+    axis: int = None
+) -> jax.Array:
+  """
   Rotate an array by 90 degrees in the plane specified by axes.
 
   Args:
@@ -338,9 +340,16 @@ rot90.__doc__ = '''
 
   Returns:
     rotated array.
-'''
+  """
+  return func_array_manipulation(jnp.nanargmax, a, return_quantity=False, axis=axis)
 
-tensordot.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def nanargmin(
+    a: Union[jax.typing.ArrayLike, Quantity],
+    axis: int = None
+) -> jax.Array:
+  """
   Compute tensor dot product along specified axes for arrays.
 
   Args:
@@ -350,4 +359,5 @@ tensordot.__doc__ = '''
 
   Returns:
     tensor dot product of the two arrays.
-'''
+  """
+  return func_array_manipulation(jnp.nanargmin, a, return_quantity=False, axis=axis)

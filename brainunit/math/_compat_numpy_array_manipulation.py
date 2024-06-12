@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+
 from collections.abc import Sequence
-from functools import wraps
 from typing import (Union, Optional, Tuple, List)
 
 import jax
 import jax.numpy as jnp
 from jax import Array
 
-from ._utils import _compatible_with_quantity
-from .._base import (Quantity,
-                     )
+from brainunit._misc import set_module_as
+from .._base import Quantity
 
 __all__ = [
   # array manipulation
@@ -36,260 +35,81 @@ __all__ = [
   'diagflat', 'diagonal', 'choose', 'ravel',
 ]
 
-
 # array manipulation
 # ------------------
-
-
-@_compatible_with_quantity()
-def reshape(a: Union[Array, Quantity], shape: Union[int, Tuple[int, ...]], order: str = 'C') -> Union[Array, Quantity]:
-  return jnp.reshape(a, shape, order)
-
-
-@_compatible_with_quantity()
-def moveaxis(a: Union[Array, Quantity], source: Union[int, Tuple[int, ...]],
-             destination: Union[int, Tuple[int, ...]]) -> Union[Array, Quantity]:
-  return jnp.moveaxis(a, source, destination)
-
-
-@_compatible_with_quantity()
-def transpose(a: Union[Array, Quantity], axes: Optional[Union[int, Tuple[int, ...]]] = None) -> Union[Array, Quantity]:
-  return jnp.transpose(a, axes)
-
-
-@_compatible_with_quantity()
-def swapaxes(a: Union[Array, Quantity], axis1: int, axis2: int) -> Union[Array, Quantity]:
-  return jnp.swapaxes(a, axis1, axis2)
-
-
-@_compatible_with_quantity()
-def concatenate(arrays: Union[Sequence[Array], Sequence[Quantity]], axis: Optional[int] = None) -> Union[
-  Array, Quantity]:
-  return jnp.concatenate(arrays, axis)
-
-
-@_compatible_with_quantity()
-def stack(arrays: Union[Sequence[Array], Sequence[Quantity]], axis: int = 0) -> Union[Array, Quantity]:
-  return jnp.stack(arrays, axis)
-
-
-@_compatible_with_quantity()
-def vstack(arrays: Union[Sequence[Array], Sequence[Quantity]]) -> Union[Array, Quantity]:
-  return jnp.vstack(arrays)
-
-
-row_stack = vstack
-
-
-@_compatible_with_quantity()
-def hstack(arrays: Union[Sequence[Array], Sequence[Quantity]]) -> Union[Array, Quantity]:
-  return jnp.hstack(arrays)
-
-
-@_compatible_with_quantity()
-def dstack(arrays: Union[Sequence[Array], Sequence[Quantity]]) -> Union[Array, Quantity]:
-  return jnp.dstack(arrays)
-
-
-@_compatible_with_quantity()
-def column_stack(arrays: Union[Sequence[Array], Sequence[Quantity]]) -> Union[Array, Quantity]:
-  return jnp.column_stack(arrays)
-
-
-@_compatible_with_quantity()
-def split(a: Union[Array, Quantity], indices_or_sections: Union[int, Sequence[int]], axis: int = 0) -> Union[
-  List[Array], List[Quantity]]:
-  return jnp.split(a, indices_or_sections, axis)
-
-
-@_compatible_with_quantity()
-def dsplit(a: Union[Array, Quantity], indices_or_sections: Union[int, Sequence[int]]) -> Union[
-  List[Array], List[Quantity]]:
-  return jnp.dsplit(a, indices_or_sections)
-
-
-@_compatible_with_quantity()
-def hsplit(a: Union[Array, Quantity], indices_or_sections: Union[int, Sequence[int]]) -> Union[
-  List[Array], List[Quantity]]:
-  return jnp.hsplit(a, indices_or_sections)
-
-
-@_compatible_with_quantity()
-def vsplit(a: Union[Array, Quantity], indices_or_sections: Union[int, Sequence[int]]) -> Union[
-  List[Array], List[Quantity]]:
-  return jnp.vsplit(a, indices_or_sections)
-
-
-@_compatible_with_quantity()
-def tile(A: Union[Array, Quantity], reps: Union[int, Tuple[int, ...]]) -> Union[Array, Quantity]:
-  return jnp.tile(A, reps)
-
-
-@_compatible_with_quantity()
-def repeat(a: Union[Array, Quantity], repeats: Union[int, Tuple[int, ...]], axis: Optional[int] = None) -> Union[
-  Array, Quantity]:
-  return jnp.repeat(a, repeats, axis)
-
-
-@_compatible_with_quantity()
-def unique(a: Union[Array, Quantity], return_index: bool = False, return_inverse: bool = False,
-           return_counts: bool = False, axis: Optional[int] = None) -> Union[Array, Quantity]:
-  return jnp.unique(a, return_index, return_inverse, return_counts, axis)
-
-
-@_compatible_with_quantity()
-def append(arr: Union[Array, Quantity], values: Union[Array, Quantity], axis: Optional[int] = None) -> Union[
-  Array, Quantity]:
-  return jnp.append(arr, values, axis)
-
-
-@_compatible_with_quantity()
-def flip(m: Union[Array, Quantity], axis: Optional[Union[int, Tuple[int, ...]]] = None) -> Union[Array, Quantity]:
-  return jnp.flip(m, axis)
-
-
-@_compatible_with_quantity()
-def fliplr(m: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.fliplr(m)
-
-
-@_compatible_with_quantity()
-def flipud(m: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.flipud(m)
-
-
-@_compatible_with_quantity()
-def roll(a: Union[Array, Quantity], shift: Union[int, Tuple[int, ...]],
-         axis: Optional[Union[int, Tuple[int, ...]]] = None) -> Union[Array, Quantity]:
-  return jnp.roll(a, shift, axis)
-
-
-@_compatible_with_quantity()
-def atleast_1d(*arys: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.atleast_1d(*arys)
-
-
-@_compatible_with_quantity()
-def atleast_2d(*arys: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.atleast_2d(*arys)
-
-
-@_compatible_with_quantity()
-def atleast_3d(*arys: Union[Array, Quantity]) -> Union[Array, Quantity]:
-  return jnp.atleast_3d(*arys)
-
-
-@_compatible_with_quantity()
-def expand_dims(a: Union[Array, Quantity], axis: int) -> Union[Array, Quantity]:
-  return jnp.expand_dims(a, axis)
-
-
-@_compatible_with_quantity()
-def squeeze(a: Union[Array, Quantity], axis: Optional[Union[int, Tuple[int, ...]]] = None) -> Union[Array, Quantity]:
-  return jnp.squeeze(a, axis)
-
-
-@_compatible_with_quantity()
-def sort(a: Union[Array, Quantity],
-         axis: Optional[int] = -1,
-         kind: None = None,
-         order: None = None,
-         stable: bool = True,
-         descending: bool = False, ) -> Union[Array, Quantity]:
-  return jnp.sort(a, axis, kind=kind, order=order, stable=stable, descending=descending)
-
-
-@_compatible_with_quantity()
-def argsort(a: Union[Array, Quantity],
-            axis: Optional[int] = -1,
-            kind: None = None,
-            order: None = None,
-            stable: bool = True,
-            descending: bool = False, ) -> Array:
-  return jnp.argsort(a, axis, kind=kind, order=order, stable=stable, descending=descending)
-
-
-@_compatible_with_quantity()
-def max(a: Union[Array, Quantity], axis: Optional[int] = None, out: Optional[Array] = None,
-        keepdims: bool = False) -> Union[Array, Quantity]:
-  return jnp.max(a, axis, out, keepdims)
-
-
-@_compatible_with_quantity()
-def min(a: Union[Array, Quantity], axis: Optional[int] = None, out: Optional[Array] = None,
-        keepdims: bool = False) -> Union[Array, Quantity]:
-  return jnp.min(a, axis, out, keepdims)
-
-
-@_compatible_with_quantity()
-def choose(a: Union[Array, Quantity], choices: Sequence[Union[Array, Quantity]]) -> Union[Array, Quantity]:
-  return jnp.choose(a, choices)
-
-
-@_compatible_with_quantity()
-def block(arrays: Sequence[Union[Array, Quantity]]) -> Union[Array, Quantity]:
-  return jnp.block(arrays)
-
-
-@_compatible_with_quantity()
-def compress(condition: Union[Array, Quantity], a: Union[Array, Quantity], axis: Optional[int] = None) -> Union[
-  Array, Quantity]:
-  return jnp.compress(condition, a, axis)
-
-
-@_compatible_with_quantity()
-def diagflat(v: Union[Array, Quantity], k: int = 0) -> Union[Array, Quantity]:
-  return jnp.diagflat(v, k)
-
-
-# return jax.numpy.Array, not Quantity
-
-@_compatible_with_quantity(return_quantity=False)
-def argmax(a: Union[Array, Quantity], axis: Optional[int] = None, out: Optional[Array] = None) -> Array:
-  return jnp.argmax(a, axis, out)
-
-
-@_compatible_with_quantity(return_quantity=False)
-def argmin(a: Union[Array, Quantity], axis: Optional[int] = None, out: Optional[Array] = None) -> Array:
-  return jnp.argmin(a, axis, out)
-
-
-@_compatible_with_quantity(return_quantity=False)
-def argwhere(a: Union[Array, Quantity]) -> Array:
-  return jnp.argwhere(a)
-
-
-@_compatible_with_quantity(return_quantity=False)
-def nonzero(a: Union[Array, Quantity]) -> Tuple[Array, ...]:
-  return jnp.nonzero(a)
-
-
-@_compatible_with_quantity(return_quantity=False)
-def flatnonzero(a: Union[Array, Quantity]) -> Array:
-  return jnp.flatnonzero(a)
-
-
-@_compatible_with_quantity(return_quantity=False)
-def searchsorted(a: Union[Array, Quantity], v: Union[Array, Quantity], side: str = 'left',
-                 sorter: Optional[Array] = None) -> Array:
-  return jnp.searchsorted(a, v, side, sorter)
-
-
-@_compatible_with_quantity(return_quantity=False)
-def extract(condition: Union[Array, Quantity], arr: Union[Array, Quantity]) -> Array:
-  return jnp.extract(condition, arr)
-
-
-@_compatible_with_quantity(return_quantity=False)
-def count_nonzero(a: Union[Array, Quantity], axis: Optional[int] = None) -> Array:
-  return jnp.count_nonzero(a, axis)
-
-
-amax = max
-amin = min
-
-# docs for the functions above
-reshape.__doc__ = '''
+from jax.tree_util import tree_map
+
+
+def _as_jax_array_(obj):
+  return obj.value if isinstance(obj, Quantity) else obj
+
+
+def _is_leaf(a):
+  return isinstance(a, Quantity)
+
+
+def func_array_manipulation(fun, *args, return_quantity=True, **kwargs) -> Union[list[Quantity], Quantity, jax.Array]:
+  unit = None
+  if isinstance(args[0], Quantity):
+    unit = args[0].dim
+  elif isinstance(args[0], tuple):
+    if len(args[0]) == 1:
+      unit = args[0][0].dim if isinstance(args[0][0], Quantity) else None
+    elif len(args[0]) == 2:
+      # check all args[0] have the same unit
+      if all(isinstance(a, Quantity) for a in args[0]):
+        if all(a.dim == args[0][0].dim for a in args[0]):
+          unit = args[0][0].dim
+        else:
+          raise ValueError(f'Units do not match for {fun.__name__} operation.')
+      elif all(not isinstance(a, Quantity) for a in args[0]):
+        unit = None
+      else:
+        raise ValueError(f'Units do not match for {fun.__name__} operation.')
+  args = tree_map(_as_jax_array_, args, is_leaf=_is_leaf)
+  out = None
+  if len(kwargs):
+    # compatible with PyTorch syntax
+    if 'dim' in kwargs:
+      kwargs['axis'] = kwargs.pop('dim')
+    if 'keepdim' in kwargs:
+      kwargs['keepdims'] = kwargs.pop('keepdim')
+    # compatible with TensorFlow syntax
+    if 'keep_dims' in kwargs:
+      kwargs['keepdims'] = kwargs.pop('keep_dims')
+    # compatible with NumPy/PyTorch syntax
+    if 'out' in kwargs:
+      out = kwargs.pop('out')
+      if out is not None and not isinstance(out, Quantity):
+        raise TypeError(f'"out" must be an instance of brainpy Array. While we got {type(out)}')
+    # format
+    kwargs = tree_map(_as_jax_array_, kwargs, is_leaf=_is_leaf)
+
+  if not return_quantity:
+    unit = None
+
+  r = fun(*args, **kwargs)
+  if unit is not None:
+    if isinstance(r, (list, tuple)):
+      return [Quantity(rr, dim=unit) for rr in r]
+    else:
+      if out is None:
+        return Quantity(r, dim=unit)
+      else:
+        out.value = r
+  if out is None:
+    return r
+  else:
+    out.value = r
+
+
+@set_module_as('brainunit.math')
+def reshape(
+    a: Union[Array, Quantity],
+    shape: Union[int, Tuple[int, ...]],
+    order: str = 'C'
+) -> Union[Array, Quantity]:
+  """
   Return a reshaped copy of an array or a Quantity.
 
   Args:
@@ -303,9 +123,17 @@ reshape.__doc__ = '''
 
   Returns:
     reshaped copy of input array with the specified shape.
-'''
+  """
+  return func_array_manipulation(jnp.reshape, a, shape, order=order)
 
-moveaxis.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def moveaxis(
+    a: Union[Array, Quantity],
+    source: Union[int, Tuple[int, ...]],
+    destination: Union[int, Tuple[int, ...]]
+) -> Union[Array, Quantity]:
+  """
   Moves axes of an array to new positions. Other axes remain in their original order.
 
   Args:
@@ -315,9 +143,16 @@ moveaxis.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.moveaxis, a, source, destination)
 
-transpose.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def transpose(
+    a: Union[Array, Quantity],
+    axes: Optional[Union[int, Tuple[int, ...]]] = None
+) -> Union[Array, Quantity]:
+  """
   Returns a view of the array with axes transposed.
 
   Args:
@@ -326,9 +161,15 @@ transpose.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.transpose, a, axes)
 
-swapaxes.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def swapaxes(
+    a: Union[Array, Quantity], axis1: int, axis2: int
+) -> Union[Array, Quantity]:
+  """
   Interchanges two axes of an array.
 
   Args:
@@ -338,9 +179,16 @@ swapaxes.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.swapaxes, a, axis1, axis2)
 
-concatenate.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def concatenate(
+    arrays: Union[Sequence[Array], Sequence[Quantity]],
+    axis: Optional[int] = None
+) -> Union[Array, Quantity]:
+  """
   Join a sequence of arrays along an existing axis.
 
   Args:
@@ -349,9 +197,16 @@ concatenate.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.concatenate, arrays, axis=axis)
 
-stack.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def stack(
+    arrays: Union[Sequence[Array], Sequence[Quantity]],
+    axis: int = 0
+) -> Union[Array, Quantity]:
+  """
   Join a sequence of arrays along a new axis.
 
   Args:
@@ -360,9 +215,15 @@ stack.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.stack, arrays, axis=axis)
 
-vstack.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def vstack(
+    arrays: Union[Sequence[Array], Sequence[Quantity]]
+) -> Union[Array, Quantity]:
+  """
   Stack arrays in sequence vertically (row wise).
 
   Args:
@@ -370,9 +231,18 @@ vstack.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.numpy.Array
-'''
+  """
+  return func_array_manipulation(jnp.vstack, arrays)
 
-hstack.__doc__ = '''
+
+row_stack = vstack
+
+
+@set_module_as('brainunit.math')
+def hstack(
+    arrays: Union[Sequence[Array], Sequence[Quantity]]
+) -> Union[Array, Quantity]:
+  """
   Stack arrays in sequence horizontally (column wise).
 
   Args:
@@ -380,9 +250,15 @@ hstack.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.hstack, arrays)
 
-dstack.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def dstack(
+    arrays: Union[Sequence[Array], Sequence[Quantity]]
+) -> Union[Array, Quantity]:
+  """
   Stack arrays in sequence depth wise (along third axis).
 
   Args:
@@ -390,9 +266,15 @@ dstack.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.dstack, arrays)
 
-column_stack.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def column_stack(
+    arrays: Union[Sequence[Array], Sequence[Quantity]]
+) -> Union[Array, Quantity]:
+  """
   Stack 1-D arrays as columns into a 2-D array.
 
   Args:
@@ -400,9 +282,17 @@ column_stack.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.column_stack, arrays)
 
-split.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def split(
+    a: Union[Array, Quantity],
+    indices_or_sections: Union[int, Sequence[int]],
+    axis: int = 0
+) -> Union[List[Array], List[Quantity]]:
+  """
   Split an array into multiple sub-arrays.
 
   Args:
@@ -412,9 +302,16 @@ split.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.split, a, indices_or_sections, axis=axis)
 
-dsplit.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def dsplit(
+    a: Union[Array, Quantity],
+    indices_or_sections: Union[int, Sequence[int]]
+) -> Union[List[Array], List[Quantity]]:
+  """
   Split array along third axis (depth).
 
   Args:
@@ -423,9 +320,16 @@ dsplit.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.dsplit, a, indices_or_sections)
 
-hsplit.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def hsplit(
+    a: Union[Array, Quantity],
+    indices_or_sections: Union[int, Sequence[int]]
+) -> Union[List[Array], List[Quantity]]:
+  """
   Split an array into multiple sub-arrays horizontally (column-wise).
 
   Args:
@@ -434,9 +338,16 @@ hsplit.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.hsplit, a, indices_or_sections)
 
-vsplit.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def vsplit(
+    a: Union[Array, Quantity],
+    indices_or_sections: Union[int, Sequence[int]]
+) -> Union[List[Array], List[Quantity]]:
+  """
   Split an array into multiple sub-arrays vertically (row-wise).
 
   Args:
@@ -445,9 +356,16 @@ vsplit.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.vsplit, a, indices_or_sections)
 
-tile.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def tile(
+    A: Union[Array, Quantity],
+    reps: Union[int, Tuple[int, ...]]
+) -> Union[Array, Quantity]:
+  """
   Construct an array by repeating A the number of times given by reps.
 
   Args:
@@ -456,9 +374,17 @@ tile.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if A is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.tile, A, reps)
 
-repeat.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def repeat(
+    a: Union[Array, Quantity],
+    repeats: Union[int, Tuple[int, ...]],
+    axis: Optional[int] = None
+) -> Union[Array, Quantity]:
+  """
   Repeat elements of an array.
 
   Args:
@@ -468,9 +394,19 @@ repeat.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.repeat, a, repeats, axis=axis)
 
-unique.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def unique(
+    a: Union[Array, Quantity],
+    return_index: bool = False,
+    return_inverse: bool = False,
+    return_counts: bool = False,
+    axis: Optional[int] = None
+) -> Union[Array, Quantity]:
+  """
   Find the unique elements of an array.
 
   Args:
@@ -482,9 +418,18 @@ unique.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.unique, a, return_index=return_index, return_inverse=return_inverse,
+                                 return_counts=return_counts, axis=axis)
 
-append.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def append(
+    arr: Union[Array, Quantity],
+    values: Union[Array, Quantity],
+    axis: Optional[int] = None
+) -> Union[Array, Quantity]:
+  """
   Append values to the end of an array.
 
   Args:
@@ -494,9 +439,16 @@ append.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if arr and values are Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.append, arr, values, axis=axis)
 
-flip.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def flip(
+    m: Union[Array, Quantity],
+    axis: Optional[Union[int, Tuple[int, ...]]] = None
+) -> Union[Array, Quantity]:
+  """
   Reverse the order of elements in an array along the given axis.
 
   Args:
@@ -505,9 +457,15 @@ flip.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.flip, m, axis=axis)
 
-fliplr.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def fliplr(
+    m: Union[Array, Quantity]
+) -> Union[Array, Quantity]:
+  """
   Flip array in the left/right direction.
 
   Args:
@@ -515,9 +473,15 @@ fliplr.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.fliplr, m)
 
-flipud.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def flipud(
+    m: Union[Array, Quantity]
+) -> Union[Array, Quantity]:
+  """
   Flip array in the up/down direction.
 
   Args:
@@ -525,9 +489,17 @@ flipud.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.flipud, m)
 
-roll.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def roll(
+    a: Union[Array, Quantity],
+    shift: Union[int, Tuple[int, ...]],
+    axis: Optional[Union[int, Tuple[int, ...]]] = None
+) -> Union[Array, Quantity]:
+  """
   Roll array elements along a given axis.
 
   Args:
@@ -537,9 +509,15 @@ roll.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.roll, a, shift, axis=axis)
 
-atleast_1d.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def atleast_1d(
+    *arys: Union[Array, Quantity]
+) -> Union[Array, Quantity]:
+  """
   View inputs as arrays with at least one dimension.
 
   Args:
@@ -547,9 +525,15 @@ atleast_1d.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.atleast_1d, *arys)
 
-atleast_2d.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def atleast_2d(
+    *arys: Union[Array, Quantity]
+) -> Union[Array, Quantity]:
+  """
   View inputs as arrays with at least two dimensions.
 
   Args:
@@ -557,9 +541,15 @@ atleast_2d.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.atleast_2d, *arys)
 
-atleast_3d.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def atleast_3d(
+    *arys: Union[Array, Quantity]
+) -> Union[Array, Quantity]:
+  """
   View inputs as arrays with at least three dimensions.
 
   Args:
@@ -567,9 +557,16 @@ atleast_3d.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.atleast_3d, *arys)
 
-expand_dims.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def expand_dims(
+    a: Union[Array, Quantity],
+    axis: int
+) -> Union[Array, Quantity]:
+  """
   Expand the shape of an array.
 
   Args:
@@ -578,9 +575,16 @@ expand_dims.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.expand_dims, a, axis)
 
-squeeze.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def squeeze(
+    a: Union[Array, Quantity],
+    axis: Optional[Union[int, Tuple[int, ...]]] = None
+) -> Union[Array, Quantity]:
+  """
   Remove single-dimensional entries from the shape of an array.
 
   Args:
@@ -589,9 +593,20 @@ squeeze.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.squeeze, a, axis)
 
-sort.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def sort(
+    a: Union[Array, Quantity],
+    axis: Optional[int] = -1,
+    kind: None = None,
+    order: None = None,
+    stable: bool = True,
+    descending: bool = False,
+) -> Union[Array, Quantity]:
+  """
   Return a sorted copy of an array.
 
   Args:
@@ -599,11 +614,49 @@ sort.__doc__ = '''
     axis: int or None, optional
     kind: {'quicksort', 'mergesort', 'heapsort', 'stable'}, optional
     order: str or list of str, optional
+    stable: bool, optional
+    descending: bool, optional
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
-max.__doc__ = '''
+  """
+  return func_array_manipulation(jnp.sort, a, axis=axis, kind=kind, order=order, stable=stable, descending=descending)
+
+
+@set_module_as('brainunit.math')
+def argsort(
+    a: Union[Array, Quantity],
+    axis: Optional[int] = -1,
+    kind: None = None,
+    order: None = None,
+    stable: bool = True,
+    descending: bool = False,
+) -> Array:
+  """
+  Returns the indices that would sort an array.
+
+  Args:
+    a: array_like, Quantity
+    axis: int or None, optional
+    kind: {'quicksort', 'mergesort', 'heapsort', 'stable'}, optional
+    order: str or list of str, optional
+    stable: bool, optional
+    descending: bool, optional
+
+  Returns:
+    Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
+  """
+  return func_array_manipulation(jnp.argsort, a, axis=axis, kind=kind, order=order, stable=stable,
+                                 descending=descending)
+
+
+@set_module_as('brainunit.math')
+def max(
+    a: Union[Array, Quantity],
+    axis: Optional[int] = None,
+    keepdims: bool = False
+) -> Union[Array, Quantity]:
+  """
   Return the maximum of an array or maximum along an axis.
 
   Args:
@@ -613,9 +666,17 @@ max.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.max, a, axis=axis, keepdims=keepdims)
 
-min.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def min(
+    a: Union[Array, Quantity],
+    axis: Optional[int] = None,
+    keepdims: bool = False
+) -> Union[Array, Quantity]:
+  """
   Return the minimum of an array or minimum along an axis.
 
   Args:
@@ -625,9 +686,16 @@ min.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.min, a, axis=axis, keepdims=keepdims)
 
-choose.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def choose(
+    a: Union[Array, Quantity],
+    choices: Sequence[Union[Array, Quantity]]
+) -> Union[Array, Quantity]:
+  """
   Use an index array to construct a new array from a set of choices.
 
   Args:
@@ -636,9 +704,15 @@ choose.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a and choices are Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.choose, a, choices)
 
-block.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def block(
+    arrays: Sequence[Union[Array, Quantity]]
+) -> Union[Array, Quantity]:
+  """
   Assemble an nd-array from nested lists of blocks.
 
   Args:
@@ -646,9 +720,17 @@ block.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.block, arrays)
 
-compress.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def compress(
+    condition: Union[Array, Quantity],
+    a: Union[Array, Quantity],
+    axis: Optional[int] = None
+) -> Union[Array, Quantity]:
+  """
   Return selected slices of an array along given axis.
 
   Args:
@@ -658,33 +740,37 @@ compress.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.compress, condition, a, axis=axis)
 
-diagflat.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def diagflat(
+    v: Union[Array, Quantity],
+    k: int = 0
+) -> Union[Array, Quantity]:
+  """
   Create a two-dimensional array with the flattened input as a diagonal.
 
   Args:
-    a: array_like, Quantity
-    offset: int, optional
+    v: array_like, Quantity
+    k: int, optional
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-'''
+  """
+  return func_array_manipulation(jnp.diagflat, v, k)
 
-argsort.__doc__ = '''
-  Returns the indices that would sort an array.
 
-  Args:
-    a: array_like, Quantity
-    axis: int or None, optional
-    kind: {'quicksort', 'mergesort', 'heapsort'}, optional
-    order: str or list of str, optional
+# return jax.numpy.Array, not Quantity
 
-  Returns:
-    jax.Array jax.numpy.Array (does not return a Quantity)
-'''
-
-argmax.__doc__ = '''
+@set_module_as('brainunit.math')
+def argmax(
+    a: Union[Array, Quantity],
+    axis: Optional[int] = None,
+    out: Optional[Array] = None
+) -> Array:
+  """
   Returns indices of the max value along an axis.
 
   Args:
@@ -694,9 +780,17 @@ argmax.__doc__ = '''
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-'''
+  """
+  return func_array_manipulation(jnp.argmax, a, axis=axis, out=out, return_quantity=False)
 
-argmin.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def argmin(
+    a: Union[Array, Quantity],
+    axis: Optional[int] = None,
+    out: Optional[Array] = None
+) -> Array:
+  """
   Returns indices of the min value along an axis.
 
   Args:
@@ -706,9 +800,15 @@ argmin.__doc__ = '''
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-'''
+  """
+  return func_array_manipulation(jnp.argmin, a, axis=axis, out=out, return_quantity=False)
 
-argwhere.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def argwhere(
+    a: Union[Array, Quantity]
+) -> Array:
+  """
   Find indices of non-zero elements.
 
   Args:
@@ -716,9 +816,15 @@ argwhere.__doc__ = '''
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-'''
+  """
+  return func_array_manipulation(jnp.argwhere, a, return_quantity=False)
 
-nonzero.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def nonzero(
+    a: Union[Array, Quantity]
+) -> Tuple[Array, ...]:
+  """
   Return the indices of the elements that are non-zero.
 
   Args:
@@ -726,9 +832,15 @@ nonzero.__doc__ = '''
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-'''
+  """
+  return func_array_manipulation(jnp.nonzero, a, return_quantity=False)
 
-flatnonzero.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def flatnonzero(
+    a: Union[Array, Quantity]
+) -> Array:
+  """
   Return indices that are non-zero in the flattened version of a.
 
   Args:
@@ -736,9 +848,18 @@ flatnonzero.__doc__ = '''
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-'''
+  """
+  return func_array_manipulation(jnp.flatnonzero, a, return_quantity=False)
 
-searchsorted.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def searchsorted(
+    a: Union[Array, Quantity],
+    v: Union[Array, Quantity],
+    side: str = 'left',
+    sorter: Optional[Array] = None
+) -> Array:
+  """
   Find indices where elements should be inserted to maintain order.
 
   Args:
@@ -748,20 +869,33 @@ searchsorted.__doc__ = '''
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-'''
+  """
+  return func_array_manipulation(jnp.searchsorted, a, v, side=side, sorter=sorter, return_quantity=False)
 
-extract.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def extract(
+    condition: Union[Array, Quantity],
+    arr: Union[Array, Quantity]
+) -> Array:
+  """
   Return the elements of an array that satisfy some condition.
 
   Args:
     condition: array_like, Quantity
-    a: array_like, Quantity
+    arr: array_like, Quantity
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-'''
+  """
+  return func_array_manipulation(jnp.extract, condition, arr, return_quantity=False)
 
-count_nonzero.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def count_nonzero(
+    a: Union[Array, Quantity], axis: Optional[int] = None
+) -> Array:
+  """
   Counts the number of non-zero values in the array a.
 
   Args:
@@ -770,33 +904,29 @@ count_nonzero.__doc__ = '''
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-'''
+  """
+  return func_array_manipulation(jnp.count_nonzero, a, axis=axis, return_quantity=False)
 
 
-def wrap_function_to_method(func):
-  @wraps(func)
-  def f(x, *args, **kwargs):
-    if isinstance(x, Quantity):
-      return Quantity(func(x.value, *args, **kwargs), dim=x.dim)
-    else:
-      return func(x, *args, **kwargs)
-
-  f.__module__ = 'brainunit.math'
-  return f
+amax = max
+amin = min
 
 
-@wrap_function_to_method
-def diagonal(a: Union[jax.Array, Quantity], offset: int = 0, axis1: int = 0, axis2: int = 1) -> Union[
-  jax.Array, Quantity]:
-  return jnp.diagonal(a, offset, axis1, axis2)
+def function_to_method(func, x, *args, **kwargs):
+  if isinstance(x, Quantity):
+    return Quantity(func(x.value, *args, **kwargs), dim=x.dim)
+  else:
+    return func(x, *args, **kwargs)
 
 
-@wrap_function_to_method
-def ravel(a: Union[jax.Array, Quantity], order: str = 'C') -> Union[jax.Array, Quantity]:
-  return jnp.ravel(a, order)
-
-
-diagonal.__doc__ = '''
+@set_module_as('brainunit.math')
+def diagonal(
+    a: Union[jax.Array, Quantity],
+    offset: int = 0,
+    axis1: int = 0,
+    axis2: int = 1
+) -> Union[jax.Array, Quantity]:
+  """
   Return specified diagonals.
 
   Args:
@@ -807,9 +937,16 @@ diagonal.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity]: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
-'''
+  """
+  return function_to_method(jnp.diagonal, a, offset, axis1, axis2)
 
-ravel.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def ravel(
+    a: Union[jax.Array, Quantity],
+    order: str = 'C'
+) -> Union[jax.Array, Quantity]:
+  """
   Return a contiguous flattened array.
 
   Args:
@@ -818,4 +955,5 @@ ravel.__doc__ = '''
 
   Returns:
     Union[jax.Array, Quantity]: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
-'''
+  """
+  return function_to_method(jnp.ravel, a, order)

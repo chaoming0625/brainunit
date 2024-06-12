@@ -17,12 +17,11 @@ from typing import (Union, Optional)
 import jax
 import jax.numpy as jnp
 import numpy as np
-from brainstate._utils import set_module_as
 
+from brainunit._misc import set_module_as
 from .._base import (Quantity,
                      fail_for_dimension_mismatch,
-                     is_unitless,
-                     )
+                     is_unitless, )
 
 __all__ = [
 
@@ -71,7 +70,7 @@ def where(condition: Union[bool, jax.typing.ArrayLike],
 
 
 tril_indices = jnp.tril_indices
-tril_indices.__doc__ = '''
+tril_indices.__doc__ = """
   Return the indices for the lower-triangle of an (n, m) array.
 
   Args:
@@ -81,13 +80,13 @@ tril_indices.__doc__ = '''
 
   Returns:
     tuple[jax.Array]: tuple[array]
-'''
+"""
 
 
 @set_module_as('brainunit.math')
 def tril_indices_from(arr: Union[Quantity, jax.typing.ArrayLike],
                       k: Optional[int] = 0) -> tuple[jax.Array, jax.Array]:
-  '''
+  """
   Return the indices for the lower-triangle of an (n, m) array.
 
   Args:
@@ -96,7 +95,7 @@ def tril_indices_from(arr: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     tuple[jax.Array]: tuple[array]
-  '''
+  """
   if isinstance(arr, Quantity):
     return jnp.tril_indices_from(arr.value, k=k)
   else:
@@ -104,7 +103,7 @@ def tril_indices_from(arr: Union[Quantity, jax.typing.ArrayLike],
 
 
 triu_indices = jnp.triu_indices
-triu_indices.__doc__ = '''
+triu_indices.__doc__ = """
   Return the indices for the upper-triangle of an (n, m) array.
 
   Args:
@@ -114,13 +113,13 @@ triu_indices.__doc__ = '''
 
   Returns:
     tuple[jax.Array]: tuple[array]
-'''
+"""
 
 
 @set_module_as('brainunit.math')
 def triu_indices_from(arr: Union[Quantity, jax.typing.ArrayLike],
                       k: Optional[int] = 0) -> tuple[jax.Array, jax.Array]:
-  '''
+  """
   Return the indices for the upper-triangle of an (n, m) array.
 
   Args:
@@ -129,7 +128,7 @@ def triu_indices_from(arr: Union[Quantity, jax.typing.ArrayLike],
 
   Returns:
     tuple[jax.Array]: tuple[array]
-  '''
+  """
   if isinstance(arr, Quantity):
     return jnp.triu_indices_from(arr.value, k=k)
   else:

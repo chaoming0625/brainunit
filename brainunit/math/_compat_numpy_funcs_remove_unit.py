@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from functools import wraps
 from typing import (Union, Optional)
 
 import jax.numpy as jnp
 from jax import Array
 
-from .._base import (Quantity,
-                     )
+from brainunit._misc import set_module_as
+from .._base import Quantity
 
 __all__ = [
 
@@ -33,40 +32,17 @@ __all__ = [
 
 # math funcs remove unit (unary)
 # ------------------------------
-def wrap_math_funcs_remove_unit_unary(func):
-  @wraps(func)
-  def f(x, *args, **kwargs):
-    if isinstance(x, Quantity):
-      return func(x.value, *args, **kwargs)
-    else:
-      return func(x, *args, **kwargs)
 
-  f.__module__ = 'brainunit.math'
-  return f
+def funcs_remove_unit_unary(func, x, *args, **kwargs):
+  if isinstance(x, Quantity):
+    return func(x.value, *args, **kwargs)
+  else:
+    return func(x, *args, **kwargs)
 
 
-@wrap_math_funcs_remove_unit_unary
+@set_module_as('brainunit.math')
 def signbit(x: Union[Array, Quantity]) -> Array:
-  return jnp.signbit(x)
-
-
-@wrap_math_funcs_remove_unit_unary
-def sign(x: Union[Array, Quantity]) -> Array:
-  return jnp.sign(x)
-
-
-@wrap_math_funcs_remove_unit_unary
-def histogram(x: Union[Array, Quantity]) -> tuple[Array, Array]:
-  return jnp.histogram(x)
-
-
-@wrap_math_funcs_remove_unit_unary
-def bincount(x: Union[Array, Quantity]) -> Array:
-  return jnp.bincount(x)
-
-
-# docs for the functions above
-signbit.__doc__ = '''
+  """
   Returns element-wise True where signbit is set (less than zero).
 
   Args:
@@ -74,9 +50,13 @@ signbit.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_remove_unit_unary(jnp.signbit, x)
 
-sign.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def sign(x: Union[Array, Quantity]) -> Array:
+  """
   Returns the sign of each element in the input array.
 
   Args:
@@ -84,9 +64,13 @@ sign.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_remove_unit_unary(jnp.sign, x)
 
-histogram.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def histogram(x: Union[Array, Quantity]) -> tuple[Array, Array]:
+  """
   Compute the histogram of a set of data.
 
   Args:
@@ -94,9 +78,13 @@ histogram.__doc__ = '''
 
   Returns:
     tuple[jax.Array]: Tuple of arrays (hist, bin_edges)
-'''
+  """
+  return funcs_remove_unit_unary(jnp.histogram, x)
 
-bincount.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def bincount(x: Union[Array, Quantity]) -> Array:
+  """
   Count number of occurrences of each value in array of non-negative integers.
 
   Args:
@@ -104,49 +92,26 @@ bincount.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_remove_unit_unary(jnp.bincount, x)
 
 
 # math funcs remove unit (binary)
 # -------------------------------
-def wrap_math_funcs_remove_unit_binary(func):
-  @wraps(func)
-  def f(x, y, *args, **kwargs):
-    if isinstance(x, Quantity):
-      x_value = x.value
-    if isinstance(y, Quantity):
-      y_value = y.value
-    if isinstance(x, Quantity) or isinstance(y, Quantity):
-      return func(jnp.array(x_value), jnp.array(y_value), *args, **kwargs)
-    else:
-      return func(x, y, *args, **kwargs)
-
-  f.__module__ = 'brainunit.math'
-  return f
+def funcs_remove_unit_binary(func, x, y, *args, **kwargs):
+  if isinstance(x, Quantity):
+    x_value = x.value
+  if isinstance(y, Quantity):
+    y_value = y.value
+  if isinstance(x, Quantity) or isinstance(y, Quantity):
+    return func(jnp.array(x_value), jnp.array(y_value), *args, **kwargs)
+  else:
+    return func(x, y, *args, **kwargs)
 
 
-@wrap_math_funcs_remove_unit_binary
+@set_module_as('brainunit.math')
 def corrcoef(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
-  return jnp.corrcoef(x, y)
-
-
-@wrap_math_funcs_remove_unit_binary
-def correlate(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
-  return jnp.correlate(x, y)
-
-
-@wrap_math_funcs_remove_unit_binary
-def cov(x: Union[Array, Quantity], y: Optional[Union[Array, Quantity]] = None) -> Array:
-  return jnp.cov(x, y)
-
-
-@wrap_math_funcs_remove_unit_binary
-def digitize(x: Union[Array, Quantity], bins: Union[Array, Quantity]) -> Array:
-  return jnp.digitize(x, bins)
-
-
-# docs for the functions above
-corrcoef.__doc__ = '''
+  """
   Return Pearson product-moment correlation coefficients.
 
   Args:
@@ -155,9 +120,13 @@ corrcoef.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_remove_unit_binary(jnp.corrcoef, x, y)
 
-correlate.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def correlate(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
+  """
   Cross-correlation of two sequences.
 
   Args:
@@ -166,9 +135,13 @@ correlate.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_remove_unit_binary(jnp.correlate, x, y)
 
-cov.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def cov(x: Union[Array, Quantity], y: Optional[Union[Array, Quantity]] = None) -> Array:
+  """
   Covariance matrix.
 
   Args:
@@ -177,9 +150,13 @@ cov.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_remove_unit_binary(jnp.cov, x, y)
 
-digitize.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def digitize(x: Union[Array, Quantity], bins: Union[Array, Quantity]) -> Array:
+  """
   Return the indices of the bins to which each value in input array belongs.
 
   Args:
@@ -188,4 +165,5 @@ digitize.__doc__ = '''
 
   Returns:
     jax.Array: an array
-'''
+  """
+  return funcs_remove_unit_binary(jnp.digitize, x, bins)

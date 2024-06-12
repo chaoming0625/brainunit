@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from functools import wraps
 from typing import (Union, Optional)
 
 import jax
@@ -20,9 +19,9 @@ import jax.numpy as jnp
 import numpy as np
 from jax import Array
 
+from brainunit._misc import set_module_as
 from .._base import (Quantity,
-                     fail_for_dimension_mismatch,
-                     )
+                     fail_for_dimension_mismatch, )
 
 __all__ = [
   # logic funcs (unary)
@@ -38,44 +37,25 @@ __all__ = [
 # logic funcs (unary)
 # -------------------
 
-def wrap_logic_func_unary(func):
-  @wraps(func)
-  def f(x, *args, **kwargs):
-    if isinstance(x, Quantity):
-      raise ValueError(f'Expected booleans, got {x}')
-    elif isinstance(x, (jax.Array, np.ndarray)):
-      return func(x, *args, **kwargs)
-    else:
-      raise ValueError(f'Unsupported types {type(x)} for {func.__name__}')
 
-  f.__module__ = 'brainunit.math'
-  return f
+def logic_func_unary(func, x, *args, **kwargs):
+  if isinstance(x, Quantity):
+    raise ValueError(f'Expected booleans, got {x}')
+  elif isinstance(x, (jax.Array, np.ndarray)):
+    return func(x, *args, **kwargs)
+  else:
+    raise ValueError(f'Unsupported types {type(x)} for {func.__name__}')
 
 
-@wrap_logic_func_unary
-def all(x: Union[Quantity, jax.typing.ArrayLike], axis: Optional[int] = None,
-        out: Optional[Array] = None, keepdims: bool = False,
-        where: Optional[Array] = None) -> Union[bool, Array]:
-  return jnp.all(x, axis=axis, out=out, keepdims=keepdims, where=where)
-
-
-@wrap_logic_func_unary
-def any(x: Union[Quantity, jax.typing.ArrayLike], axis: Optional[int] = None,
-        out: Optional[Array] = None, keepdims: bool = False,
-        where: Optional[Array] = None) -> Union[bool, Array]:
-  return jnp.any(x, axis=axis, out=out, keepdims=keepdims, where=where)
-
-
-@wrap_logic_func_unary
-def logical_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
-  return jnp.logical_not(x)
-
-
-alltrue = all
-sometrue = any
-
-# docs for functions above
-all.__doc__ = '''
+@set_module_as('brainunit.math')
+def all(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Optional[int] = None,
+    out: Optional[Array] = None,
+    keepdims: bool = False,
+    where: Optional[Array] = None
+) -> Union[bool, Array]:
+  """
   Test whether all array elements along a given axis evaluate to True.
 
   Args:
@@ -87,9 +67,19 @@ all.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_unary(jnp.all, x, axis=axis, out=out, keepdims=keepdims, where=where)
 
-any.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def any(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Optional[int] = None,
+    out: Optional[Array] = None,
+    keepdims: bool = False,
+    where: Optional[Array] = None
+) -> Union[bool, Array]:
+  """
   Test whether any array element along a given axis evaluates to True.
 
   Args:
@@ -101,9 +91,13 @@ any.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_unary(jnp.any, x, axis=axis, out=out, keepdims=keepdims, where=where)
 
-logical_not.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def logical_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
+  """
   Compute the truth value of NOT x element-wise.
 
   Args:
@@ -112,95 +106,34 @@ logical_not.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_unary(jnp.logical_not, x)
+
+
+alltrue = all
+sometrue = any
 
 
 # logic funcs (binary)
 # --------------------
 
-def wrap_logic_func_binary(func):
-  @wraps(func)
-  def f(x, y, *args, **kwargs):
-    if isinstance(x, Quantity) and isinstance(y, Quantity):
-      fail_for_dimension_mismatch(x, y)
-      return func(x.value, y.value, *args, **kwargs)
-    elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
-      return func(x, y, *args, **kwargs)
-    else:
-      raise ValueError(f'Unsupported types {type(x)} and {type(y)} for {func.__name__}')
 
-  f.__module__ = 'brainunit.math'
-  return f
+def logic_func_binary(func, x, y, *args, **kwargs):
+  if isinstance(x, Quantity) and isinstance(y, Quantity):
+    fail_for_dimension_mismatch(x, y)
+    return func(x.value, y.value, *args, **kwargs)
+  elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
+    return func(x, y, *args, **kwargs)
+  else:
+    raise ValueError(f'Unsupported types {type(x)} and {type(y)} for {func.__name__}')
 
 
-@wrap_logic_func_binary
-def equal(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
-  return jnp.equal(x, y)
-
-
-@wrap_logic_func_binary
-def not_equal(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
-  return jnp.not_equal(x, y)
-
-
-@wrap_logic_func_binary
-def greater(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
-  return jnp.greater(x, y)
-
-
-@wrap_logic_func_binary
-def greater_equal(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
-  return jnp.greater_equal(x, y)
-
-
-@wrap_logic_func_binary
-def less(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
-  return jnp.less(x, y)
-
-
-@wrap_logic_func_binary
-def less_equal(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
-  return jnp.less_equal(x, y)
-
-
-@wrap_logic_func_binary
-def array_equal(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[
-  bool, Array]:
-  return jnp.array_equal(x, y)
-
-
-@wrap_logic_func_binary
-def isclose(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike],
-            rtol: float = 1e-05, atol: float = 1e-08, equal_nan: bool = False) -> Union[bool, Array]:
-  return jnp.isclose(x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
-
-
-@wrap_logic_func_binary
-def allclose(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike],
-             rtol: float = 1e-05, atol: float = 1e-08, equal_nan: bool = False) -> Union[bool, Array]:
-  return jnp.allclose(x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
-
-
-@wrap_logic_func_binary
-def logical_and(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[
-  bool, Array]:
-  return jnp.logical_and(x, y)
-
-
-@wrap_logic_func_binary
-def logical_or(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[
-  bool, Array]:
-  return jnp.logical_or(x, y)
-
-
-@wrap_logic_func_binary
-def logical_xor(x: Union[Quantity, jax.typing.ArrayLike], y: Union[Quantity, jax.typing.ArrayLike]) -> Union[
-  bool, Array]:
-  return jnp.logical_xor(x, y)
-
-
-# docs for functions above
-equal.__doc__ = '''
+@set_module_as('brainunit.math')
+def equal(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[bool, Array]:
+  """
   Return (x == y) element-wise and have the same unit if x and y are Quantity.
 
   Args:
@@ -209,9 +142,16 @@ equal.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_binary(jnp.equal, x, y)
 
-not_equal.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def not_equal(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[bool, Array]:
+  """
   Return (x != y) element-wise and have the same unit if x and y are Quantity.
 
   Args:
@@ -220,9 +160,16 @@ not_equal.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_binary(jnp.not_equal, x, y)
 
-greater.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def greater(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[bool, Array]:
+  """
   Return (x > y) element-wise and have the same unit if x and y are Quantity.
 
   Args:
@@ -231,9 +178,17 @@ greater.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_binary(jnp.greater, x, y)
 
-greater_equal.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def greater_equal(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[
+  bool, Array]:
+  """
   Return (x >= y) element-wise and have the same unit if x and y are Quantity.
 
   Args:
@@ -242,9 +197,16 @@ greater_equal.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_binary(jnp.greater_equal, x, y)
 
-less.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def less(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[bool, Array]:
+  """
   Return (x < y) element-wise and have the same unit if x and y are Quantity.
 
   Args:
@@ -253,9 +215,17 @@ less.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_binary(jnp.less, x, y)
 
-less_equal.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def less_equal(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[
+  bool, Array]:
+  """
   Return (x <= y) element-wise and have the same unit if x and y are Quantity.
 
   Args:
@@ -264,9 +234,17 @@ less_equal.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_binary(jnp.less_equal, x, y)
 
-array_equal.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def array_equal(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[
+  bool, Array]:
+  """
   Return True if two arrays have the same shape, elements, and units (if they are Quantity), False otherwise.
 
   Args:
@@ -275,9 +253,19 @@ array_equal.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_binary(jnp.array_equal, x, y)
 
-isclose.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def isclose(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike],
+    rtol: float = 1e-05,
+    atol: float = 1e-08,
+    equal_nan: bool = False
+) -> Union[bool, Array]:
+  """
   Returns a boolean array where two arrays are element-wise equal within a tolerance and have the same unit if they are Quantity.
 
   Args:
@@ -289,9 +277,19 @@ isclose.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_binary(jnp.isclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
-allclose.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def allclose(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike],
+    rtol: float = 1e-05,
+    atol: float = 1e-08,
+    equal_nan: bool = False
+) -> Union[bool, Array]:
+  """
   Returns True if the two arrays are equal within the given tolerance and have the same unit if they are Quantity; False otherwise.
 
   Args:
@@ -303,9 +301,17 @@ allclose.__doc__ = '''
 
   Returns:
     bool: boolean result
-'''
+  """
+  return logic_func_binary(jnp.allclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
-logical_and.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def logical_and(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[
+  bool, Array]:
+  """
   Compute the truth value of x AND y element-wise and have the same unit if x and y are Quantity.
 
   Args:
@@ -315,9 +321,17 @@ logical_and.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_binary(jnp.logical_and, x, y)
 
-logical_or.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def logical_or(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[
+  bool, Array]:
+  """
   Compute the truth value of x OR y element-wise and have the same unit if x and y are Quantity.
 
   Args:
@@ -327,9 +341,17 @@ logical_or.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_binary(jnp.logical_or, x, y)
 
-logical_xor.__doc__ = '''
+
+@set_module_as('brainunit.math')
+def logical_xor(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[
+  bool, Array]:
+  """
   Compute the truth value of x XOR y element-wise and have the same unit if x and y are Quantity.
 
   Args:
@@ -339,4 +361,5 @@ logical_xor.__doc__ = '''
 
   Returns:
     Union[bool, jax.Array]: bool or array
-'''
+  """
+  return logic_func_binary(jnp.logical_xor, x, y)
