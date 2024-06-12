@@ -47,7 +47,7 @@ def reshape(
     shape: Union[int, Tuple[int, ...]],
     order: str = 'C'
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Return a reshaped copy of an array or a Quantity.
 
   Args:
@@ -61,7 +61,7 @@ def reshape(
 
   Returns:
     reshaped copy of input array with the specified shape.
-  '''
+  """
   ...
 
 
@@ -71,7 +71,7 @@ def moveaxis(
     source: Union[int, Tuple[int, ...]],
     destination: Union[int, Tuple[int, ...]]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Moves axes of an array to new positions. Other axes remain in their original order.
 
   Args:
@@ -81,7 +81,7 @@ def moveaxis(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -90,7 +90,7 @@ def transpose(
     a: Union[Array, Quantity],
     axes: Optional[Union[int, Tuple[int, ...]]] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Returns a view of the array with axes transposed.
 
   Args:
@@ -99,7 +99,7 @@ def transpose(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -107,7 +107,7 @@ def transpose(
 def swapaxes(
     a: Union[Array, Quantity], axis1: int, axis2: int
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Interchanges two axes of an array.
 
   Args:
@@ -117,16 +117,16 @@ def swapaxes(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
 @_compatible_with_quantity(jnp.concatenate)
 def concatenate(
-    arrays: Union[Sequence[Array],
-    Sequence[Quantity]], axis: Optional[int] = None
+    arrays: Union[Sequence[Array], Sequence[Quantity]],
+    axis: Optional[int] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Join a sequence of arrays along an existing axis.
 
   Args:
@@ -135,16 +135,16 @@ def concatenate(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
 @_compatible_with_quantity(jnp.stack)
 def stack(
-    arrays: Union[Sequence[Array],
-    Sequence[Quantity]], axis: int = 0
+    arrays: Union[Sequence[Array], Sequence[Quantity]],
+    axis: int = 0
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Join a sequence of arrays along a new axis.
 
   Args:
@@ -153,16 +153,15 @@ def stack(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
 @_compatible_with_quantity(jnp.vstack)
 def vstack(
-    arrays: Union[Sequence[Array],
-    Sequence[Quantity]]
+    arrays: Union[Sequence[Array], Sequence[Quantity]]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Stack arrays in sequence vertically (row wise).
 
   Args:
@@ -170,7 +169,7 @@ def vstack(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.numpy.Array
-  '''
+  """
   ...
 
 
@@ -179,10 +178,9 @@ row_stack = vstack
 
 @_compatible_with_quantity(jnp.hstack)
 def hstack(
-    arrays: Union[Sequence[Array],
-    Sequence[Quantity]]
+    arrays: Union[Sequence[Array], Sequence[Quantity]]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Stack arrays in sequence horizontally (column wise).
 
   Args:
@@ -190,16 +188,15 @@ def hstack(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
 @_compatible_with_quantity(jnp.dstack)
 def dstack(
-    arrays: Union[Sequence[Array],
-    Sequence[Quantity]]
+    arrays: Union[Sequence[Array], Sequence[Quantity]]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Stack arrays in sequence depth wise (along third axis).
 
   Args:
@@ -207,16 +204,15 @@ def dstack(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
 @_compatible_with_quantity(jnp.column_stack)
 def column_stack(
-    arrays: Union[Sequence[Array],
-    Sequence[Quantity]]
+    arrays: Union[Sequence[Array], Sequence[Quantity]]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Stack 1-D arrays as columns into a 2-D array.
 
   Args:
@@ -224,7 +220,7 @@ def column_stack(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -234,7 +230,7 @@ def split(
     indices_or_sections: Union[int, Sequence[int]],
     axis: int = 0
 ) -> Union[List[Array], List[Quantity]]:
-  '''
+  """
   Split an array into multiple sub-arrays.
 
   Args:
@@ -244,7 +240,7 @@ def split(
 
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
-  '''
+  """
   ...
 
 
@@ -253,7 +249,7 @@ def dsplit(
     a: Union[Array, Quantity],
     indices_or_sections: Union[int, Sequence[int]]
 ) -> Union[List[Array], List[Quantity]]:
-  '''
+  """
   Split array along third axis (depth).
 
   Args:
@@ -262,7 +258,7 @@ def dsplit(
 
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
-  '''
+  """
   ...
 
 
@@ -271,7 +267,7 @@ def hsplit(
     a: Union[Array, Quantity],
     indices_or_sections: Union[int, Sequence[int]]
 ) -> Union[List[Array], List[Quantity]]:
-  '''
+  """
   Split an array into multiple sub-arrays horizontally (column-wise).
 
   Args:
@@ -280,7 +276,7 @@ def hsplit(
 
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
-  '''
+  """
   ...
 
 
@@ -289,7 +285,7 @@ def vsplit(
     a: Union[Array, Quantity],
     indices_or_sections: Union[int, Sequence[int]]
 ) -> Union[List[Array], List[Quantity]]:
-  '''
+  """
   Split an array into multiple sub-arrays vertically (row-wise).
 
   Args:
@@ -298,7 +294,7 @@ def vsplit(
 
   Returns:
     Union[jax.Array, Quantity] a list of Quantity if a is a Quantity, otherwise a list of jax.Array
-  '''
+  """
   ...
 
 
@@ -307,7 +303,7 @@ def tile(
     A: Union[Array, Quantity],
     reps: Union[int, Tuple[int, ...]]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Construct an array by repeating A the number of times given by reps.
 
   Args:
@@ -316,7 +312,7 @@ def tile(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if A is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -326,7 +322,7 @@ def repeat(
     repeats: Union[int, Tuple[int, ...]],
     axis: Optional[int] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Repeat elements of an array.
 
   Args:
@@ -336,7 +332,7 @@ def repeat(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -348,7 +344,7 @@ def unique(
     return_counts: bool = False,
     axis: Optional[int] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Find the unique elements of an array.
 
   Args:
@@ -360,7 +356,7 @@ def unique(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -370,7 +366,7 @@ def append(
     values: Union[Array, Quantity],
     axis: Optional[int] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Append values to the end of an array.
 
   Args:
@@ -380,7 +376,7 @@ def append(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if arr and values are Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -389,7 +385,7 @@ def flip(
     m: Union[Array, Quantity],
     axis: Optional[Union[int, Tuple[int, ...]]] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Reverse the order of elements in an array along the given axis.
 
   Args:
@@ -398,7 +394,7 @@ def flip(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -406,7 +402,7 @@ def flip(
 def fliplr(
     m: Union[Array, Quantity]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Flip array in the left/right direction.
 
   Args:
@@ -414,7 +410,7 @@ def fliplr(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -422,7 +418,7 @@ def fliplr(
 def flipud(
     m: Union[Array, Quantity]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Flip array in the up/down direction.
 
   Args:
@@ -430,7 +426,7 @@ def flipud(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if m is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -440,7 +436,7 @@ def roll(
     shift: Union[int, Tuple[int, ...]],
     axis: Optional[Union[int, Tuple[int, ...]]] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Roll array elements along a given axis.
 
   Args:
@@ -450,7 +446,7 @@ def roll(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -458,7 +454,7 @@ def roll(
 def atleast_1d(
     *arys: Union[Array, Quantity]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   View inputs as arrays with at least one dimension.
 
   Args:
@@ -466,7 +462,7 @@ def atleast_1d(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -474,7 +470,7 @@ def atleast_1d(
 def atleast_2d(
     *arys: Union[Array, Quantity]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   View inputs as arrays with at least two dimensions.
 
   Args:
@@ -482,7 +478,7 @@ def atleast_2d(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -490,7 +486,7 @@ def atleast_2d(
 def atleast_3d(
     *arys: Union[Array, Quantity]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   View inputs as arrays with at least three dimensions.
 
   Args:
@@ -498,7 +494,7 @@ def atleast_3d(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if any input is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -507,7 +503,7 @@ def expand_dims(
     a: Union[Array, Quantity],
     axis: int
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Expand the shape of an array.
 
   Args:
@@ -516,7 +512,7 @@ def expand_dims(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -525,7 +521,7 @@ def squeeze(
     a: Union[Array, Quantity],
     axis: Optional[Union[int, Tuple[int, ...]]] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Remove single-dimensional entries from the shape of an array.
 
   Args:
@@ -534,7 +530,7 @@ def squeeze(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -547,7 +543,7 @@ def sort(
     stable: bool = True,
     descending: bool = False,
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Return a sorted copy of an array.
 
   Args:
@@ -560,7 +556,7 @@ def sort(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -573,7 +569,7 @@ def argsort(
     stable: bool = True,
     descending: bool = False,
 ) -> Array:
-  '''
+  """
   Returns the indices that would sort an array.
 
   Args:
@@ -586,7 +582,7 @@ def argsort(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -594,10 +590,9 @@ def argsort(
 def max(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
-    out: Optional[Array] = None,
     keepdims: bool = False
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Return the maximum of an array or maximum along an axis.
 
   Args:
@@ -607,7 +602,7 @@ def max(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -615,10 +610,9 @@ def max(
 def min(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
-    out: Optional[Array] = None,
     keepdims: bool = False
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Return the minimum of an array or minimum along an axis.
 
   Args:
@@ -628,7 +622,7 @@ def min(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -637,7 +631,7 @@ def choose(
     a: Union[Array, Quantity],
     choices: Sequence[Union[Array, Quantity]]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Use an index array to construct a new array from a set of choices.
 
   Args:
@@ -646,7 +640,7 @@ def choose(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a and choices are Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -654,7 +648,7 @@ def choose(
 def block(
     arrays: Sequence[Union[Array, Quantity]]
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Assemble an nd-array from nested lists of blocks.
 
   Args:
@@ -662,7 +656,7 @@ def block(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if all input arrays are Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -672,7 +666,7 @@ def compress(
     a: Union[Array, Quantity],
     axis: Optional[int] = None
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Return selected slices of an array along given axis.
 
   Args:
@@ -682,7 +676,7 @@ def compress(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -691,7 +685,7 @@ def diagflat(
     v: Union[Array, Quantity],
     k: int = 0
 ) -> Union[Array, Quantity]:
-  '''
+  """
   Create a two-dimensional array with the flattened input as a diagonal.
 
   Args:
@@ -700,7 +694,7 @@ def diagflat(
 
   Returns:
     Union[jax.Array, Quantity] a Quantity if a is a Quantity, otherwise a jax.Array
-  '''
+  """
   ...
 
 
@@ -712,7 +706,7 @@ def argmax(
     axis: Optional[int] = None,
     out: Optional[Array] = None
 ) -> Array:
-  '''
+  """
   Returns indices of the max value along an axis.
 
   Args:
@@ -722,7 +716,7 @@ def argmax(
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-  '''
+  """
   ...
 
 
@@ -732,7 +726,7 @@ def argmin(
     axis: Optional[int] = None,
     out: Optional[Array] = None
 ) -> Array:
-  '''
+  """
   Returns indices of the min value along an axis.
 
   Args:
@@ -742,7 +736,7 @@ def argmin(
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-  '''
+  """
   ...
 
 
@@ -750,7 +744,7 @@ def argmin(
 def argwhere(
     a: Union[Array, Quantity]
 ) -> Array:
-  '''
+  """
   Find indices of non-zero elements.
 
   Args:
@@ -758,7 +752,7 @@ def argwhere(
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-  '''
+  """
   ...
 
 
@@ -766,7 +760,7 @@ def argwhere(
 def nonzero(
     a: Union[Array, Quantity]
 ) -> Tuple[Array, ...]:
-  '''
+  """
   Return the indices of the elements that are non-zero.
 
   Args:
@@ -774,7 +768,7 @@ def nonzero(
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-  '''
+  """
   ...
 
 
@@ -782,7 +776,7 @@ def nonzero(
 def flatnonzero(
     a: Union[Array, Quantity]
 ) -> Array:
-  '''
+  """
   Return indices that are non-zero in the flattened version of a.
 
   Args:
@@ -790,17 +784,18 @@ def flatnonzero(
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-  '''
+  """
   ...
 
 
 @_compatible_with_quantity(jnp.searchsorted, return_quantity=False)
 def searchsorted(
-    a: Union[Array, Quantity], v: Union[Array, Quantity],
+    a: Union[Array, Quantity],
+    v: Union[Array, Quantity],
     side: str = 'left',
     sorter: Optional[Array] = None
 ) -> Array:
-  '''
+  """
   Find indices where elements should be inserted to maintain order.
 
   Args:
@@ -810,7 +805,7 @@ def searchsorted(
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-  '''
+  """
   ...
 
 
@@ -819,7 +814,7 @@ def extract(
     condition: Union[Array, Quantity],
     arr: Union[Array, Quantity]
 ) -> Array:
-  '''
+  """
   Return the elements of an array that satisfy some condition.
 
   Args:
@@ -828,7 +823,7 @@ def extract(
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-  '''
+  """
   ...
 
 
@@ -836,7 +831,7 @@ def extract(
 def count_nonzero(
     a: Union[Array, Quantity], axis: Optional[int] = None
 ) -> Array:
-  '''
+  """
   Counts the number of non-zero values in the array a.
 
   Args:
@@ -845,7 +840,7 @@ def count_nonzero(
 
   Returns:
     jax.Array: an array (does not return a Quantity)
-  '''
+  """
   ...
 
 
@@ -869,9 +864,13 @@ def wrap_function_to_method(func: Callable):
 
 
 @wrap_function_to_method(jnp.diagonal)
-def diagonal(a: Union[jax.Array, Quantity], offset: int = 0, axis1: int = 0, axis2: int = 1) -> Union[
-  jax.Array, Quantity]:
-  '''
+def diagonal(
+    a: Union[jax.Array, Quantity],
+    offset: int = 0,
+    axis1: int = 0,
+    axis2: int = 1
+) -> Union[jax.Array, Quantity]:
+  """
   Return specified diagonals.
 
   Args:
@@ -882,13 +881,16 @@ def diagonal(a: Union[jax.Array, Quantity], offset: int = 0, axis1: int = 0, axi
 
   Returns:
     Union[jax.Array, Quantity]: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
-  '''
+  """
   ...
 
 
 @wrap_function_to_method(jnp.ravel)
-def ravel(a: Union[jax.Array, Quantity], order: str = 'C') -> Union[jax.Array, Quantity]:
-  '''
+def ravel(
+    a: Union[jax.Array, Quantity],
+    order: str = 'C'
+) -> Union[jax.Array, Quantity]:
+  """
   Return a contiguous flattened array.
 
   Args:
@@ -897,5 +899,5 @@ def ravel(a: Union[jax.Array, Quantity], order: str = 'C') -> Union[jax.Array, Q
 
   Returns:
     Union[jax.Array, Quantity]: a Quantity if a is a Quantity, otherwise a jax.numpy.Array
-  '''
+  """
   ...
