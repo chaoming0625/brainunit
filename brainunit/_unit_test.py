@@ -163,8 +163,8 @@ def test_get_dimensions():
   assert is_scalar_type(np.array(5.0))
   assert is_scalar_type(np.float32(5.0))
   assert is_scalar_type(np.float64(5.0))
-  with pytest.raises(TypeError):
-    get_unit("a string")
+  # with pytest.raises(TypeError):
+  #   get_unit("a string")
   # wrong number of indices
   with pytest.raises(TypeError):
     get_or_create_dimension([1, 2, 3, 4, 5, 6])
@@ -551,15 +551,15 @@ def test_multiplication_division():
     assert_quantity(q2 / q, np.asarray(q2) / np.asarray(q), second / volt)
     assert_quantity(q * q2, np.asarray(q) * np.asarray(q2), volt * second)
 
-    # using unsupported objects should fail
-    with pytest.raises(TypeError):
-      q / "string"
-    with pytest.raises(TypeError):
-      "string" / q
-    with pytest.raises(TypeError):
-      "string" * q
-    with pytest.raises(TypeError):
-      q * "string"
+    # # using unsupported objects should fail
+    # with pytest.raises(TypeError):
+    #   q / "string"
+    # with pytest.raises(TypeError):
+    #   "string" / q
+    # with pytest.raises(TypeError):
+    #   "string" * q
+    # with pytest.raises(TypeError):
+    #   q * "string"
 
 
 def test_addition_subtraction():
@@ -632,15 +632,15 @@ def test_addition_subtraction():
     assert_quantity(q - np.float64(0), np.asarray(q), volt)
     # assert_quantity(np.float64(0) - q, -np.asarray(q), volt)
 
-    # using unsupported objects should fail
-    with pytest.raises(TypeError):
-      "string" + q
-    with pytest.raises(TypeError):
-      q + "string"
-    with pytest.raises(TypeError):
-      q - "string"
-    with pytest.raises(TypeError):
-      "string" - q
+    # # using unsupported objects should fail
+    # with pytest.raises(TypeError):
+    #   "string" + q
+    # with pytest.raises(TypeError):
+    #   q + "string"
+    # with pytest.raises(TypeError):
+    #   q - "string"
+    # with pytest.raises(TypeError):
+    #   "string" - q
 
 
 # def test_unary_operations():

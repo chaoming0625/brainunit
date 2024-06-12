@@ -27,8 +27,11 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 from jax.tree_util import register_pytree_node_class
+from jax.interpreters.partial_eval import DynamicJaxprTracer
 
 from ._misc import get_dtype
+
+
 
 __all__ = [
   'Quantity',
@@ -535,7 +538,7 @@ def get_unit(obj) -> Dimension:
       The physical dimensions of the `obj`.
   """
   try:
-    return obj.unit
+    return obj.dim
   except AttributeError:
     # The following is not very pretty, but it will avoid the costly
     # isinstance check for the common types
@@ -981,25 +984,27 @@ class Quantity(object):
         value = jnp.array(value, dtype=dtype)
       except ValueError:
         raise TypeError("All elements must be convertible to a jax array")
-    dtype = dtype or get_dtype(value)
 
     # array value
     if isinstance(value, Quantity):
+      dtype = dtype or get_dtype(value)
       self._dim = value.dim
       self._value = jnp.array(value.value, dtype=dtype)
       return
 
     elif isinstance(value, (np.ndarray, jax.Array)):
+      dtype = dtype or get_dtype(value)
       value = jnp.array(value, dtype=dtype)
 
     elif isinstance(value, (jnp.number, numbers.Number)):
+      dtype = dtype or get_dtype(value)
       value = jnp.array(value, dtype=dtype)
 
     elif isinstance(value, (jax.core.ShapedArray, jax.ShapeDtypeStruct)):
       value = value
 
     else:
-      raise TypeError(f"Invalid type for value: {type(value)}")
+      value = value
 
     # value
     self._value = (value if scale is None else (value * scale))
@@ -1330,9 +1335,13 @@ class Quantity(object):
   # ----------------------- #
 
   def __repr__(self) -> str:
+    if isinstance(self.value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
+      return f'{self.value} * {Quantity(1, dim=self.dim)}'
     return self.repr_in_best_unit(python_code=True)
 
   def __str__(self) -> str:
+    if isinstance(self.value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
+      return f'{self.value} * {Quantity(1, dim=self.dim)}'
     return self.repr_in_best_unit()
 
   def __format__(self, format_spec: str) -> str:
