@@ -1,7 +1,10 @@
 ---
-name: 'Bug Report'
-about: 'Report a bug or unexpected behavior to help us improve the package'
-labels: 'bug'
+name: Bug Report
+about: Report a bug or unexpected behavior to help us improve the package
+title: ''
+labels: bug
+assignees: ''
+
 ---
 
 Please:

@@ -1,7 +1,10 @@
 ---
-name: 'Feature Request'
-about: 'Suggest a new idea or improvement for ``brainunit``'
-labels: 'enhancement'
+name: Feature Request
+about: Suggest a new idea or improvement for ``brainunit``
+title: ''
+labels: enhancement
+assignees: ''
+
 ---
 
 Please:
