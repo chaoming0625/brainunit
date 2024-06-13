@@ -51,18 +51,7 @@ __all__ = [
 _all_slice = slice(None, None, None)
 random = None
 _unit_checking = True
-_automatically_register_units = True
 _allow_python_scalar_value = False
-
-
-@contextmanager
-def turn_off_unit_register():
-  try:
-    global _automatically_register_units
-    _automatically_register_units = False
-    yield
-  finally:
-    _automatically_register_units = True
 
 
 @contextmanager
@@ -2512,9 +2501,6 @@ class Unit(Quantity):
     self.iscompound = iscompound
 
     super().__init__(value, dtype=dtype, dim=dim)
-
-    if _automatically_register_units:
-      register_new_unit(self)
 
   @staticmethod
   def create(unit: Dimension, name: str, dispname: str, scale: int = 0):

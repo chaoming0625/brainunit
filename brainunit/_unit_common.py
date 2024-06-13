@@ -20,7 +20,6 @@ from ._base import (
   additional_unit_register,
   get_or_create_dimension,
   standard_unit_register,
-  turn_off_unit_register,
   allow_python_scalar
 )
 
@@ -2097,7 +2096,7 @@ __all__ = [
   "celsius"  # Dummy object raising an error
 ]
 
-with turn_off_unit_register(), allow_python_scalar():
+with allow_python_scalar():
   #### FUNDAMENTAL UNITS
   metre = Unit.create(get_or_create_dimension(m=1), "metre", "m")
   meter = Unit.create(get_or_create_dimension(m=1), "meter", "m")
