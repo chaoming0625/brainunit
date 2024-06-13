@@ -49,11 +49,15 @@ def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   """
   Compute the bit-wise NOT of an array, element-wise.
 
-  Args:
-    x: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_unary(jnp.bitwise_not, x)
 
@@ -63,11 +67,15 @@ def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   """
   Compute bit-wise inversion, or bit-wise NOT, element-wise.
 
-  Args:
-    x: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_unary(jnp.invert, x)
 
@@ -93,12 +101,17 @@ def bitwise_and(
   """
   Compute the bit-wise AND of two arrays element-wise.
 
-  Args:
-    x: array_like
-    y: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
+  y: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_binary(jnp.bitwise_and, x, y)
 
@@ -111,12 +124,17 @@ def bitwise_or(
   """
   Compute the bit-wise OR of two arrays element-wise.
 
-  Args:
-    x: array_like
-    y: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
+  y: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_binary(jnp.bitwise_or, x, y)
 
@@ -129,12 +147,17 @@ def bitwise_xor(
   """
   Compute the bit-wise XOR of two arrays element-wise.
 
-  Args:
-    x: array_like
-    y: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
+  y: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_binary(jnp.bitwise_xor, x, y)
 
@@ -147,12 +170,17 @@ def left_shift(
   """
   Shift the bits of an integer to the left.
 
-  Args:
-    x: array_like
-    y: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
+  y: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_binary(jnp.left_shift, x, y)
 
@@ -165,11 +193,16 @@ def right_shift(
   """
   Shift the bits of an integer to the right.
 
-  Args:
-    x: array_like
-    y: array_like
-
-  Returns:
-    jax.Array: an array
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
+  y: array_like, quantity
+    Input array.
+    
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_binary(jnp.right_shift, x, y)
