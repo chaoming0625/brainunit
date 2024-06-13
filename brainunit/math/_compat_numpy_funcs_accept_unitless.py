@@ -614,7 +614,6 @@ def percentile(
     overwrite_input: Optional[bool] = None,
     method: str = 'linear',
     keepdims: Optional[bool] = False,
-    interpolation: None = None,
 ) -> Array:
   """
   Compute the q-th percentile of the data along the specified axis.
@@ -666,7 +665,7 @@ def percentile(
     Output array.
   """
   return funcs_only_accept_unitless_binary(jnp.percentile, a, q, axis=axis, out=out, overwrite_input=overwrite_input,
-                                           method=method, keepdims=keepdims, interpolation=interpolation)
+                                           method=method, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
@@ -678,7 +677,6 @@ def nanpercentile(
     overwrite_input: Optional[bool] = None,
     method: str = 'linear',
     keepdims: Optional[bool] = False,
-    interpolation: None = None,
 ) -> Array:
   """
   Compute the q-th percentile of the data along the specified axis, while ignoring nan values.
@@ -730,7 +728,7 @@ def nanpercentile(
     Output array.
   """
   return funcs_only_accept_unitless_binary(jnp.nanpercentile, a, q, axis=axis, out=out, overwrite_input=overwrite_input,
-                                           method=method, keepdims=keepdims, interpolation=interpolation)
+                                           method=method, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
@@ -742,7 +740,6 @@ def quantile(
     overwrite_input: Optional[bool] = None,
     method: str = 'linear',
     keepdims: Optional[bool] = False,
-    interpolation: None = None,
 ) -> Array:
   """
   Compute the q-th percentile of the data along the specified axis.
@@ -794,7 +791,7 @@ def quantile(
     Output array.
   """
   return funcs_only_accept_unitless_binary(jnp.quantile, a, q, axis=axis, out=out, overwrite_input=overwrite_input,
-                                           method=method, keepdims=keepdims, interpolation=interpolation)
+                                           method=method, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
@@ -806,7 +803,6 @@ def nanquantile(
     overwrite_input: Optional[bool] = None,
     method: str = 'linear',
     keepdims: Optional[bool] = False,
-    interpolation: None = None,
 ) -> Array:
   """
   Compute the q-th percentile of the data along the specified axis, while ignoring nan values.
@@ -858,4 +854,4 @@ def nanquantile(
     Output array.
   """
   return funcs_only_accept_unitless_binary(jnp.nanquantile, a, q, axis=axis, out=out, overwrite_input=overwrite_input,
-                                           method=method, keepdims=keepdims, interpolation=interpolation)
+                                           method=method, keepdims=keepdims)
