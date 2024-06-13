@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from typing import (Union)
+from typing import (Union, Optional, Sequence)
 
 import jax
 import jax.numpy as jnp
@@ -57,11 +57,15 @@ def real(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   """
   Return the real part of the complex argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.real, x)
 
@@ -71,11 +75,15 @@ def imag(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   """
   Return the imaginary part of the complex argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.imag, x)
 
@@ -85,11 +93,15 @@ def conj(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   """
   Return the complex conjugate of the argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.conj, x)
 
@@ -99,11 +111,15 @@ def conjugate(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.A
   """
   Return the complex conjugate of the argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.conjugate, x)
 
@@ -113,11 +129,15 @@ def negative(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Ar
   """
   Return the negative of the argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.negative, x)
 
@@ -127,11 +147,15 @@ def positive(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Ar
   """
   Return the positive of the argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.positive, x)
 
@@ -141,11 +165,15 @@ def abs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   """
   Return the absolute value of the argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.abs, x)
 
@@ -155,39 +183,67 @@ def round_(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Arra
   """
   Round an array to the nearest integer.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.round_, x)
 
 
 @set_module_as('brainunit.math')
-def around(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def around(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    decimals: int = 0,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None
+) -> Union[Quantity, jax.Array]:
   """
   Round an array to the nearest integer.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  decimals : int, optional
+    Number of decimal places to round to (default is 0).
+  out : array_like, Quantity, optional
+    Output array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.around, x)
 
 
 @set_module_as('brainunit.math')
-def round(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def round(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    decimals: int = 0,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None
+) -> Union[Quantity, jax.Array]:
   """
   Round an array to the nearest integer.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  decimals : int, optional
+    Number of decimal places to round to (default is 0).
+  out : array_like, Quantity, optional
+    Output array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.round, x)
 
@@ -197,11 +253,15 @@ def rint(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   """
   Round an array to the nearest integer.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.rint, x)
 
@@ -211,11 +271,15 @@ def floor(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array
   """
   Return the floor of the argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.floor, x)
 
@@ -225,11 +289,15 @@ def ceil(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   """
   Return the ceiling of the argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.ceil, x)
 
@@ -239,97 +307,259 @@ def trunc(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array
   """
   Return the truncated value of the argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.trunc, x)
 
 
 @set_module_as('brainunit.math')
-def fix(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def fix(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None
+) -> Union[Quantity, jax.Array]:
   """
   Return the nearest integer towards zero.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  out : array_like, Quantity, optional
+    Output array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.fix, x)
+  return funcs_keep_unit_unary(jnp.fix, x, out=out)
 
 
 @set_module_as('brainunit.math')
-def sum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def sum(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    dtype: jax.typing.DTypeLike | None = None,
+    out: None = None,
+    keepdims: bool = False,
+    initial: jax.typing.ArrayLike | None = None,
+    where: jax.typing.ArrayLike | None = None,
+    promote_integers: bool = True
+) -> Union[Quantity, jax.Array]:
   """
   Return the sum of the array elements.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : None or int or tuple of ints, optional
+    Axis or axes along which a sum is performed.  The default,
+    axis=None, will sum all of the elements of the input array.  If
+    axis is negative it counts from the last to the first axis.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If axis is a tuple of ints, a sum is performed on all of the axes
+    specified in the tuple instead of a single axis or all the axes as
+    before.
+  dtype : dtype, optional
+    The type of the returned array and of the accumulator in which the
+    elements are summed.  The dtype of `a` is used by default unless `a`
+    has an integer dtype of less precision than the default platform
+    integer.  In that case, if `a` is signed then the platform integer
+    is used while if `a` is unsigned then an unsigned integer of the
+    same precision as the platform integer is used.
+  out : ndarray, optional
+    Alternative output array in which to place the result. It must have
+    the same shape as the expected output, but the type of the output
+    values will be cast if necessary.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the input array.
+
+    If the default value is passed, then `keepdims` will not be
+    passed through to the `sum` method of sub-classes of
+    `ndarray`, however any non-default value will be.  If the
+    sub-class' method does not implement `keepdims` any
+    exceptions will be raised.
+  initial : scalar, optional
+    Starting value for the sum. See `~numpy.ufunc.reduce` for details.
+  where : array_like of bool, optional
+    Elements to include in the sum. See `~numpy.ufunc.reduce` for details.
+  promote_integers : bool, optional
+    If True, and if the accumulator is an integer type, then the
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.sum, x)
+  return funcs_keep_unit_unary(jnp.sum, x, axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial,
+                               where=where, promote_integers=promote_integers)
 
 
 @set_module_as('brainunit.math')
-def nancumsum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nancumsum(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    dtype: jax.typing.DTypeLike | None = None,
+    out: None = None,
+) -> Union[Quantity, jax.Array]:
   """
   Return the cumulative sum of the array elements, ignoring NaNs.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : int, optional
+    Axis along which the cumulative sum is computed. The default
+    (None) is to compute the cumsum over the flattened array.
+  dtype : dtype, optional
+    Type of the returned array and of the accumulator in which the
+    elements are summed.  If `dtype` is not specified, it defaults
+    to the dtype of `a`, unless `a` has an integer dtype with a
+    precision less than that of the default platform integer.  In
+    that case, the default platform integer is used.
+  out : ndarray, optional
+    Alternative output array in which to place the result. It must
+    have the same shape and buffer length as the expected output
+    but the type will be cast if necessary. See :ref:`ufuncs-output-type` for
+    more details.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nancumsum, x)
+  return funcs_keep_unit_unary(jnp.nancumsum, x, axis=axis, dtype=dtype, out=out)
 
 
 @set_module_as('brainunit.math')
-def nansum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nansum(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    dtype: jax.typing.DTypeLike | None = None,
+    out: None = None,
+    keepdims: bool = False,
+    initial: jax.typing.ArrayLike | None = None,
+    where: jax.typing.ArrayLike | None = None,
+) -> Union[Quantity, jax.Array]:
   """
   Return the sum of the array elements, ignoring NaNs.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : {int, tuple of int, None}, optional
+    Axis or axes along which the sum is computed. The default is to compute the
+    sum of the flattened array.
+  dtype : data-type, optional
+    The type of the returned array and of the accumulator in which the
+    elements are summed.  By default, the dtype of `a` is used.  An
+    exception is when `a` has an integer type with less precision than
+    the platform (u)intp. In that case, the default will be either
+    (u)int32 or (u)int64 depending on whether the platform is 32 or 64
+    bits. For inexact inputs, dtype must be inexact.
+  out : ndarray, optional
+    Alternate output array in which to place the result.  The default
+    is ``None``. If provided, it must have the same shape as the
+    expected output, but the type will be cast if necessary.  See
+    :ref:`ufuncs-output-type` for more details. The casting of NaN to integer
+    can yield unexpected results.
+  keepdims : bool, optional
+      If this is set to True, the axes which are reduced are left
+      in the result as dimensions with size one. With this option,
+      the result will broadcast correctly against the original `a`.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+      If the value is anything but the default, then
+      `keepdims` will be passed through to the `mean` or `sum` methods
+      of sub-classes of `ndarray`.  If the sub-classes methods
+      does not implement `keepdims` any exceptions will be raised.
+  initial : scalar, optional
+      Starting value for the sum. See `~numpy.ufunc.reduce` for details.
+  where : array_like of bool, optional
+      Elements to include in the sum. See `~numpy.ufunc.reduce` for details.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nansum, x)
+  return funcs_keep_unit_unary(jnp.nansum, x, axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial,
+                               where=where)
 
 
 @set_module_as('brainunit.math')
-def cumsum(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def cumsum(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    dtype: jax.typing.DTypeLike | None = None,
+    out: None = None,
+) -> Union[Quantity, jax.Array]:
   """
   Return the cumulative sum of the array elements.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : int, optional
+    Axis along which the cumulative sum is computed. The default
+    (None) is to compute the cumsum over the flattened array.
+  dtype : dtype, optional
+    Type of the returned array and of the accumulator in which the
+    elements are summed.  If `dtype` is not specified, it defaults
+    to the dtype of `a`, unless `a` has an integer dtype with a
+    precision less than that of the default platform integer.  In
+    that case, the default platform integer is used.
+  out : ndarray, optional
+    Alternative output array in which to place the result. It must
+    have the same shape and buffer length as the expected output
+    but the type will be cast if necessary. See :ref:`ufuncs-output-type` for
+    more details.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.cumsum, x)
+  return funcs_keep_unit_unary(jnp.cumsum, x, axis=axis, dtype=dtype, out=out)
 
 
 @set_module_as('brainunit.math')
-def ediff1d(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def ediff1d(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    to_end: jax.typing.ArrayLike = None,
+    to_begin: jax.typing.ArrayLike = None
+) -> Union[Quantity, jax.Array]:
   """
   Return the differences between consecutive elements of the array.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  to_end : array_like, optional
+    Number(s) to append at the end of the returned differences.
+  to_begin : array_like, optional
+    Number(s) to prepend at the beginning of the returned differences.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.ediff1d, x)
+  return funcs_keep_unit_unary(jnp.ediff1d, x, to_end=to_end, to_begin=to_begin)
 
 
 @set_module_as('brainunit.math')
@@ -337,11 +567,15 @@ def absolute(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Ar
   """
   Return the absolute value of the argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.absolute, x)
 
@@ -351,171 +585,566 @@ def fabs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   """
   Return the absolute value of the argument.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.fabs, x)
 
 
 @set_module_as('brainunit.math')
-def median(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def median(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    out: None = None,
+    overwrite_input: bool = False,
+    keepdims: bool = False
+) -> Union[Quantity, jax.Array]:
   """
   Return the median of the array elements.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : {int, sequence of int, None}, optional
+    Axis or axes along which the medians are computed. The default
+    is to compute the median along a flattened version of the array.
+    A sequence of axes is supported since version 1.9.0.
+  out : ndarray, optional
+    Alternative output array in which to place the result. It must
+    have the same shape and buffer length as the expected output,
+    but the type (of the output) will be cast if necessary.
+  overwrite_input : bool, optional
+   If True, then allow use of memory of input array `a` for
+   calculations. The input array will be modified by the call to
+   `median`. This will save memory when you do not need to preserve
+   the contents of the input array. Treat the input as undefined,
+   but it will probably be fully or partially sorted. Default is
+   False. If `overwrite_input` is ``True`` and `a` is not already an
+   `ndarray`, an error will be raised.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the original `arr`.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.median, x)
+  return funcs_keep_unit_unary(jnp.median, x, axis=axis, out=out, overwrite_input=overwrite_input, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
-def nanmin(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nanmin(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    out: None = None,
+    keepdims: bool = False,
+    initial: jax.typing.ArrayLike | None = None,
+    where: jax.typing.ArrayLike | None = None,
+) -> Union[Quantity, jax.Array]:
   """
   Return the minimum of the array elements, ignoring NaNs.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : {int, tuple of int, None}, optional
+    Axis or axes along which the minimum is computed. The default is to compute
+    the minimum of the flattened array.
+  out : ndarray, optional
+    Alternate output array in which to place the result.  The default
+    is ``None``; if provided, it must have the same shape as the
+    expected output, but the type will be cast if necessary. See
+    :ref:`ufuncs-output-type` for more details.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the original `a`.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If the value is anything but the default, then
+    `keepdims` will be passed through to the `min` method
+    of sub-classes of `ndarray`.  If the sub-classes methods
+    does not implement `keepdims` any exceptions will be raised.
+  initial : scalar, optional
+    The maximum value of an output element. Must be present to allow
+    computation on empty slice. See `~numpy.ufunc.reduce` for details.
+  where : array_like of bool, optional
+    Elements to compare for the minimum. See `~numpy.ufunc.reduce`
+    for details.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanmin, x)
+  return funcs_keep_unit_unary(jnp.nanmin, x, axis=axis, out=out, keepdims=keepdims, initial=initial, where=where)
 
 
 @set_module_as('brainunit.math')
-def nanmax(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nanmax(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    out: None = None,
+    keepdims: bool = False,
+    initial: jax.typing.ArrayLike | None = None,
+    where: jax.typing.ArrayLike | None = None,
+) -> Union[Quantity, jax.Array]:
   """
   Return the maximum of the array elements, ignoring NaNs.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : {int, tuple of int, None}, optional
+    Axis or axes along which the minimum is computed. The default is to compute
+    the minimum of the flattened array.
+  out : ndarray, optional
+    Alternate output array in which to place the result.  The default
+    is ``None``; if provided, it must have the same shape as the
+    expected output, but the type will be cast if necessary. See
+    :ref:`ufuncs-output-type` for more details.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the original `a`.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If the value is anything but the default, then
+    `keepdims` will be passed through to the `min` method
+    of sub-classes of `ndarray`.  If the sub-classes methods
+    does not implement `keepdims` any exceptions will be raised.
+  initial : scalar, optional
+    The maximum value of an output element. Must be present to allow
+    computation on empty slice. See `~numpy.ufunc.reduce` for details.
+  where : array_like of bool, optional
+    Elements to compare for the minimum. See `~numpy.ufunc.reduce`
+    for details.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanmax, x)
+  return funcs_keep_unit_unary(jnp.nanmax, x, axis=axis, out=out, keepdims=keepdims, initial=initial, where=where)
 
 
 @set_module_as('brainunit.math')
-def ptp(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def ptp(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    out: None = None,
+    keepdims: bool = False,
+) -> Union[Quantity, jax.Array]:
   """
   Return the range of the array elements (maximum - minimum).
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : None or int or tuple of ints, optional
+    Axis along which to find the peaks.  By default, flatten the
+    array.  `axis` may be negative, in
+    which case it counts from the last to the first axis.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If this is a tuple of ints, a reduction is performed on multiple
+    axes, instead of a single axis or all the axes as before.
+  out : array_like
+    Alternative output array in which to place the result. It must
+    have the same shape and buffer length as the expected output,
+    but the type of the output values will be cast if necessary.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the input array.
+
+    If the default value is passed, then `keepdims` will not be
+    passed through to the `ptp` method of sub-classes of
+    `ndarray`, however any non-default value will be.  If the
+    sub-class' method does not implement `keepdims` any
+    exceptions will be raised.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.ptp, x)
+  return funcs_keep_unit_unary(jnp.ptp, x, axis=axis, out=out, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
-def average(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def average(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    weights: jax.typing.ArrayLike | None = None,
+    returned: bool = False,
+    keepdims: bool = False
+) -> Union[Quantity, jax.Array]:
   """
   Return the weighted average of the array elements.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : None or int or tuple of ints, optional
+    Axis or axes along which to average `a`.  The default,
+    axis=None, will average over all of the elements of the input array.
+    If axis is negative it counts from the last to the first axis.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If axis is a tuple of ints, averaging is performed on all of the axes
+    specified in the tuple instead of a single axis or all the axes as
+    before.
+  weights : array_like, optional
+    An array of weights associated with the values in `a`. Each value in
+    `a` contributes to the average according to its associated weight.
+    The weights array can either be 1-D (in which case its length must be
+    the size of `a` along the given axis) or of the same shape as `a`.
+    If `weights=None`, then all data in `a` are assumed to have a
+    weight equal to one.  The 1-D calculation is::
+
+        avg = sum(a * weights) / sum(weights)
+
+    The only constraint on `weights` is that `sum(weights)` must not be 0.
+  returned : bool, optional
+    Default is `False`. If `True`, the tuple (`average`, `sum_of_weights`)
+    is returned, otherwise only the average is returned.
+    If `weights=None`, `sum_of_weights` is equivalent to the number of
+    elements over which the average is taken.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the original `a`.
+    *Note:* `keepdims` will not work with instances of `numpy.matrix`
+    or other classes whose methods do not support `keepdims`.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.average, x)
+  return funcs_keep_unit_unary(jnp.average, x, axis=axis, weights=weights, returned=returned, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
-def mean(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def mean(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    dtype: jax.typing.DTypeLike | None = None,
+    out: None = None,
+    keepdims: bool = False, *,
+    where: jax.typing.ArrayLike | None = None
+) -> Union[Quantity, jax.Array]:
   """
   Return the mean of the array elements.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : None or int or tuple of ints, optional
+    Axis or axes along which the means are computed. The default is to
+    compute the mean of the flattened array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If this is a tuple of ints, a mean is performed over multiple axes,
+    instead of a single axis or all the axes as before.
+  dtype : data-type, optional
+    Type to use in computing the mean.  For integer inputs, the default
+    is `float64`; for floating point inputs, it is the same as the
+    input dtype.
+  out : ndarray, optional
+    Alternate output array in which to place the result.  The default
+    is ``None``; if provided, it must have the same shape as the
+    expected output, but the type will be cast if necessary.
+    See :ref:`ufuncs-output-type` for more details.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the input array.
+
+    If the default value is passed, then `keepdims` will not be
+    passed through to the `mean` method of sub-classes of
+    `ndarray`, however any non-default value will be.  If the
+    sub-class' method does not implement `keepdims` any
+    exceptions will be raised.
+  where : array_like of bool, optional
+      Elements to include in the mean.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.mean, x)
+  return funcs_keep_unit_unary(jnp.mean, x, axis=axis, dtype=dtype, out=out, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
-def std(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def std(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    dtype: jax.typing.DTypeLike | None = None,
+    out: None = None,
+    ddof: int = 0,
+    keepdims: bool = False, *,
+    where: jax.typing.ArrayLike | None = None
+) -> Union[Quantity, jax.Array]:
   """
   Return the standard deviation of the array elements.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : None or int or tuple of ints, optional
+    Axis or axes along which the standard deviation is computed. The
+    default is to compute the standard deviation of the flattened array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If this is a tuple of ints, a standard deviation is performed over
+    multiple axes, instead of a single axis or all the axes as before.
+  dtype : dtype, optional
+    Type to use in computing the standard deviation. For arrays of
+    integer type the default is float64, for arrays of float types it is
+    the same as the array type.
+  out : ndarray, optional
+    Alternative output array in which to place the result. It must have
+    the same shape as the expected output but the type (of the calculated
+    values) will be cast if necessary.
+  ddof : int, optional
+    Means Delta Degrees of Freedom.  The divisor used in calculations
+    is ``N - ddof``, where ``N`` represents the number of elements.
+    By default `ddof` is zero.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the input array.
+
+    If the default value is passed, then `keepdims` will not be
+    passed through to the `std` method of sub-classes of
+    `ndarray`, however any non-default value will be.  If the
+    sub-class' method does not implement `keepdims` any
+    exceptions will be raised.
+  where : array_like of bool, optional
+    Elements to include in the standard deviation.
+    See `~numpy.ufunc.reduce` for details.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.std, x)
+  return funcs_keep_unit_unary(jnp.std, x, axis=axis, dtype=dtype, out=out, ddof=ddof, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
-def nanmedian(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nanmedian(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: int | tuple[int, ...] | None = None,
+    out: None = None, overwrite_input: bool = False,
+    keepdims: bool = False
+) -> Union[Quantity, jax.Array]:
   """
   Return the median of the array elements, ignoring NaNs.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : {int, sequence of int, None}, optional
+    Axis or axes along which the medians are computed. The default
+    is to compute the median along a flattened version of the array.
+    A sequence of axes is supported since version 1.9.0.
+  out : ndarray, optional
+    Alternative output array in which to place the result. It must
+    have the same shape and buffer length as the expected output,
+    but the type (of the output) will be cast if necessary.
+  overwrite_input : bool, optional
+   If True, then allow use of memory of input array `a` for
+   calculations. The input array will be modified by the call to
+   `median`. This will save memory when you do not need to preserve
+   the contents of the input array. Treat the input as undefined,
+   but it will probably be fully or partially sorted. Default is
+   False. If `overwrite_input` is ``True`` and `a` is not already an
+   `ndarray`, an error will be raised.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the original `a`.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If this is anything but the default value it will be passed
+    through (in the special case of an empty array) to the
+    `mean` function of the underlying array.  If the array is
+    a sub-class and `mean` does not have the kwarg `keepdims` this
+    will raise a RuntimeError.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanmedian, x)
+  return funcs_keep_unit_unary(jnp.nanmedian, x, axis=axis, out=out, overwrite_input=overwrite_input, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
-def nanmean(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nanmean(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    dtype: jax.typing.DTypeLike | None = None,
+    out: None = None,
+    keepdims: bool = False, *,
+    where: jax.typing.ArrayLike | None = None
+) -> Union[Quantity, jax.Array]:
   """
   Return the mean of the array elements, ignoring NaNs.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : None or int or tuple of ints, optional
+    Axis or axes along which the means are computed. The default is to
+    compute the mean of the flattened array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If this is a tuple of ints, a mean is performed over multiple axes,
+    instead of a single axis or all the axes as before.
+  dtype : data-type, optional
+    Type to use in computing the mean.  For integer inputs, the default
+    is `float64`; for floating point inputs, it is the same as the
+    input dtype.
+  out : ndarray, optional
+    Alternate output array in which to place the result.  The default
+    is ``None``; if provided, it must have the same shape as the
+    expected output, but the type will be cast if necessary.
+    See :ref:`ufuncs-output-type` for more details.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the input array.
+
+    If the default value is passed, then `keepdims` will not be
+    passed through to the `mean` method of sub-classes of
+    `ndarray`, however any non-default value will be.  If the
+    sub-class' method does not implement `keepdims` any
+    exceptions will be raised.
+  where : array_like of bool, optional
+      Elements to include in the mean.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanmean, x)
+  return funcs_keep_unit_unary(jnp.nanmean, x, axis=axis, dtype=dtype, out=out, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
-def nanstd(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def nanstd(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Union[int, Sequence[int], None] = None,
+    dtype: jax.typing.DTypeLike | None = None,
+    out: None = None,
+    ddof: int = 0,
+    keepdims: bool = False, *,
+    where: jax.typing.ArrayLike | None = None
+) -> Union[Quantity, jax.Array]:
   """
   Return the standard deviation of the array elements, ignoring NaNs.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : None or int or tuple of ints, optional
+    Axis or axes along which the standard deviation is computed. The
+    default is to compute the standard deviation of the flattened array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If this is a tuple of ints, a standard deviation is performed over
+    multiple axes, instead of a single axis or all the axes as before.
+  dtype : dtype, optional
+    Type to use in computing the standard deviation. For arrays of
+    integer type the default is float64, for arrays of float types it is
+    the same as the array type.
+  out : ndarray, optional
+    Alternative output array in which to place the result. It must have
+    the same shape as the expected output but the type (of the calculated
+    values) will be cast if necessary.
+  ddof : int, optional
+    Means Delta Degrees of Freedom.  The divisor used in calculations
+    is ``N - ddof``, where ``N`` represents the number of elements.
+    By default `ddof` is zero.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the input array.
+
+    If the default value is passed, then `keepdims` will not be
+    passed through to the `std` method of sub-classes of
+    `ndarray`, however any non-default value will be.  If the
+    sub-class' method does not implement `keepdims` any
+    exceptions will be raised.
+  where : array_like of bool, optional
+    Elements to include in the standard deviation.
+    See `~numpy.ufunc.reduce` for details.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanstd, x)
+  return funcs_keep_unit_unary(jnp.nanstd, x, axis=axis, dtype=dtype, out=out, ddof=ddof, keepdims=keepdims,
+                               where=where)
 
 
 @set_module_as('brainunit.math')
-def diff(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def diff(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    n: int = 1, axis: int = -1,
+    prepend: jax.typing.ArrayLike | None = None,
+    append: jax.typing.ArrayLike | None = None
+) -> Union[Quantity, jax.Array]:
   """
   Return the differences between consecutive elements of the array.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  n : int, optional
+    The number of times values are differenced. If zero, the input
+    is returned as-is.
+  axis : int, optional
+    The axis along which the difference is taken, default is the
+    last axis.
+  prepend, append : array_like, optional
+    Values to prepend or append to `a` along axis prior to
+    performing the difference.  Scalar values are expanded to
+    arrays with length 1 in the direction of axis and the shape
+    of the input array in along all other axes.  Otherwise the
+    dimension and shape must match `a` except along axis.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.diff, x)
+  return funcs_keep_unit_unary(jnp.diff, x, n=n, axis=axis, prepend=prepend, append=append)
 
 
 @set_module_as('brainunit.math')
-def modf(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def modf(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    /,
+    out: None = None,
+) -> Union[Quantity, jax.Array]:
   """
   Return the fractional and integer parts of the array elements.
 
@@ -525,7 +1154,7 @@ def modf(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   Returns:
     Union[jax.Array, Quantity]: Quantity tuple if `x` is a Quantity, else an array tuple.
   """
-  return funcs_keep_unit_unary(jnp.modf, x)
+  return funcs_keep_unit_unary(jnp.modf, x, out)
 
 
 # math funcs keep unit (binary)
@@ -545,12 +1174,17 @@ def fmod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Unio
   """
   Return the element-wise remainder of division.
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   return funcs_keep_unit_binary(jnp.fmod, x1, x2)
 
@@ -560,12 +1194,17 @@ def mod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
   """
   Return the element-wise modulus of division.
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   return funcs_keep_unit_binary(jnp.mod, x1, x2)
 
@@ -575,12 +1214,17 @@ def copysign(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> 
   """
   Return a copy of the first array elements with the sign of the second array.
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   return funcs_keep_unit_binary(jnp.copysign, x1, x2)
 
@@ -590,12 +1234,17 @@ def heaviside(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) ->
   """
   Compute the Heaviside step function.
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   return funcs_keep_unit_binary(jnp.heaviside, x1, x2)
 
@@ -605,12 +1254,17 @@ def maximum(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> U
   """
   Element-wise maximum of array elements.
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   return funcs_keep_unit_binary(jnp.maximum, x1, x2)
 
@@ -620,12 +1274,17 @@ def minimum(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> U
   """
   Element-wise minimum of array elements.
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   return funcs_keep_unit_binary(jnp.minimum, x1, x2)
 
@@ -635,12 +1294,17 @@ def fmax(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Unio
   """
   Element-wise maximum of array elements ignoring NaNs.
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   return funcs_keep_unit_binary(jnp.fmax, x1, x2)
 
@@ -650,12 +1314,17 @@ def fmin(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Unio
   """
   Element-wise minimum of array elements ignoring NaNs.
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   return funcs_keep_unit_binary(jnp.fmin, x1, x2)
 
@@ -665,12 +1334,17 @@ def lcm(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
   """
   Return the least common multiple of `x1` and `x2`.
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   return funcs_keep_unit_binary(jnp.lcm, x1, x2)
 
@@ -680,12 +1354,17 @@ def gcd(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
   """
   Return the greatest common divisor of `x1` and `x2`.
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   return funcs_keep_unit_binary(jnp.gcd, x1, x2)
 

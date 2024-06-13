@@ -1940,9 +1940,20 @@ class Quantity(object):
     """
     return [Quantity(a, dim=self.dim) for a in jnp.split(self.value, indices_or_sections, axis=axis)]
 
-  def take(self, indices, axis=None, mode=None) -> 'Quantity':
+  def take(
+      self,
+      indices,
+      axis=None,
+      out=None,
+      mode=None,
+      unique_indices=False,
+      indices_are_sorted=False,
+      fill_value=None,
+  ) -> 'Quantity':
     """Return an array formed from the elements of a at the given indices."""
-    return Quantity(jnp.take(self.value, indices=indices, axis=axis, mode=mode), dim=self.dim)
+    return Quantity(jnp.take(self.value, indices=indices, axis=axis, out=out, mode=mode,
+                             unique_indices=unique_indices, indices_are_sorted=indices_are_sorted,
+                             fill_value=fill_value), dim=self.dim)
 
   def tolist(self):
     """Return the array as an ``a.ndim``-levels deep nested list of Python scalars.

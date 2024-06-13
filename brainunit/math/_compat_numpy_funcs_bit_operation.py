@@ -199,7 +199,7 @@ def right_shift(
     Input array.
   y: array_like, quantity
     Input array.
-    
+
   Returns
   -------
   out : jax.Array

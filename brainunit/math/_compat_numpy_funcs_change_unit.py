@@ -71,34 +71,41 @@ def reciprocal(
 
 @set_module_as('brainunit.math')
 def var(
-    x: Union[Quantity, jax.typing.ArrayLike],
+    a: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     ddof: int = 0,
-    keepdims: bool = False
+    keepdims: bool = False,
+    *,
+    where: Optional[jax.typing.ArrayLike] = None
 ) -> Union[Quantity, jax.Array]:
   """
   Compute the variance along the specified axis.
 
   Args:
-    x: array_like, Quantity
+    a: array_like, Quantity
 
   Returns:
     Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
   """
   return funcs_change_unit_unary(jnp.var,
                                  lambda x: x ** 2,
-                                 x,
+                                 a,
                                  axis=axis,
+                                 out=out,
                                  ddof=ddof,
-                                 keepdims=keepdims)
+                                 keepdims=keepdims,
+                                 where=where)
 
 
 @set_module_as('brainunit.math')
 def nanvar(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     ddof: int = 0,
-    keepdims: bool = False
+    keepdims: bool = False,
+    where: Optional[jax.typing.ArrayLike] = None
 ) -> Union[Quantity, jax.Array]:
   """
   Compute the variance along the specified axis, ignoring NaNs.
@@ -113,8 +120,10 @@ def nanvar(
                                  lambda x: x ** 2,
                                  x,
                                  axis=axis,
+                                  out=out,
                                  ddof=ddof,
-                                 keepdims=keepdims)
+                                 keepdims=keepdims,
+                                 where=where)
 
 
 @set_module_as('brainunit.math')
