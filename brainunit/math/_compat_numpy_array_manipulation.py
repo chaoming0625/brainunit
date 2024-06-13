@@ -1042,7 +1042,7 @@ def compress(
     axis: Optional[int] = None,
     *,
     size: Optional[int] = None,
-    fill_value: Optional[jax.typing.ArrayLike] = None,
+    fill_value: Optional[jax.typing.ArrayLike] = 0,
     out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
 ) -> Union[Array, Quantity]:
   """
@@ -1071,7 +1071,7 @@ def compress(
   res : ndarray, Quantity
     A new array that has the same number of dimensions as `a`, and the same shape as `a` with axis `axis` removed.
   """
-  return func_array_manipulation(jnp.compress, condition, a, axis=axis, size=size, fill_value=fill_value, out=out)
+  return func_array_manipulation(jnp.compress, condition, a, axis, size=size, fill_value=fill_value, out=out)
 
 
 @set_module_as('brainunit.math')
@@ -1251,7 +1251,7 @@ def searchsorted(
     side: str = 'left',
     sorter: Optional[Array] = None,
     *,
-    method: Optional[str] = None
+    method: Optional[str] = 'scan'
 ) -> Array:
   """
   Find indices where elements should be inserted to maintain order.
@@ -1277,7 +1277,7 @@ def searchsorted(
     very large), 'scan_unrolled' is more performant on GPU at the expense of additional compile time,
     'sort' is often more performant on accelerator backends like GPU and TPU
     (particularly when ``v`` is very large), and 'compare_all' can be most performant
-    when ``a`` is very small.
+    when ``a`` is very small. The default is 'scan'.
 
   Returns
   -------
@@ -1293,7 +1293,7 @@ def extract(
     arr: Union[Array, Quantity],
     *,
     size: Optional[int] = None,
-    fill_value: Optional[jax.typing.ArrayLike] = None,
+    fill_value: Optional[jax.typing.ArrayLike] = 1,
 ) -> Array:
   """
   Return the elements of an array that satisfy some condition.

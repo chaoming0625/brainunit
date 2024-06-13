@@ -733,6 +733,129 @@ def nanpercentile(
                                            method=method, keepdims=keepdims, interpolation=interpolation)
 
 
-quantile = percentile
+@set_module_as('brainunit.math')
+def quantile(
+    a: Union[Array, Quantity],
+    q: Union[Array, Quantity],
+    axis: Optional[Union[int, Tuple[int]]] = None,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
+    overwrite_input: Optional[bool] = None,
+    method: str = 'linear',
+    keepdims: Optional[bool] = False,
+    interpolation: None = None,
+) -> Array:
+  """
+  Compute the q-th percentile of the data along the specified axis.
 
-nanquantile = nanpercentile
+  Returns the q-th percentile(s) of the array elements.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array or Quantity.
+  q : array_like, Quantity
+    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
+  out : array_like, Quantity, optional
+    Alternative output array in which to place the result.
+    It must have the same shape and buffer length as the expected output but the type will be cast if necessary.
+  overwrite_input : bool, optional
+    If True, then allow the input array a to be modified by intermediate calculations, to save memory.
+  method : str, optional
+    This parameter specifies the method to use for estimating the
+    percentile.  There are many different methods, some unique to NumPy.
+    See the notes for explanation.  The options sorted by their R type
+    as summarized in the H&F paper [1]_ are:
+
+    1. 'inverted_cdf'
+    2. 'averaged_inverted_cdf'
+    3. 'closest_observation'
+    4. 'interpolated_inverted_cdf'
+    5. 'hazen'
+    6. 'weibull'
+    7. 'linear'  (default)
+    8. 'median_unbiased'
+    9. 'normal_unbiased'
+
+    The first three methods are discontinuous.  NumPy further defines the
+    following discontinuous variations of the default 'linear' (7.) option:
+
+    * 'lower'
+    * 'higher',
+    * 'midpoint'
+    * 'nearest'
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+  interpolation : str, optional
+    Deprecated name for the method keyword argument.
+
+  Returns
+  -------
+  out : jax.Array
+    Output array.
+  """
+  return funcs_only_accept_unitless_binary(jnp.quantile, a, q, axis=axis, out=out, overwrite_input=overwrite_input,
+                                           method=method, keepdims=keepdims, interpolation=interpolation)
+
+
+@set_module_as('brainunit.math')
+def nanquantile(
+    a: Union[Array, Quantity],
+    q: Union[Array, Quantity],
+    axis: Optional[Union[int, Tuple[int]]] = None,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
+    overwrite_input: Optional[bool] = None,
+    method: str = 'linear',
+    keepdims: Optional[bool] = False,
+    interpolation: None = None,
+) -> Array:
+  """
+  Compute the q-th percentile of the data along the specified axis, while ignoring nan values.
+
+  Returns the q-th percentile(s) of the array elements, while ignoring nan values.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array or Quantity.
+  q : array_like, Quantity
+    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
+  out : array_like, Quantity, optional
+    Alternative output array in which to place the result.
+    It must have the same shape and buffer length as the expected output but the type will be cast if necessary.
+  overwrite_input : bool, optional
+    If True, then allow the input array a to be modified by intermediate calculations, to save memory.
+  method : str, optional
+    This parameter specifies the method to use for estimating the
+    percentile.  There are many different methods, some unique to NumPy.
+    See the notes for explanation.  The options sorted by their R type
+    as summarized in the H&F paper [1]_ are:
+
+    1. 'inverted_cdf'
+    2. 'averaged_inverted_cdf'
+    3. 'closest_observation'
+    4. 'interpolated_inverted_cdf'
+    5. 'hazen'
+    6. 'weibull'
+    7. 'linear'  (default)
+    8. 'median_unbiased'
+    9. 'normal_unbiased'
+
+    The first three methods are discontinuous.  NumPy further defines the
+    following discontinuous variations of the default 'linear' (7.) option:
+
+    * 'lower'
+    * 'higher',
+    * 'midpoint'
+    * 'nearest'
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+  interpolation : str, optional
+    Deprecated name for the method keyword argument.
+
+  Returns
+  -------
+  out : jax.Array
+    Output array.
+  """
+  return funcs_only_accept_unitless_binary(jnp.nanquantile, a, q, axis=axis, out=out, overwrite_input=overwrite_input,
+                                           method=method, keepdims=keepdims, interpolation=interpolation)
