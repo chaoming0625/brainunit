@@ -896,7 +896,7 @@ def meshgrid(
     copy: Optional[bool] = True,
     sparse: Optional[bool] = False,
     indexing: Optional[str] = 'xy'
-) -> list[Quantity] | list[Array]:
+) -> Union[list[Quantity], list[Array]]:
   """
   Return coordinate matrices from coordinate vectors.
 
