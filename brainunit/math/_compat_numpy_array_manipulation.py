@@ -14,7 +14,7 @@
 # ==============================================================================
 
 from collections.abc import Sequence
-from typing import (Union, Optional, Tuple, List)
+from typing import (Union, Optional, Tuple, List, Any)
 
 import jax
 import jax.numpy as jnp
@@ -167,7 +167,9 @@ def transpose(
 
 @set_module_as('brainunit.math')
 def swapaxes(
-    a: Union[Array, Quantity], axis1: int, axis2: int
+    a: Union[Array, Quantity],
+    axis1: int,
+    axis2: int
 ) -> Union[Array, Quantity]:
   """
   Interchanges two axes of an array.
@@ -186,7 +188,8 @@ def swapaxes(
 @set_module_as('brainunit.math')
 def concatenate(
     arrays: Union[Sequence[Array], Sequence[Quantity]],
-    axis: Optional[int] = None
+    axis: Optional[int] = None,
+    dtype: Optional[Any] = None
 ) -> Union[Array, Quantity]:
   """
   Join a sequence of arrays along an existing axis.
