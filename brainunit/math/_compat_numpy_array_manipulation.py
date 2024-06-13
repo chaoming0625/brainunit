@@ -257,7 +257,7 @@ def concatenate(
 def stack(
     arrays: Union[Sequence[Array], Sequence[Quantity]],
     axis: int = 0,
-    out: Optional[Quantity, jax.typing.ArrayLike] = None,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     dtype: Optional[Any] = None
 ) -> Union[Array, Quantity]:
   """
@@ -905,7 +905,7 @@ def argsort(
 def max(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
-    out: Optional[Quantity, jax.typing.ArrayLike] = None,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     keepdims: bool = False,
     initial: Optional[Union[int, float]] = None,
     where: Optional[Array] = None,
@@ -945,7 +945,7 @@ def max(
 def min(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
-    out: Optional[Quantity, jax.typing.ArrayLike] = None,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     keepdims: bool = False,
     initial: Optional[Union[int, float]] = None,
     where: Optional[Array] = None,
@@ -985,7 +985,7 @@ def min(
 def choose(
     a: Union[Array, Quantity],
     choices: Sequence[Union[Array, Quantity]],
-    out: Optional[Quantity, jax.typing.ArrayLike] = None,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     mode: str = 'raise',
 ) -> Union[Array, Quantity]:
   """
@@ -1043,7 +1043,7 @@ def compress(
     *,
     size: Optional[int] = None,
     fill_value: Optional[jax.typing.ArrayLike] = None,
-    out: Optional[Quantity, jax.typing.ArrayLike] = None,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
 ) -> Union[Array, Quantity]:
   """
   Return selected slices of a quantity or an array along given axis.
@@ -1103,7 +1103,7 @@ def diagflat(
 def argmax(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
-    out: Optional[Quantity, jax.typing.ArrayLike] = None,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     keepdims: Optional[bool] = None
 ) -> Array:
   """
@@ -1133,7 +1133,7 @@ def argmax(
 def argmin(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
-    out: Optional[Quantity, jax.typing.ArrayLike] = None,
+    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     keepdims: Optional[bool] = None
 ) -> Array:
   """
