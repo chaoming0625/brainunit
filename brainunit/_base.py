@@ -49,7 +49,6 @@ __all__ = [
 ]
 
 _all_slice = slice(None, None, None)
-random = None
 _unit_checking = True
 _allow_python_scalar_value = False
 
@@ -72,13 +71,6 @@ def turn_off_unit_checking():
     yield
   finally:
     _unit_checking = True
-
-
-def _get_random_module():
-  global random
-  if random is None:
-    from brainstate import random
-  return random
 
 
 def _to_quantity(array):
