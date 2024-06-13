@@ -17,12 +17,14 @@ import itertools
 import warnings
 
 import brainstate as bst
+import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
 from numpy.testing import assert_equal
 
-array = np.array
+import brainunit as bu
+
 bst.environ.set(precision=64)
 
 from brainunit._unit_common import *
@@ -1623,6 +1625,7 @@ def test_constants():
     (constants.avogadro_constant * constants.elementary_charge).value,
   )
 
+
 # if __name__ == "__main__":
 #     test_construction()
 #     test_get_dimensions()
@@ -1659,3 +1662,23 @@ def test_constants():
 #     test_units_vs_quantities()
 #     test_all_units_list()
 #     test_constants()
+
+
+def test_jit_array():
+  @jax.jit
+  def f1(a):
+    b = a * bu.siemens / bu.cm ** 2
+    return b
+
+  val = np.random.rand(3)
+  r = f1(val)
+  bu.math.allclose(val * bu.siemens / bu.cm ** 2, r)
+
+  @jax.jit
+  def f2(a):
+    a = a + 1. * bu.siemens / bu.cm ** 2
+    return a
+
+  val = np.random.rand(3) * bu.siemens / bu.cm ** 2
+  r = f2(val)
+  bu.math.allclose(val + 1 * bu.siemens / bu.cm ** 2, r)

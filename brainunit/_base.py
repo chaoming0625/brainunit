@@ -49,20 +49,8 @@ __all__ = [
 ]
 
 _all_slice = slice(None, None, None)
-random = None
 _unit_checking = True
-_automatically_register_units = True
 _allow_python_scalar_value = False
-
-
-@contextmanager
-def turn_off_unit_register():
-  try:
-    global _automatically_register_units
-    _automatically_register_units = False
-    yield
-  finally:
-    _automatically_register_units = True
 
 
 @contextmanager
@@ -83,13 +71,6 @@ def turn_off_unit_checking():
     yield
   finally:
     _unit_checking = True
-
-
-def _get_random_module():
-  global random
-  if random is None:
-    from brainstate import random
-  return random
 
 
 def _to_quantity(array):
@@ -2222,18 +2203,45 @@ class Quantity(object):
   # NumPy support
   # ------------------
 
-  def to_numpy(self, dtype=None) -> np.ndarray:
-    """Convert to numpy.ndarray."""
-    return np.asarray(self.value, dtype=dtype)
+  def to_numpy(self,
+               dtype: Optional[jax.typing.DTypeLike] = None,
+               unit: Optional['Unit'] = None) -> np.ndarray:
+    """
+    Remove the unit and convert to ``numpy.ndarray``.
 
-  def to_jax(self, dtype=None) -> jax.Array:
-    """Convert to jax.numpy.ndarray."""
-    if dtype is None:
-      return self.value
+    Args:
+      dtype: The data type of the output array.
+      unit: The unit of the output array.
+
+    Returns:
+      The numpy.ndarray.
+    """
+    if unit is None:
+      return np.asarray(self.value, dtype=dtype)
     else:
-      return jnp.asarray(self.value, dtype=dtype)
+      assert isinstance(unit, Unit), f"unit must be a Unit object, but got {type(unit)}"
+      return np.asarray(self / unit, dtype=dtype)
 
-  def __array__(self, dtype=None) -> np.ndarray:
+  def to_jax(self,
+             dtype: Optional[jax.typing.DTypeLike] = None,
+             unit: Optional['Unit'] = None) -> jax.Array:
+    """
+    Remove the unit and convert to ``jax.Array``.
+
+    Args:
+      dtype: The data type of the output array.
+      unit: The unit of the output array.
+
+    Returns:
+      The jax.Array.
+    """
+    if unit is None:
+      return jnp.asarray(self.value, dtype=dtype)
+    else:
+      assert isinstance(unit, Unit), f"unit must be a Unit object, but got {type(unit)}"
+      return jnp.asarray(self / unit, dtype=dtype)
+
+  def __array__(self, dtype: Optional[jax.typing.DTypeLike] = None) -> np.ndarray:
     """Support ``numpy.array()`` and ``numpy.asarray()`` functions."""
     return np.asarray(self.value, dtype=dtype)
 
@@ -2247,7 +2255,7 @@ class Quantity(object):
   # PyTorch compatibility
   # ----------------------
 
-  def unsqueeze(self, dim: int) -> 'Quantity':
+  def unsqueeze(self, axis: int) -> 'Quantity':
     """
     Array.unsqueeze(dim) -> Array, or so called Tensor
     equals
@@ -2255,7 +2263,7 @@ class Quantity(object):
 
     See :func:`brainstate.math.unsqueeze`
     """
-    return Quantity(jnp.expand_dims(self.value, dim), dim=self.dim)
+    return Quantity(jnp.expand_dims(self.value, axis), dim=self.dim)
 
   def expand_dims(self, axis: Union[int, Sequence[int]]) -> 'Quantity':
     """
@@ -2512,9 +2520,6 @@ class Unit(Quantity):
     self.iscompound = iscompound
 
     super().__init__(value, dtype=dtype, dim=dim)
-
-    if _automatically_register_units:
-      register_new_unit(self)
 
   @staticmethod
   def create(unit: Dimension, name: str, dispname: str, scale: int = 0):
