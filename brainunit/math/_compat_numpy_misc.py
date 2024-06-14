@@ -98,7 +98,7 @@ def einsum(
     out: None = None,
     optimize: Union[str, bool] = "optimal",
     precision: jax.lax.PrecisionLike = None,
-    preferred_element_type: Union[jax.typing.DTypeLike, None] = None,
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None,
     _dot_general: Callable[..., jax.Array] = jax.lax.dot_general,
 ) -> Union[jax.Array, Quantity]:
   """

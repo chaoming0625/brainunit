@@ -83,9 +83,9 @@ def sign(x: Union[Array, Quantity]) -> Array:
 def histogram(
     x: Union[Array, Quantity],
     bins: jax.typing.ArrayLike = 10,
-    range: Sequence[jax.typing.ArrayLike] | None = None,
-    weights: jax.typing.ArrayLike | None = None,
-    density: bool | None = None
+    range: Optional[Sequence[jax.typing.ArrayLike]] = None,
+    weights: Optional[jax.typing.ArrayLike] = None,
+    density: Optional[bool] = None
 ) -> tuple[Array, Array]:
   """
   Compute the histogram of a set of data.
@@ -280,9 +280,9 @@ def cov(
     y: Optional[Union[Array, Quantity]] = None,
     rowvar: bool = True,
     bias: bool = False,
-    ddof: int | None = None,
-    fweights: jax.typing.ArrayLike | None = None,
-    aweights: jax.typing.ArrayLike | None = None
+    ddof: Optional[int] = None,
+    fweights: Optional[jax.typing.ArrayLike] = None,
+    aweights: Optional[jax.typing.ArrayLike] = None
 ) -> Array:
   """
   Estimate a covariance matrix, given data and weights.

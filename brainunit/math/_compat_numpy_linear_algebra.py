@@ -40,7 +40,7 @@ def dot(
     b: Union[Array, Quantity],
     *,
     precision: Any = None,
-    preferred_element_type: jax.typing.DTypeLike | None = None
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
 ) -> Union[Array, Quantity]:
   """
   Dot product of two arrays or quantities.
@@ -80,7 +80,7 @@ def vdot(
     b: Union[Array, Quantity],
     *,
     precision: Any = None,
-    preferred_element_type: jax.typing.DTypeLike | None = None
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
 ) -> Union[Array, Quantity]:
   """
   Perform a conjugate multiplication of two 1D vectors.
@@ -120,7 +120,7 @@ def inner(
     b: Union[Array, Quantity],
     *,
     precision: Any = None,
-    preferred_element_type: jax.typing.DTypeLike | None = None
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
 ) -> Union[Array, Quantity]:
   """
   Inner product of two arrays or quantities.
@@ -220,7 +220,7 @@ def matmul(
     b: Union[Array, Quantity],
     *,
     precision: Any = None,
-    preferred_element_type: jax.typing.DTypeLike | None = None
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
 ) -> Union[Array, Quantity]:
   """
   Matrix product of two arrays or quantities.
@@ -260,7 +260,7 @@ def trace(
     offset: int = 0,
     axis1: int = 0,
     axis2: int = 1,
-    dtype: jax.typing.DTypeLike | None = None,
+    dtype: Optional[jax.typing.DTypeLike] = None,
     out: None = None
 ) -> Union[Array, Quantity]:
   """
