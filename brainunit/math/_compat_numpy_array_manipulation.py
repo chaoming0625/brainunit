@@ -560,7 +560,7 @@ def unique(
     equal_nan: bool = False,
     size: Optional[int] = None,
     fill_value: Optional[jax.typing.ArrayLike, Quantity] = None
-) -> list[Array, Quantity] | Array | Quantity:
+) -> Tuple[Array | Quantity] | Array | Quantity:
   """
   Find the unique elements of a quantity or an array.
 
@@ -594,13 +594,13 @@ def unique(
       fail_for_dimension_mismatch(fill_value, a)
       fill_value = fill_value.value
     result = jnp.unique(a.value, return_index=return_index, return_inverse=return_inverse, return_counts=return_counts,
-                     axis=axis, equal_nan=equal_nan, size=size, fill_value=fill_value)
+                        axis=axis, equal_nan=equal_nan, size=size, fill_value=fill_value)
     if isinstance(result, tuple):
       output = []
       output.append(Quantity(result[0], dim=a.dim))
       for r in result[1:]:
         output.append(r)
-      return output
+      return tuple(output)
     else:
       return Quantity(result, dim=a.dim)
   else:
