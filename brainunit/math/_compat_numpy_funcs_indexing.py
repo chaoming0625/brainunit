@@ -18,8 +18,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from brainunit._misc import set_module_as
 from .._base import (Quantity, fail_for_dimension_mismatch, is_unitless, )
+from .._misc import set_module_as
 
 __all__ = [
   # indexing funcs

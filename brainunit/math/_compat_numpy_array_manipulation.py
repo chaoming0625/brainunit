@@ -21,8 +21,8 @@ import jax.numpy as jnp
 from jax import Array
 from jax.tree_util import tree_map
 
-from brainunit._misc import set_module_as
 from .._base import Quantity
+from .._misc import set_module_as
 
 __all__ = [
   # array manipulation

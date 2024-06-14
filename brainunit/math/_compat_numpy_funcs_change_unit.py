@@ -19,10 +19,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from brainunit._misc import set_module_as
 from ._compat_numpy_get_attribute import isscalar
 from .._base import (DIMENSIONLESS, Quantity, )
 from .._base import _return_check_unitless
+from .._misc import set_module_as
 
 __all__ = [
 

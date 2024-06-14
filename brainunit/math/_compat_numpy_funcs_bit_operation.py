@@ -19,8 +19,8 @@ import jax.numpy as jnp
 import numpy as np
 from jax import Array
 
-from brainunit._misc import set_module_as
 from .._base import Quantity
+from .._misc import set_module_as
 
 __all__ = [
   # Elementwise bit operations (unary)

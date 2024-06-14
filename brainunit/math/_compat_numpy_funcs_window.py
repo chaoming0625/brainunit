@@ -16,7 +16,7 @@
 import jax.numpy as jnp
 from jax import Array
 
-from brainunit._misc import set_module_as
+from .._misc import set_module_as
 
 __all__ = [
   # window funcs
