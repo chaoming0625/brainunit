@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+from __future__ import annotations
+
 from typing import (Union, Optional, Sequence, Any)
 
 import jax
 import jax.numpy as jnp
 from jax import Array
 
-from .._base import Quantity
+from .._base import Quantity, fail_for_dimension_mismatch
 from .._misc import set_module_as
 
 __all__ = [
@@ -83,7 +85,7 @@ def sign(x: Union[Array, Quantity]) -> Array:
 def histogram(
     x: Union[Array, Quantity],
     bins: jax.typing.ArrayLike = 10,
-    range: Optional[Sequence[jax.typing.ArrayLike]] = None,
+    range: Optional[Sequence[jax.typing.ArrayLike | Quantity]] = None,
     weights: Optional[jax.typing.ArrayLike] = None,
     density: Optional[bool] = None
 ) -> tuple[Array, Array]:
@@ -102,8 +104,7 @@ def histogram(
 
     If `bins` is a string, it defines the method used to calculate the
     optimal bin width, as defined by `histogram_bin_edges`.
-
-  range : (float, float), optional
+  range : (float, float), (Quantity, Quantity) optional
     The lower and upper range of the bins.  If not provided, range
     is simply ``(a.min(), a.max())``.  Values outside the range are
     ignored. The first element of the range must be less than or
@@ -133,7 +134,13 @@ def histogram(
   bin_edges : array of dtype float
     Return the bin edges ``(length(hist)+1)``.
   """
-  return funcs_remove_unit_unary(jnp.histogram, x, bins=bins, range=range, weights=weights, density=density)
+  if isinstance(x, Quantity):
+    if range is not None:
+      fail_for_dimension_mismatch(x, range[0])
+      fail_for_dimension_mismatch(x, range[1])
+      range = (range[0].value, range[1].value)
+    x = x.value
+  return jnp.histogram(x, bins, range, weights, density)
 
 
 @set_module_as('brainunit.math')
@@ -177,14 +184,13 @@ def bincount(
 # math funcs remove unit (binary)
 # -------------------------------
 def funcs_remove_unit_binary(func, x, y, *args, **kwargs):
-  if isinstance(x, Quantity):
-    x_value = x.value
-  if isinstance(y, Quantity):
-    y_value = y.value
   if isinstance(x, Quantity) or isinstance(y, Quantity):
-    return func(jnp.array(x_value), jnp.array(y_value), *args, **kwargs)
-  else:
+    fail_for_dimension_mismatch(x, y)
+    return func(x.value, y.value, *args, **kwargs)
+  elif isinstance(x, jax.typing.ArrayLike) and isinstance(y, jax.typing.ArrayLike):
     return func(x, y, *args, **kwargs)
+  else:
+    raise TypeError(f"Unsupported types: {type(x)}, {type(y)}")
 
 
 @set_module_as('brainunit.math')

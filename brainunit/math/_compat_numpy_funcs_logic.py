@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+from __future__ import annotations
+
 from typing import (Union, Optional)
 
 import jax
@@ -506,15 +508,22 @@ def isclose(
     given tolerance. If both `a` and `b` are scalars, returns a single
     boolean value.
   """
-  return logic_func_binary(jnp.isclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
+  if isinstance(x, Quantity) and isinstance(y, Quantity):
+    fail_for_dimension_mismatch(x, y)
+    if rtol is None:
+      rtol = (1e-05 / x.dim.value[0])
+    if atol is None:
+      atol = (1e-08 / x.dim.value[0])
+    return jnp.isclose(x.value, y.value, rtol=rtol, atol=atol, equal_nan=equal_nan)
+  return jnp.isclose(x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @set_module_as('brainunit.math')
 def allclose(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike],
-    rtol: float = 1e-05,
-    atol: float = 1e-08,
+    rtol: float | Quantity = 1e-05,
+    atol: float | Quantity = 1e-08,
     equal_nan: bool = False
 ) -> Union[bool, Array]:
   """
@@ -547,7 +556,15 @@ def allclose(
     Returns True if the two arrays are equal within the given
     tolerance; False otherwise.
   """
-  return logic_func_binary(jnp.allclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
+  if isinstance(x, Quantity) and isinstance(y, Quantity):
+    fail_for_dimension_mismatch(x, y)
+    if rtol is None:
+      rtol = (1e-05 / x.dim.value[0])
+    if atol is None:
+      atol = (1e-08 / x.dim.value[0])
+    return jnp.allclose(x.value, y.value, rtol=rtol, atol=atol, equal_nan=equal_nan)
+  else:
+    return jnp.allclose(x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @set_module_as('brainunit.math')

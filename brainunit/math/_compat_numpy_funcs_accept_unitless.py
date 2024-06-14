@@ -505,10 +505,8 @@ def angle(x: Union[Array, Quantity]) -> Array:
 
 
 def funcs_only_accept_unitless_binary(func, x, y, *args, **kwargs):
-  if isinstance(x, Quantity):
-    x_value = x.value
-  if isinstance(y, Quantity):
-    y_value = y.value
+  x_value = x.value if isinstance(x, Quantity) else x
+  y_value = y.value if isinstance(y, Quantity) else y
   if isinstance(x, Quantity) or isinstance(y, Quantity):
     fail_for_dimension_mismatch(
       x,

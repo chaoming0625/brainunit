@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+from __future__ import annotations
 
 from collections.abc import Sequence
 from typing import (Union, Optional, Tuple, List, Any)
@@ -21,7 +22,7 @@ import jax.numpy as jnp
 from jax import Array
 from jax.tree_util import tree_map
 
-from .._base import Quantity
+from .._base import Quantity, fail_for_dimension_mismatch
 from .._misc import set_module_as
 
 __all__ = [
@@ -558,8 +559,8 @@ def unique(
     *,
     equal_nan: bool = False,
     size: Optional[int] = None,
-    fill_value: Optional[jax.typing.ArrayLike] = None
-) -> Union[Array, Quantity]:
+    fill_value: Optional[jax.typing.ArrayLike, Quantity] = None
+) -> list[Array, Quantity] | Array | Quantity:
   """
   Find the unique elements of a quantity or an array.
 
@@ -588,15 +589,23 @@ def unique(
   res : ndarray, Quantity
     The sorted unique values.
   """
-  return func_array_manipulation(jnp.unique,
-                                 a,
-                                 return_index=return_index,
-                                 return_inverse=return_inverse,
-                                 return_counts=return_counts,
-                                 axis=axis,
-                                 equal_nan=equal_nan,
-                                 size=size,
-                                 fill_value=fill_value)
+  if isinstance(a, Quantity):
+    if fill_value is not None:
+      fail_for_dimension_mismatch(fill_value, a)
+      fill_value = fill_value.value
+    result = jnp.unique(a.value, return_index=return_index, return_inverse=return_inverse, return_counts=return_counts,
+                     axis=axis, equal_nan=equal_nan, size=size, fill_value=fill_value)
+    if isinstance(result, tuple):
+      output = []
+      output.append(Quantity(result[0], dim=a.dim))
+      for r in result[1:]:
+        output.append(r)
+      return output
+    else:
+      return Quantity(result, dim=a.dim)
+  else:
+    return jnp.unique(a, return_index=return_index, return_inverse=return_inverse, return_counts=return_counts,
+                      axis=axis, equal_nan=equal_nan, size=size, fill_value=fill_value)
 
 
 @set_module_as('brainunit.math')
@@ -913,7 +922,7 @@ def max(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
     keepdims: bool = False,
-    initial: Optional[Union[int, float]] = None,
+    initial: Optional[Union[int, float, Quantity]] = None,
     where: Optional[Array] = None,
 ) -> Union[Array, Quantity]:
   """
@@ -941,7 +950,13 @@ def max(
     Maximum of `a`. If `axis` is None, the result is a scalar value. If `axis` is given, the result is an array of
     dimension `a.ndim - 1`.
   """
-  return func_array_manipulation(jnp.max, a, axis=axis, keepdims=keepdims, initial=initial, where=where)
+  if isinstance(a, Quantity):
+    if initial is not None:
+      fail_for_dimension_mismatch(initial, a)
+      initial = initial.value
+    return Quantity(jnp.max(a.value, axis=axis, keepdims=keepdims, initial=initial, where=where), dim=a.dim)
+  else:
+    return jnp.max(a, axis=axis, keepdims=keepdims, initial=initial, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -949,7 +964,7 @@ def min(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
     keepdims: bool = False,
-    initial: Optional[Union[int, float]] = None,
+    initial: Optional[Union[int, float, Quantity]] = None,
     where: Optional[Array] = None,
 ) -> Union[Array, Quantity]:
   """
@@ -977,7 +992,13 @@ def min(
     Minimum of `a`. If `axis` is None, the result is a scalar value. If `axis` is given, the result is an array of
     dimension `a.ndim - 1`.
   """
-  return func_array_manipulation(jnp.min, a, axis=axis, keepdims=keepdims, initial=initial, where=where)
+  if isinstance(a, Quantity):
+    if initial is not None:
+      fail_for_dimension_mismatch(initial, a)
+      initial = initial.value
+    return Quantity(jnp.min(a.value, axis=axis, keepdims=keepdims, initial=initial, where=where), dim=a.dim)
+  else:
+    return jnp.min(a, axis=axis, keepdims=keepdims, initial=initial, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -1038,7 +1059,7 @@ def compress(
     axis: Optional[int] = None,
     *,
     size: Optional[int] = None,
-    fill_value: Optional[jax.typing.ArrayLike] = 0,
+    fill_value: Optional[jax.typing.ArrayLike] = None,
 ) -> Union[Array, Quantity]:
   """
   Return selected slices of a quantity or an array along given axis.
@@ -1064,7 +1085,14 @@ def compress(
   res : ndarray, Quantity
     A new array that has the same number of dimensions as `a`, and the same shape as `a` with axis `axis` removed.
   """
-  return func_array_manipulation(jnp.compress, condition, a, axis, size=size, fill_value=fill_value)
+  if isinstance(a, Quantity):
+    if fill_value is not None:
+      fail_for_dimension_mismatch(fill_value, a.dim)
+      fill_value = fill_value.value
+    else:
+      fill_value = 0
+    return Quantity(jnp.compress(condition, a.value, axis, size=size, fill_value=fill_value), dim=a.dim)
+  return jnp.compress(condition, a, axis, size=size, fill_value=0)
 
 
 @set_module_as('brainunit.math')
@@ -1280,8 +1308,8 @@ def extract(
     arr: Union[Array, Quantity],
     *,
     size: Optional[int] = None,
-    fill_value: Optional[jax.typing.ArrayLike] = 0,
-) -> Array:
+    fill_value: Optional[jax.typing.ArrayLike | Quantity] = None,
+) -> Array | Quantity:
   """
   Return the elements of an array that satisfy some condition.
 
@@ -1302,7 +1330,14 @@ def extract(
   res : ndarray
     The extracted elements. The shape of `res` is the same as that of `condition`.
   """
-  return func_array_manipulation(jnp.extract, condition, arr, size=size, fill_value=fill_value, return_quantity=False)
+  if isinstance(arr, Quantity):
+    if fill_value is not None:
+      fail_for_dimension_mismatch(fill_value, arr)
+      fill_value = fill_value.value
+    else:
+      fill_value = 0
+    return Quantity(jnp.extract(condition, arr.value, size=size, fill_value=fill_value), dim=arr.dim)
+  return jnp.extract(condition, arr, size=size, fill_value=0)
 
 
 @set_module_as('brainunit.math')

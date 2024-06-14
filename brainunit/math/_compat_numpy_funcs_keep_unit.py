@@ -1088,9 +1088,15 @@ def modf(
 # math funcs keep unit (binary)
 # -----------------------------
 
-def funcs_keep_unit_binary(func, x1, x2, *args, **kwargs):
+def funcs_keep_unit_binary(
+    func,
+    x1, x2,
+    *args,
+    check_same_dim=True,
+    **kwargs):
   if isinstance(x1, Quantity) and isinstance(x2, Quantity):
-    fail_for_dimension_mismatch(x1, x2, func.__name__)
+    if check_same_dim:
+      fail_for_dimension_mismatch(x1, x2, func.__name__)
     return Quantity(func(x1.value, x2.value, *args, **kwargs), dim=x1.dim)
   elif isinstance(x1, (jax.Array, np.ndarray)) and isinstance(x2, (jax.Array, np.ndarray)):
     return func(x1, x2, *args, **kwargs)
@@ -1116,6 +1122,7 @@ def fmod(x1: Union[Quantity, jax.Array],
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
+  # TODO: Consider different unit of x1 and x2
   return funcs_keep_unit_binary(jnp.fmod, x1, x2)
 
 
@@ -1136,6 +1143,7 @@ def mod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
+  # TODO: Consider different unit of x1 and x2
   return funcs_keep_unit_binary(jnp.mod, x1, x2)
 
 
@@ -1326,26 +1334,22 @@ def interp(
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x`, `xp`, and `fp` are Quantities that have the same unit, else an array.
   """
-  unit = None
-  if isinstance(x, Quantity) or isinstance(xp, Quantity) or isinstance(fp, Quantity):
-    unit = x.dim if isinstance(x, Quantity) else xp.dim if isinstance(xp, Quantity) else fp.dim
-  if isinstance(x, Quantity):
-    x_value = x.value
+  if isinstance(x, Quantity) and isinstance(xp, Quantity) and isinstance(fp, Quantity):
+    fail_for_dimension_mismatch(x, xp)
+    fail_for_dimension_mismatch(x, fp)
+    unit = x.dim
+    if isinstance(left, Quantity):
+      fail_for_dimension_mismatch(x, left)
+      left = left.value
+    if isinstance(right, Quantity):
+      fail_for_dimension_mismatch(x, right)
+      right = right.value
+    if isinstance(period, Quantity):
+      fail_for_dimension_mismatch(x, period)
+      period = period.value
+    return Quantity(jnp.interp(x.value, xp.value, fp.value, left, right, period), dim=unit)
   else:
-    x_value = x
-  if isinstance(xp, Quantity):
-    xp_value = xp.value
-  else:
-    xp_value = xp
-  if isinstance(fp, Quantity):
-    fp_value = fp.value
-  else:
-    fp_value = fp
-  result = jnp.interp(x_value, xp_value, fp_value, left=left, right=right, period=period)
-  if unit is not None:
-    return Quantity(result, dim=unit)
-  else:
-    return result
+    return jnp.interp(x, xp, fp, left, right, period)
 
 
 @set_module_as('brainunit.math')
@@ -1366,22 +1370,10 @@ def clip(
     Union[jax.Array, Quantity]: Quantity if `a`, `a_min`, and `a_max` are Quantities that have the same unit, else an array.
   """
   unit = None
-  if isinstance(a, Quantity) or isinstance(a_min, Quantity) or isinstance(a_max, Quantity):
-    unit = a.dim if isinstance(a, Quantity) else a_min.dim if isinstance(a_min, Quantity) else a_max.dim
-  if isinstance(a, Quantity):
-    a_value = a.value
+  if isinstance(a, Quantity) and isinstance(a_min, Quantity) and isinstance(a_max, Quantity):
+    fail_for_dimension_mismatch(a, a_min)
+    fail_for_dimension_mismatch(a, a_max)
+    unit = a.dim
+    return Quantity(jnp.clip(a.value, a_min.value, a_max.value), dim=unit)
   else:
-    a_value = a
-  if isinstance(a_min, Quantity):
-    a_min_value = a_min.value
-  else:
-    a_min_value = a_min
-  if isinstance(a_max, Quantity):
-    a_max_value = a_max.value
-  else:
-    a_max_value = a_max
-  result = jnp.clip(a_value, a_min_value, a_max_value)
-  if unit is not None:
-    return Quantity(result, dim=unit)
-  else:
-    return result
+    return jnp.clip(a, a_min, a_max)

@@ -1950,6 +1950,8 @@ class Quantity(object):
       fill_value=None,
   ) -> 'Quantity':
     """Return an array formed from the elements of a at the given indices."""
+    if isinstance(fill_value, Quantity):
+      fill_value = fill_value.value
     return Quantity(jnp.take(self.value, indices=indices, axis=axis, mode=mode,
                              unique_indices=unique_indices, indices_are_sorted=indices_are_sorted,
                              fill_value=fill_value), dim=self.dim)

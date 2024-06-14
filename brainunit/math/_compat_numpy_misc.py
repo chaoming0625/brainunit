@@ -259,8 +259,8 @@ def gradient(
 
 @set_module_as('brainunit.math')
 def intersect1d(
-    ar1: Union[jax.typing.ArrayLike],
-    ar2: Union[jax.typing.ArrayLike],
+    ar1: Union[jax.typing.ArrayLike, Quantity],
+    ar2: Union[jax.typing.ArrayLike, Quantity],
     assume_unique: bool = False,
     return_indices: bool = False
 ) -> Union[jax.Array, Quantity, tuple[Union[jax.Array, Quantity], jax.Array, jax.Array]]:
@@ -316,9 +316,9 @@ def intersect1d(
 @set_module_as('brainunit.math')
 def nan_to_num(
     x: Union[jax.typing.ArrayLike, Quantity],
-    nan: float | Quantity = 0.0,
-    posinf: float | Quantity = jnp.inf,
-    neginf: float | Quantity = -jnp.inf
+    nan: float | Quantity = None,
+    posinf: float | Quantity = None,
+    neginf: float | Quantity = None
 ) -> Union[jax.Array, Quantity]:
   """
   Replace NaN with zero and infinity with large finite numbers (default
@@ -359,7 +359,16 @@ def nan_to_num(
     `x`, with the non-finite values replaced. If `copy` is False, this may
     be `x` itself.
   """
-  return funcs_keep_unit_unary(jnp.nan_to_num, x, nan=nan, posinf=posinf, neginf=neginf)
+  if isinstance(x, Quantity):
+    nan = Quantity(0.0, dim=x.dim) if nan is None else nan
+    posinf = Quantity(jnp.finfo(x.dtype).max, dim=x.dim) if posinf is None else posinf
+    neginf = Quantity(jnp.finfo(x.dtype).min, dim=x.dim) if neginf is None else neginf
+    return Quantity(jnp.nan_to_num(x.value, nan=nan.value, posinf=posinf.value, neginf=neginf.value), dim=x.dim)
+  else:
+    nan = 0.0 if nan is None else nan
+    posinf = jnp.inf if posinf is None else posinf
+    neginf = -jnp.inf if neginf is None else neginf
+    return jnp.nan_to_num(x, nan=nan, posinf=posinf, neginf=neginf)
 
 
 @set_module_as('brainunit.math')
