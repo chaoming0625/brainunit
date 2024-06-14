@@ -1731,7 +1731,7 @@ class Quantity(object):
     return Quantity(self.value.__round__(ndigits), dim=self.dim)
 
   def __reduce__(self):
-    return array_with_unit, (self.value, self.dim, self.value.dtype)
+    return array_with_unit, (self.value, self.dim, None)
 
   # ----------------------- #
   #      NumPy methods      #
