@@ -14,7 +14,7 @@
 # ==============================================================================
 from __future__ import annotations
 
-from typing import (Union, Optional, Sequence, Any)
+from typing import (Union, Optional)
 
 import jax
 import jax.numpy as jnp
@@ -24,12 +24,7 @@ from .._base import Quantity, fail_for_dimension_mismatch
 from .._misc import set_module_as
 
 __all__ = [
-
-  # math funcs remove unit (unary)
-  'signbit', 'sign', 'histogram', 'bincount',
-
-  # math funcs remove unit (binary)
-  'corrcoef', 'correlate', 'cov', 'digitize',
+  'signbit', 'sign', 'bincount', 'digitize',
 ]
 
 
@@ -82,68 +77,6 @@ def sign(x: Union[Array, Quantity]) -> Array:
 
 
 @set_module_as('brainunit.math')
-def histogram(
-    x: Union[Array, Quantity],
-    bins: jax.typing.ArrayLike = 10,
-    range: Optional[Sequence[jax.typing.ArrayLike | Quantity]] = None,
-    weights: Optional[jax.typing.ArrayLike] = None,
-    density: Optional[bool] = None
-) -> tuple[Array, Array]:
-  """
-  Compute the histogram of a set of data.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input data. The histogram is computed over the flattened array.
-  bins : int or sequence of scalars or str, optional
-    If `bins` is an int, it defines the number of equal-width
-    bins in the given range (10, by default). If `bins` is a
-    sequence, it defines a monotonically increasing array of bin edges,
-    including the rightmost edge, allowing for non-uniform bin widths.
-
-    If `bins` is a string, it defines the method used to calculate the
-    optimal bin width, as defined by `histogram_bin_edges`.
-  range : (float, float), (Quantity, Quantity) optional
-    The lower and upper range of the bins.  If not provided, range
-    is simply ``(a.min(), a.max())``.  Values outside the range are
-    ignored. The first element of the range must be less than or
-    equal to the second. `range` affects the automatic bin
-    computation as well. While bin width is computed to be optimal
-    based on the actual data within `range`, the bin count will fill
-    the entire range including portions containing no data.
-  weights : array_like, optional
-    An array of weights, of the same shape as `a`.  Each value in
-    `a` only contributes its associated weight towards the bin count
-    (instead of 1). If `density` is True, the weights are
-    normalized, so that the integral of the density over the range
-    remains 1.
-  density : bool, optional
-    If ``False``, the result will contain the number of samples in
-    each bin. If ``True``, the result is the value of the
-    probability *density* function at the bin, normalized such that
-    the *integral* over the range is 1. Note that the sum of the
-    histogram values will not be equal to 1 unless bins of unity
-    width are chosen; it is not a probability *mass* function.
-
-  Returns
-  -------
-  hist : array
-    The values of the histogram. See `density` and `weights` for a
-    description of the possible semantics.
-  bin_edges : array of dtype float
-    Return the bin edges ``(length(hist)+1)``.
-  """
-  if isinstance(x, Quantity):
-    if range is not None:
-      fail_for_dimension_mismatch(x, range[0])
-      fail_for_dimension_mismatch(x, range[1])
-      range = (range[0].value, range[1].value)
-    x = x.value
-  return jnp.histogram(x, bins, range, weights, density)
-
-
-@set_module_as('brainunit.math')
 def bincount(
     x: Union[Array, Quantity],
     weights: Optional[jax.typing.ArrayLike] = None,
@@ -179,167 +112,6 @@ def bincount(
     The length of `out` is equal to ``bu.amax(x)+1``.
   """
   return funcs_remove_unit_unary(jnp.bincount, x, weights=weights, minlength=minlength, length=length)
-
-
-# math funcs remove unit (binary)
-# -------------------------------
-def funcs_remove_unit_binary(func, x, y, *args, **kwargs):
-  if isinstance(x, Quantity) or isinstance(y, Quantity):
-    fail_for_dimension_mismatch(x, y)
-    return func(x.value, y.value, *args, **kwargs)
-  else:
-    return func(x, y, *args, **kwargs)
-
-
-@set_module_as('brainunit.math')
-def corrcoef(
-    x: Union[Array, Quantity],
-    y: Union[Array, Quantity],
-    rowvar: bool = True
-) -> Array:
-  """
-  Return Pearson product-moment correlation coefficients.
-
-  Please refer to the documentation for `cov` for more detail.  The
-  relationship between the correlation coefficient matrix, `R`, and the
-  covariance matrix, `C`, is
-
-  .. math:: R_{ij} = \\frac{ C_{ij} } { \\sqrt{ C_{ii} C_{jj} } }
-
-  The values of `R` are between -1 and 1, inclusive.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    A 1-D or 2-D array containing multiple variables and observations.
-    Each row of `x` represents a variable, and each column a single
-    observation of all those variables. Also see `rowvar` below.
-  y : array_like, Quantity, optional
-    An additional set of variables and observations. `y` has the same
-    shape as `x`.
-  rowvar : bool, optional
-    If `rowvar` is True (default), then each row represents a
-    variable, with observations in the columns. Otherwise, the relationship
-    is transposed: each column represents a variable, while the rows
-    contain observations.
-
-  Returns
-  -------
-  R : ndarray
-    The correlation coefficient matrix of the variables.
-  """
-  return funcs_remove_unit_binary(jnp.corrcoef, x, y, rowvar=rowvar)
-
-
-@set_module_as('brainunit.math')
-def correlate(
-    a: Union[Array, Quantity],
-    v: Union[Array, Quantity],
-    mode: str = 'valid',
-    *,
-    precision: Any = None,
-    preferred_element_type: Optional[jax.typing.DTypeLike] = None
-) -> Array:
-  """
-  Cross-correlation of two 1-dimensional sequences.
-
-  This function computes the correlation as generally defined in signal
-  processing texts:
-
-  .. math:: c_k = \sum_n a_{n+k} \cdot \overline{v}_n
-
-  with a and v sequences being zero-padded where necessary and
-  :math:`\overline x` denoting complex conjugation.
-
-  Parameters
-  ----------
-  a, v : array_like, Quantity
-    Input sequences.
-  mode : {'valid', 'same', 'full'}, optional
-    Refer to the `convolve` docstring.  Note that the default
-    is 'valid', unlike `convolve`, which uses 'full'.
-  precision : Optional. Either ``None``, which means the default precision for
-    the backend, a :class:`~jax.lax.Precision` enum value
-    (``Precision.DEFAULT``, ``Precision.HIGH`` or ``Precision.HIGHEST``), a
-    string (e.g. 'highest' or 'fastest', see the
-    ``jax.default_matmul_precision`` context manager), or a tuple of two
-    :class:`~jax.lax.Precision` enums or strings indicating precision of
-    ``lhs`` and ``rhs``.
-  preferred_element_type : Optional. Either ``None``, which means the default
-    accumulation type for the input types, or a datatype, indicating to
-    accumulate results to and return a result with that datatype.
-
-  Returns
-  -------
-  out : ndarray
-    Discrete cross-correlation of `a` and `v`.
-  """
-  return funcs_remove_unit_binary(jnp.correlate, a, v, mode=mode, precision=precision,
-                                  preferred_element_type=preferred_element_type)
-
-
-@set_module_as('brainunit.math')
-def cov(
-    m: Union[Array, Quantity],
-    y: Optional[Union[Array, Quantity]] = None,
-    rowvar: bool = True,
-    bias: bool = False,
-    ddof: Optional[int] = None,
-    fweights: Optional[jax.typing.ArrayLike] = None,
-    aweights: Optional[jax.typing.ArrayLike] = None
-) -> Array:
-  """
-  Estimate a covariance matrix, given data and weights.
-
-  Covariance indicates the level to which two variables vary together.
-  If we examine N-dimensional samples, :math:`X = [x_1, x_2, ... x_N]^T`,
-  then the covariance matrix element :math:`C_{ij}` is the covariance of
-  :math:`x_i` and :math:`x_j`. The element :math:`C_{ii}` is the variance
-  of :math:`x_i`.
-
-  See the notes for an outline of the algorithm.
-
-  Parameters
-  ----------
-  m : array_like, Quantity
-    A 1-D or 2-D array containing multiple variables and observations.
-    Each row of `m` represents a variable, and each column a single
-    observation of all those variables. Also see `rowvar` below.
-  y : array_like, Quantity or optional
-    An additional set of variables and observations. `y` has the same form
-    as that of `m`.
-  rowvar : bool, optional
-    If `rowvar` is True (default), then each row represents a
-    variable, with observations in the columns. Otherwise, the relationship
-    is transposed: each column represents a variable, while the rows
-    contain observations.
-  bias : bool, optional
-    Default normalization (False) is by ``(N - 1)``, where ``N`` is the
-    number of observations given (unbiased estimate). If `bias` is True,
-    then normalization is by ``N``. These values can be overridden by using
-    the keyword ``ddof`` in numpy versions >= 1.5.
-  ddof : int, optional
-    If not ``None`` the default value implied by `bias` is overridden.
-    Note that ``ddof=1`` will return the unbiased estimate, even if both
-    `fweights` and `aweights` are specified, and ``ddof=0`` will return
-    the simple average. See the notes for the details. The default value
-    is ``None``.
-  fweights : array_like, int, optional
-    1-D array of integer frequency weights; the number of times each
-    observation vector should be repeated.
-  aweights : array_like, optional
-    1-D array of observation vector weights. These relative weights are
-    typically large for observations considered "important" and smaller for
-    observations considered less "important". If ``ddof=0`` the array of
-    weights can be used to assign probabilities to observation vectors.
-
-  Returns
-  -------
-  out : ndarray
-    The covariance matrix of the variables.
-  """
-  return funcs_remove_unit_binary(jnp.cov, m, y, rowvar=rowvar, bias=bias, ddof=ddof, fweights=fweights,
-                                  aweights=aweights)
 
 
 @set_module_as('brainunit.math')
@@ -382,4 +154,14 @@ def digitize(
   indices : ndarray of ints
       Output array of indices, of same shape as `x`.
   """
-  return funcs_remove_unit_binary(jnp.digitize, x, bins, right=right)
+  if isinstance(x, Quantity) and isinstance(bins, Quantity):
+    fail_for_dimension_mismatch(x, bins, 'digitize requires x and bins to have the same dimension')
+    x = x.value
+    bins = bins.value
+  elif isinstance(x, Quantity):
+    assert x.is_unitless, f'Expected unitless Quantity when bins is not a Quantity, got {x}'
+    x = x.value
+  elif isinstance(bins, Quantity):
+    assert bins.is_unitless, f'Expected unitless Quantity when x is not a Quantity, got {bins}'
+    bins = bins.value
+  return jnp.digitize(x, bins, right=right)

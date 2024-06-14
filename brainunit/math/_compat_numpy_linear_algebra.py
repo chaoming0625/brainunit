@@ -24,7 +24,6 @@ from .._base import Quantity
 from .._misc import set_module_as
 
 __all__ = [
-
   # linear algebra
   'dot', 'vdot', 'inner', 'outer', 'kron', 'matmul', 'trace',
 

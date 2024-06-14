@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from typing import (Union, Sequence, Tuple)
+from typing import (Union, Sequence, Tuple, Optional)
 
 import jax
 import jax.numpy as jnp
 import numpy as np
 
-from .._base import Quantity, fail_for_dimension_mismatch
+from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS
 from .._misc import set_module_as
 
 __all__ = [
   # math funcs keep unit (unary)
   'real', 'imag', 'conj', 'conjugate', 'negative', 'positive',
-  'abs', 'round', 'around', 'round_', 'rint',
-  'floor', 'ceil', 'trunc', 'fix', 'sum', 'nancumsum', 'nansum',
+  'abs', 'sum', 'nancumsum', 'nansum',
   'cumsum', 'ediff1d', 'absolute', 'fabs', 'median',
   'nanmin', 'nanmax', 'ptp', 'average', 'mean', 'std',
   'nanmedian', 'nanmean', 'nanstd', 'diff', 'modf',
@@ -35,7 +34,7 @@ __all__ = [
   'maximum', 'minimum', 'fmax', 'fmin', 'lcm', 'gcd',
 
   # math funcs keep unit (n-ary)
-  'interp', 'clip',
+  'interp', 'clip', 'histogram',
 ]
 
 
@@ -176,178 +175,6 @@ def abs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
     Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.abs, x)
-
-
-@set_module_as('brainunit.math')
-def round_(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "round_".'
-    x = x.value
-  return jnp.round_(x)
-
-
-@set_module_as('brainunit.math')
-def around(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    decimals: int = 0,
-) -> jax.Array:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-  decimals : int, optional
-    Number of decimal places to round to (default is 0).
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "around".'
-    x = x.value
-  return jnp.around(x, decimals=decimals)
-
-
-@set_module_as('brainunit.math')
-def round(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    decimals: int = 0,
-) -> jax.Array:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-  decimals : int, optional
-    Number of decimal places to round to (default is 0).
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "round".'
-    x = x.value
-  return jnp.round(x, decimals=decimals)
-
-
-@set_module_as('brainunit.math')
-def rint(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "rint".'
-    x = x.value
-  return jnp.rint(x)
-
-
-@set_module_as('brainunit.math')
-def floor(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
-  """
-  Return the floor of the argument.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "floor".'
-    x = x.value
-  return jnp.floor(x)
-
-
-@set_module_as('brainunit.math')
-def ceil(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
-  """
-  Return the ceiling of the argument.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "ceil".'
-    x = x.value
-  return jnp.ceil(x)
-
-
-@set_module_as('brainunit.math')
-def trunc(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
-  """
-  Return the truncated value of the argument.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "trunc".'
-    x = x.value
-  return jnp.trunc(x)
-
-
-@set_module_as('brainunit.math')
-def fix(
-    x: Union[Quantity, jax.typing.ArrayLike],
-) -> jax.Array:
-  """
-  Return the nearest integer towards zero.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "fix".'
-    x = x.value
-  return jnp.fix(x)
 
 
 @set_module_as('brainunit.math')
@@ -1433,3 +1260,71 @@ def clip(
     fail_for_dimension_mismatch(a, a_max, 'a and a_max should have the same dimension.')
     a_max = a_max.value
   return funcs_keep_unit_unary(jnp.clip, a, a_min=a_min, a_max=a_max)
+
+
+@set_module_as('brainunit.math')
+def histogram(
+    x: Union[jax.Array, Quantity],
+    bins: jax.typing.ArrayLike = 10,
+    range: Optional[Sequence[jax.typing.ArrayLike | Quantity]] = None,
+    weights: Optional[jax.typing.ArrayLike] = None,
+    density: Optional[bool] = None
+) -> Tuple[jax.Array, jax.Array | Quantity]:
+  """
+  Compute the histogram of a set of data.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input data. The histogram is computed over the flattened array.
+  bins : int or sequence of scalars or str, optional
+    If `bins` is an int, it defines the number of equal-width
+    bins in the given range (10, by default). If `bins` is a
+    sequence, it defines a monotonically increasing array of bin edges,
+    including the rightmost edge, allowing for non-uniform bin widths.
+
+    If `bins` is a string, it defines the method used to calculate the
+    optimal bin width, as defined by `histogram_bin_edges`.
+  range : (float, float), (Quantity, Quantity) optional
+    The lower and upper range of the bins.  If not provided, range
+    is simply ``(a.min(), a.max())``.  Values outside the range are
+    ignored. The first element of the range must be less than or
+    equal to the second. `range` affects the automatic bin
+    computation as well. While bin width is computed to be optimal
+    based on the actual data within `range`, the bin count will fill
+    the entire range including portions containing no data.
+  weights : array_like, optional
+    An array of weights, of the same shape as `a`.  Each value in
+    `a` only contributes its associated weight towards the bin count
+    (instead of 1). If `density` is True, the weights are
+    normalized, so that the integral of the density over the range
+    remains 1.
+  density : bool, optional
+    If ``False``, the result will contain the number of samples in
+    each bin. If ``True``, the result is the value of the
+    probability *density* function at the bin, normalized such that
+    the *integral* over the range is 1. Note that the sum of the
+    histogram values will not be equal to 1 unless bins of unity
+    width are chosen; it is not a probability *mass* function.
+
+  Returns
+  -------
+  hist : array
+    The values of the histogram. See `density` and `weights` for a
+    description of the possible semantics.
+  bin_edges : array of dtype float
+    Return the bin edges ``(length(hist)+1)``.
+  """
+  dim = DIMENSIONLESS
+  if isinstance(x, Quantity):
+    x = x.value
+    dim = x.dim
+  if range is not None:
+    fail_for_dimension_mismatch(range[0], Quantity(0., dim=dim))
+    fail_for_dimension_mismatch(range[1], Quantity(0., dim=dim))
+    range = (range[0].value if isinstance(range[0], Quantity) else range[0],
+             range[1].value if isinstance(range[1], Quantity) else range[1])
+  hist, bin_edges = jnp.histogram(x, bins, range=range, weights=weights, density=density)
+  if dim == DIMENSIONLESS:
+    return hist, bin_edges
+  return hist, Quantity(bin_edges, dim=dim)

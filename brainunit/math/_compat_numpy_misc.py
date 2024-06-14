@@ -80,15 +80,47 @@ def iinfo(a: Union[Quantity, jax.typing.ArrayLike]) -> jnp.iinfo:
 # ----
 @set_module_as('brainunit.math')
 def broadcast_arrays(*args: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, list[Array]]:
+  """
+  Broadcast any number of arrays against each other.
+
+  Parameters
+  ----------
+  `*args` : array_likes
+      The arrays to broadcast.
+
+  Returns
+  -------
+  broadcasted : list of arrays
+      These arrays are views on the original arrays.  They are typically
+      not contiguous.  Furthermore, more than one element of a
+      broadcasted array may refer to a single memory location. If you need
+      to write to the arrays, make copies first. While you can set the
+      ``writable`` flag True, writing to a single output value may end up
+      changing more than one location in the output array.
+  """
   leaves, tree = jax.tree.flatten(args)
   leaves = jnp.broadcast_arrays(*leaves)
   return jax.tree.unflatten(tree, leaves)
 
 
-broadcast_shapes = jnp.broadcast_shapes
-
-
 @set_module_as('brainunit.math')
+def broadcast_shapes(*shapes):
+  """
+  Broadcast a sequence of array shapes.
+
+  Parameters
+  ----------
+  *shapes : tuple of ints
+      The shapes of the arrays to broadcast.
+
+  Returns
+  -------
+  broadcast_shape : tuple of ints
+      The shape of the broadcasted arrays.
+  """
+  return jnp.broadcast_shapes(*shapes)
+
+
 def einsum(
     subscripts: str,
     /,
