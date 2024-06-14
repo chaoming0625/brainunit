@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+from __future__ import annotations
+
 from typing import (Union, Any, Optional)
 
 import jax
@@ -24,7 +26,6 @@ from .._base import Quantity
 from .._misc import set_module_as
 
 __all__ = [
-
   # linear algebra
   'dot', 'vdot', 'inner', 'outer', 'kron', 'matmul', 'trace',
 

@@ -12,20 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from typing import (Union, Optional, Sequence)
+from __future__ import annotations
+
+from typing import (Union, Sequence, Tuple, Optional)
 
 import jax
 import jax.numpy as jnp
 import numpy as np
 
-from .._base import Quantity, fail_for_dimension_mismatch
+from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS
 from .._misc import set_module_as
 
 __all__ = [
   # math funcs keep unit (unary)
   'real', 'imag', 'conj', 'conjugate', 'negative', 'positive',
-  'abs', 'round', 'around', 'round_', 'rint',
-  'floor', 'ceil', 'trunc', 'fix', 'sum', 'nancumsum', 'nansum',
+  'abs', 'sum', 'nancumsum', 'nansum',
   'cumsum', 'ediff1d', 'absolute', 'fabs', 'median',
   'nanmin', 'nanmax', 'ptp', 'average', 'mean', 'std',
   'nanmedian', 'nanmean', 'nanstd', 'diff', 'modf',
@@ -35,7 +36,7 @@ __all__ = [
   'maximum', 'minimum', 'fmax', 'fmin', 'lcm', 'gcd',
 
   # math funcs keep unit (n-ary)
-  'interp', 'clip',
+  'interp', 'clip', 'histogram',
 ]
 
 
@@ -179,173 +180,12 @@ def abs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
 
 
 @set_module_as('brainunit.math')
-def round_(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array, Quantity
-    Quantity if `x` is a Quantity, else an array.
-  """
-  return funcs_keep_unit_unary(jnp.round_, x)
-
-
-@set_module_as('brainunit.math')
-def around(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    decimals: int = 0,
-    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None
-) -> Union[Quantity, jax.Array]:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-  decimals : int, optional
-    Number of decimal places to round to (default is 0).
-  out : array_like, Quantity, optional
-    Output array.
-
-  Returns
-  -------
-  out : jax.Array, Quantity
-    Quantity if `x` is a Quantity, else an array.
-  """
-  return funcs_keep_unit_unary(jnp.around, x)
-
-
-@set_module_as('brainunit.math')
-def round(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    decimals: int = 0,
-) -> Union[Quantity, jax.Array]:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-  decimals : int, optional
-    Number of decimal places to round to (default is 0).
-  out : array_like, Quantity, optional
-    Output array.
-
-  Returns
-  -------
-  out : jax.Array, Quantity
-    Quantity if `x` is a Quantity, else an array.
-  """
-  return funcs_keep_unit_unary(jnp.round, x, decimals=decimals)
-
-
-@set_module_as('brainunit.math')
-def rint(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array, Quantity
-    Quantity if `x` is a Quantity, else an array.
-  """
-  return funcs_keep_unit_unary(jnp.rint, x)
-
-
-@set_module_as('brainunit.math')
-def floor(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  """
-  Return the floor of the argument.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array, Quantity
-    Quantity if `x` is a Quantity, else an array.
-  """
-  return funcs_keep_unit_unary(jnp.floor, x)
-
-
-@set_module_as('brainunit.math')
-def ceil(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  """
-  Return the ceiling of the argument.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array, Quantity
-    Quantity if `x` is a Quantity, else an array.
-  """
-  return funcs_keep_unit_unary(jnp.ceil, x)
-
-
-@set_module_as('brainunit.math')
-def trunc(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
-  """
-  Return the truncated value of the argument.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array, Quantity
-    Quantity if `x` is a Quantity, else an array.
-  """
-  return funcs_keep_unit_unary(jnp.trunc, x)
-
-
-@set_module_as('brainunit.math')
-def fix(
-    x: Union[Quantity, jax.typing.ArrayLike],
-) -> Union[Quantity, jax.Array]:
-  """
-  Return the nearest integer towards zero.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array, Quantity
-    Quantity if `x` is a Quantity, else an array.
-  """
-  return funcs_keep_unit_unary(jnp.fix, x)
-
-
-@set_module_as('brainunit.math')
 def sum(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
     dtype: Union[jax.typing.DTypeLike, None] = None,
     keepdims: bool = False,
-    initial: Union[jax.typing.ArrayLike, None] = None,
+    initial: Union[jax.typing.ArrayLike, Quantity, None] = None,
     where: Union[jax.typing.ArrayLike, None] = None,
     promote_integers: bool = True
 ) -> Union[Quantity, jax.Array]:
@@ -393,9 +233,17 @@ def sum(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.sum, x,
-                               axis=axis, dtype=dtype, keepdims=keepdims, initial=initial,
-                               where=where, promote_integers=promote_integers)
+  if isinstance(initial, Quantity):
+    fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
+    initial = initial.value
+  return funcs_keep_unit_unary(jnp.sum,
+                               x,
+                               axis=axis,
+                               dtype=dtype,
+                               keepdims=keepdims,
+                               initial=initial,
+                               where=where,
+                               promote_integers=promote_integers)
 
 
 @set_module_as('brainunit.math')
@@ -435,7 +283,7 @@ def nansum(
     axis: Union[int, Sequence[int], None] = None,
     dtype: Union[jax.typing.DTypeLike, None] = None,
     keepdims: bool = False,
-    initial: Union[jax.typing.ArrayLike, None] = None,
+    initial: Union[jax.typing.ArrayLike, Quantity, None] = None,
     where: Union[jax.typing.ArrayLike, None] = None,
 ) -> Union[Quantity, jax.Array]:
   """
@@ -464,7 +312,7 @@ def nansum(
       `keepdims` will be passed through to the `mean` or `sum` methods
       of sub-classes of `ndarray`.  If the sub-classes methods
       does not implement `keepdims` any exceptions will be raised.
-  initial : scalar, optional
+  initial : scalar, Quantity, optional
       Starting value for the sum. See `~numpy.ufunc.reduce` for details.
   where : array_like of bool, optional
       Elements to include in the sum. See `~numpy.ufunc.reduce` for details.
@@ -474,8 +322,15 @@ def nansum(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nansum, x,
-                               axis=axis, dtype=dtype, keepdims=keepdims, initial=initial,
+  if isinstance(initial, Quantity):
+    fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
+    initial = initial.value
+  return funcs_keep_unit_unary(jnp.nansum,
+                               x,
+                               axis=axis,
+                               dtype=dtype,
+                               keepdims=keepdims,
+                               initial=initial,
                                where=where)
 
 
@@ -512,9 +367,9 @@ def cumsum(
 
 @set_module_as('brainunit.math')
 def ediff1d(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    to_end: jax.typing.ArrayLike = None,
-    to_begin: jax.typing.ArrayLike = None
+    x: Quantity | jax.typing.ArrayLike,
+    to_end: jax.typing.ArrayLike | Quantity = None,
+    to_begin: jax.typing.ArrayLike | Quantity = None
 ) -> Union[Quantity, jax.Array]:
   """
   Return the differences between consecutive elements of the array.
@@ -533,6 +388,12 @@ def ediff1d(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
+  if isinstance(to_end, Quantity):
+    fail_for_dimension_mismatch(x, to_end, 'to_end and x should have the same dimension.')
+    to_end = to_end.value
+  if isinstance(to_begin, Quantity):
+    fail_for_dimension_mismatch(x, to_begin, 'to_begin and x should have the same dimension.')
+    to_begin = to_begin.value
   return funcs_keep_unit_unary(jnp.ediff1d, x, to_end=to_end, to_begin=to_begin)
 
 
@@ -616,7 +477,7 @@ def nanmin(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
     keepdims: bool = False,
-    initial: Union[jax.typing.ArrayLike, None] = None,
+    initial: Union[jax.typing.ArrayLike, Quantity, None] = None,
     where: Union[jax.typing.ArrayLike, None] = None,
 ) -> Union[Quantity, jax.Array]:
   """
@@ -650,6 +511,9 @@ def nanmin(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
+  if isinstance(initial, Quantity):
+    fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
+    initial = initial.value
   return funcs_keep_unit_unary(jnp.nanmin, x, axis=axis, keepdims=keepdims, initial=initial, where=where)
 
 
@@ -692,6 +556,9 @@ def nanmax(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
+  if isinstance(initial, Quantity):
+    fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
+    initial = initial.value
   return funcs_keep_unit_unary(jnp.nanmax, x, axis=axis, keepdims=keepdims, initial=initial, where=where)
 
 
@@ -1033,9 +900,10 @@ def nanstd(
 @set_module_as('brainunit.math')
 def diff(
     x: Union[Quantity, jax.typing.ArrayLike],
-    n: int = 1, axis: int = -1,
-    prepend: Union[jax.typing.ArrayLike, None] = None,
-    append: Union[jax.typing.ArrayLike, None] = None
+    n: int = 1,
+    axis: int = -1,
+    prepend: Union[jax.typing.ArrayLike, Quantity, None] = None,
+    append: Union[jax.typing.ArrayLike, Quantity, None] = None
 ) -> Union[Quantity, jax.Array]:
   """
   Return the differences between consecutive elements of the array.
@@ -1062,13 +930,20 @@ def diff(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
+  if isinstance(prepend, Quantity):
+    fail_for_dimension_mismatch(x, prepend, 'diff requires the same dimension.')
+    prepend = prepend.value
+  if isinstance(append, Quantity):
+    fail_for_dimension_mismatch(x, append, 'diff requires the same dimension.')
+    append = append.value
+
   return funcs_keep_unit_unary(jnp.diff, x, n=n, axis=axis, prepend=prepend, append=append)
 
 
 @set_module_as('brainunit.math')
 def modf(
     x: Union[Quantity, jax.typing.ArrayLike],
-) -> Union[Quantity, jax.Array]:
+) -> Tuple[jax.Array, jax.Array]:
   """
   Return the fractional and integer parts of the array elements.
 
@@ -1079,10 +954,12 @@ def modf(
 
   Returns
   -------
-  out : jax.Array, Quantity
-    Quantity if `x` is a Quantity, else an array.
+  The fractional and integral parts of the input, both with the same dimension.
   """
-  return funcs_keep_unit_unary(jnp.modf, x)
+  if isinstance(x, Quantity):
+    assert x.is_unitless, 'modf requires a unitless Quantity.'
+    x = x.value
+  return jnp.modf(x)
 
 
 # math funcs keep unit (binary)
@@ -1093,7 +970,8 @@ def funcs_keep_unit_binary(
     x1, x2,
     *args,
     check_same_dim=True,
-    **kwargs):
+    **kwargs
+):
   if isinstance(x1, Quantity) and isinstance(x2, Quantity):
     if check_same_dim:
       fail_for_dimension_mismatch(x1, x2, func.__name__)
@@ -1148,7 +1026,8 @@ def mod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
 
 
 @set_module_as('brainunit.math')
-def copysign(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def copysign(x1: Union[Quantity, jax.Array],
+             x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
   """
   Return a copy of the first array elements with the sign of the second array.
 
@@ -1164,7 +1043,8 @@ def copysign(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> 
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  return funcs_keep_unit_binary(jnp.copysign, x1, x2)
+  x2 = x2.value if isinstance(x2, Quantity) else x2
+  return funcs_keep_unit_unary(jnp.copysign, x1, x2)
 
 
 @set_module_as('brainunit.math')
@@ -1190,7 +1070,8 @@ def heaviside(x1: Union[Quantity, jax.Array],
 
 
 @set_module_as('brainunit.math')
-def maximum(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def maximum(x1: Union[Quantity, jax.Array],
+            x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
   """
   Element-wise maximum of array elements.
 
@@ -1210,7 +1091,8 @@ def maximum(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> U
 
 
 @set_module_as('brainunit.math')
-def minimum(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def minimum(x1: Union[Quantity, jax.Array],
+            x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
   """
   Element-wise minimum of array elements.
 
@@ -1230,7 +1112,8 @@ def minimum(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> U
 
 
 @set_module_as('brainunit.math')
-def fmax(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def fmax(x1: Union[Quantity, jax.Array],
+         x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
   """
   Element-wise maximum of array elements ignoring NaNs.
 
@@ -1250,7 +1133,8 @@ def fmax(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Unio
 
 
 @set_module_as('brainunit.math')
-def fmin(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def fmin(x1: Union[Quantity, jax.Array],
+         x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
   """
   Element-wise minimum of array elements ignoring NaNs.
 
@@ -1270,7 +1154,8 @@ def fmin(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Unio
 
 
 @set_module_as('brainunit.math')
-def lcm(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def lcm(x1: Union[Quantity, jax.Array],
+        x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
   """
   Return the least common multiple of `x1` and `x2`.
 
@@ -1290,7 +1175,8 @@ def lcm(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
 
 
 @set_module_as('brainunit.math')
-def gcd(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def gcd(x1: Union[Quantity, jax.Array],
+        x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
   """
   Return the greatest common divisor of `x1` and `x2`.
 
@@ -1334,22 +1220,22 @@ def interp(
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x`, `xp`, and `fp` are Quantities that have the same unit, else an array.
   """
-  if isinstance(x, Quantity) and isinstance(xp, Quantity) and isinstance(fp, Quantity):
-    fail_for_dimension_mismatch(x, xp)
-    fail_for_dimension_mismatch(x, fp)
-    unit = x.dim
-    if isinstance(left, Quantity):
-      fail_for_dimension_mismatch(x, left)
-      left = left.value
-    if isinstance(right, Quantity):
-      fail_for_dimension_mismatch(x, right)
-      right = right.value
-    if isinstance(period, Quantity):
-      fail_for_dimension_mismatch(x, period)
-      period = period.value
-    return Quantity(jnp.interp(x.value, xp.value, fp.value, left, right, period), dim=unit)
-  else:
-    return jnp.interp(x, xp, fp, left, right, period)
+  if isinstance(xp, Quantity):
+    fail_for_dimension_mismatch(x, xp, 'xp and x should have the same dimension.')
+    xp = xp.value
+  if isinstance(fp, Quantity):
+    fail_for_dimension_mismatch(x, fp, 'fp and x should have the same dimension.')
+    fp = fp.value
+  if isinstance(left, Quantity):
+    fail_for_dimension_mismatch(x, left)
+    left = left.value
+  if isinstance(right, Quantity):
+    fail_for_dimension_mismatch(x, right)
+    right = right.value
+  if isinstance(period, Quantity):
+    fail_for_dimension_mismatch(x, period)
+    period = period.value
+  return funcs_keep_unit_unary(jnp.interp, x, xp=xp, fp=fp, left=left, right=right, period=period)
 
 
 @set_module_as('brainunit.math')
@@ -1369,11 +1255,78 @@ def clip(
   Returns:
     Union[jax.Array, Quantity]: Quantity if `a`, `a_min`, and `a_max` are Quantities that have the same unit, else an array.
   """
-  unit = None
-  if isinstance(a, Quantity) and isinstance(a_min, Quantity) and isinstance(a_max, Quantity):
-    fail_for_dimension_mismatch(a, a_min)
-    fail_for_dimension_mismatch(a, a_max)
-    unit = a.dim
-    return Quantity(jnp.clip(a.value, a_min.value, a_max.value), dim=unit)
-  else:
-    return jnp.clip(a, a_min, a_max)
+  if isinstance(a_min, Quantity):
+    fail_for_dimension_mismatch(a, a_min, 'a and a_min should have the same dimension.')
+    a_min = a_min.value
+  if isinstance(a_max, Quantity):
+    fail_for_dimension_mismatch(a, a_max, 'a and a_max should have the same dimension.')
+    a_max = a_max.value
+  return funcs_keep_unit_unary(jnp.clip, a, a_min=a_min, a_max=a_max)
+
+
+@set_module_as('brainunit.math')
+def histogram(
+    x: Union[jax.Array, Quantity],
+    bins: jax.typing.ArrayLike = 10,
+    range: Optional[Sequence[jax.typing.ArrayLike | Quantity]] = None,
+    weights: Optional[jax.typing.ArrayLike] = None,
+    density: Optional[bool] = None
+) -> Tuple[jax.Array, jax.Array | Quantity]:
+  """
+  Compute the histogram of a set of data.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input data. The histogram is computed over the flattened array.
+  bins : int or sequence of scalars or str, optional
+    If `bins` is an int, it defines the number of equal-width
+    bins in the given range (10, by default). If `bins` is a
+    sequence, it defines a monotonically increasing array of bin edges,
+    including the rightmost edge, allowing for non-uniform bin widths.
+
+    If `bins` is a string, it defines the method used to calculate the
+    optimal bin width, as defined by `histogram_bin_edges`.
+  range : (float, float), (Quantity, Quantity) optional
+    The lower and upper range of the bins.  If not provided, range
+    is simply ``(a.min(), a.max())``.  Values outside the range are
+    ignored. The first element of the range must be less than or
+    equal to the second. `range` affects the automatic bin
+    computation as well. While bin width is computed to be optimal
+    based on the actual data within `range`, the bin count will fill
+    the entire range including portions containing no data.
+  weights : array_like, optional
+    An array of weights, of the same shape as `a`.  Each value in
+    `a` only contributes its associated weight towards the bin count
+    (instead of 1). If `density` is True, the weights are
+    normalized, so that the integral of the density over the range
+    remains 1.
+  density : bool, optional
+    If ``False``, the result will contain the number of samples in
+    each bin. If ``True``, the result is the value of the
+    probability *density* function at the bin, normalized such that
+    the *integral* over the range is 1. Note that the sum of the
+    histogram values will not be equal to 1 unless bins of unity
+    width are chosen; it is not a probability *mass* function.
+
+  Returns
+  -------
+  hist : array
+    The values of the histogram. See `density` and `weights` for a
+    description of the possible semantics.
+  bin_edges : array of dtype float
+    Return the bin edges ``(length(hist)+1)``.
+  """
+  dim = DIMENSIONLESS
+  if isinstance(x, Quantity):
+    dim = x.dim
+    x = x.value
+  if range is not None:
+    fail_for_dimension_mismatch(range[0], Quantity(0., dim=dim))
+    fail_for_dimension_mismatch(range[1], Quantity(0., dim=dim))
+    range = (range[0].value if isinstance(range[0], Quantity) else range[0],
+             range[1].value if isinstance(range[1], Quantity) else range[1])
+  hist, bin_edges = jnp.histogram(x, bins, range=range, weights=weights, density=density)
+  if dim == DIMENSIONLESS:
+    return hist, bin_edges
+  return hist, Quantity(bin_edges, dim=dim)

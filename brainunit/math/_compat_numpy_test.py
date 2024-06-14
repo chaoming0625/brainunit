@@ -372,7 +372,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     result = bu.math.round(array)
     self.assertTrue(jnp.all(result == jnp.round(array)))
 
-    q = [1.123, 2.567, 3.891] * bu.second
+    q = bu.Quantity([1.123, 2.567, 3.891], bu.second)
     result_q = bu.math.round(q)
     expected_q = jnp.round(jnp.array([1.123, 2.567, 3.891])) * bu.second
     assert_quantity(result_q, expected_q.value, bu.second)
@@ -382,7 +382,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     result = bu.math.rint(array)
     self.assertTrue(jnp.all(result == jnp.rint(array)))
 
-    q = [1.5, 2.3, 3.8] * bu.second
+    q = bu.Quantity([1.5, 2.3, 3.8], bu.second)
     result_q = bu.math.rint(q)
     expected_q = jnp.rint(jnp.array([1.5, 2.3, 3.8])) * bu.second
     assert_quantity(result_q, expected_q.value, bu.second)
@@ -392,40 +392,40 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     result = bu.math.floor(array)
     self.assertTrue(jnp.all(result == jnp.floor(array)))
 
-    q = [1.5, 2.3, 3.8] * bu.second
+    q = bu.Quantity([1.5, 2.3, 3.8], bu.second)
     result_q = bu.math.floor(q)
-    expected_q = jnp.floor(jnp.array([1.5, 2.3, 3.8])) * bu.second
-    assert_quantity(result_q, expected_q.value, bu.second)
+    expected_q = jnp.floor(jnp.array([1.5, 2.3, 3.8]))
+    assert_quantity(result_q, expected_q, bu.second)
 
   def test_ceil(self):
     array = jnp.array([1.5, 2.3, 3.8])
     result = bu.math.ceil(array)
     self.assertTrue(jnp.all(result == jnp.ceil(array)))
 
-    q = [1.5, 2.3, 3.8] * bu.second
+    q = bu.Quantity([1.5, 2.3, 3.8])
     result_q = bu.math.ceil(q)
-    expected_q = jnp.ceil(jnp.array([1.5, 2.3, 3.8])) * bu.second
-    assert_quantity(result_q, expected_q.value, bu.second)
+    expected_q = jnp.ceil(jnp.array([1.5, 2.3, 3.8]))
+    assert_quantity(result_q, expected_q, bu.second)
 
   def test_trunc(self):
     array = jnp.array([1.5, 2.3, 3.8])
     result = bu.math.trunc(array)
     self.assertTrue(jnp.all(result == jnp.trunc(array)))
 
-    q = [1.5, 2.3, 3.8] * bu.second
+    q = bu.Quantity([1.5, 2.3, 3.8])
     result_q = bu.math.trunc(q)
-    expected_q = jnp.trunc(jnp.array([1.5, 2.3, 3.8])) * bu.second
-    assert_quantity(result_q, expected_q.value, bu.second)
+    expected_q = jnp.trunc(jnp.array([1.5, 2.3, 3.8]))
+    assert_quantity(result_q, expected_q, bu.second)
 
   def test_fix(self):
     array = jnp.array([1.5, 2.3, 3.8])
     result = bu.math.fix(array)
     self.assertTrue(jnp.all(result == jnp.fix(array)))
 
-    q = [1.5, 2.3, 3.8] * bu.second
+    q = bu.Quantity([1.5, 2.3, 3.8])
     result_q = bu.math.fix(q)
-    expected_q = jnp.fix(jnp.array([1.5, 2.3, 3.8])) * bu.second
-    assert_quantity(result_q, expected_q.value, bu.second)
+    expected_q = jnp.fix(jnp.array([1.5, 2.3, 3.8]))
+    assert_quantity(result_q, expected_q, bu.second)
 
   def test_sum(self):
     array = jnp.array([1, 2, 3])
@@ -1243,11 +1243,12 @@ class TestMathFuncsRemoveUnitBinary(unittest.TestCase):
     result = bu.math.corrcoef(x, y)
     self.assertTrue(jnp.all(result == jnp.corrcoef(x, y)))
 
-    x = [1, 2, 3] * bu.second
-    y = [4, 5, 6] * bu.second
-    result = bu.math.corrcoef(x, y)
-    expected = jnp.corrcoef(jnp.array([1, 2, 3]), jnp.array([4, 5, 6]))
-    assert_quantity(result, expected, None)
+    with pytest.raises(AssertionError):
+      x = [1, 2, 3] * bu.second
+      y = [4, 5, 6] * bu.second
+      result = bu.math.corrcoef(x, y)
+      expected = jnp.corrcoef(jnp.array([1, 2, 3]), jnp.array([4, 5, 6]))
+      assert_quantity(result, expected, None)
 
   def test_correlate(self):
     x = jnp.array([1, 2, 3])
@@ -1255,11 +1256,12 @@ class TestMathFuncsRemoveUnitBinary(unittest.TestCase):
     result = bu.math.correlate(x, y)
     self.assertTrue(jnp.all(result == jnp.correlate(x, y)))
 
-    x = [1, 2, 3] * bu.second
-    y = [0, 1, 0.5] * bu.second
-    result = bu.math.correlate(x, y)
-    expected = jnp.correlate(jnp.array([1, 2, 3]), jnp.array([0, 1, 0.5]))
-    assert_quantity(result, expected, None)
+    with pytest.raises(AssertionError):
+      x = [1, 2, 3] * bu.second
+      y = [0, 1, 0.5] * bu.second
+      result = bu.math.correlate(x, y)
+      expected = jnp.correlate(jnp.array([1, 2, 3]), jnp.array([0, 1, 0.5]))
+      assert_quantity(result, expected, None)
 
   def test_cov(self):
     x = jnp.array([1, 2, 3])
@@ -1267,11 +1269,12 @@ class TestMathFuncsRemoveUnitBinary(unittest.TestCase):
     result = bu.math.cov(x, y)
     self.assertTrue(jnp.all(result == jnp.cov(x, y)))
 
-    x = [1, 2, 3] * bu.second
-    y = [4, 5, 6] * bu.second
-    result = bu.math.cov(x, y)
-    expected = jnp.cov(jnp.array([1, 2, 3]), jnp.array([4, 5, 6]))
-    assert_quantity(result, expected, None)
+    with pytest.raises(AssertionError):
+      x = [1, 2, 3] * bu.second
+      y = [4, 5, 6] * bu.second
+      result = bu.math.cov(x, y)
+      expected = jnp.cov(jnp.array([1, 2, 3]), jnp.array([4, 5, 6]))
+      assert_quantity(result, expected, None)
 
   def test_digitize(self):
     array = jnp.array([0.2, 6.4, 3.0, 1.6])

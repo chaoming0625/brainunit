@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+from __future__ import annotations
 
-from typing import (Union, Optional, Tuple)
+from typing import (Union, Optional, Tuple, Any)
 
 import jax
 import jax.numpy as jnp
@@ -32,6 +33,10 @@ __all__ = [
 
   # math funcs only accept unitless (binary)
   'hypot', 'arctan2', 'logaddexp', 'logaddexp2',
+
+  'round', 'around', 'round_', 'rint',
+  'floor', 'ceil', 'trunc', 'fix',
+  'corrcoef', 'correlate', 'cov',
 ]
 
 
@@ -843,5 +848,348 @@ def nanquantile(
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(jnp.nanquantile, a, q, axis=axis, out=out, overwrite_input=overwrite_input,
+  return funcs_only_accept_unitless_binary(jnp.nanquantile, a, q,
+                                           axis=axis, out=out, overwrite_input=overwrite_input,
                                            method=method, keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def round_(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  if isinstance(x, Quantity):
+    assert x.is_unitless, 'Input should be unitless for the function "round_".'
+    x = x.value
+  return jnp.round_(x)
+
+
+@set_module_as('brainunit.math')
+def around(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    decimals: int = 0,
+) -> jax.Array:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  decimals : int, optional
+    Number of decimal places to round to (default is 0).
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  if isinstance(x, Quantity):
+    assert x.is_unitless, 'Input should be unitless for the function "around".'
+    x = x.value
+  return jnp.around(x, decimals=decimals)
+
+
+@set_module_as('brainunit.math')
+def round(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    decimals: int = 0,
+) -> jax.Array:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  decimals : int, optional
+    Number of decimal places to round to (default is 0).
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  if isinstance(x, Quantity):
+    assert x.is_unitless, 'Input should be unitless for the function "round".'
+    x = x.value
+  return jnp.round(x, decimals=decimals)
+
+
+@set_module_as('brainunit.math')
+def rint(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  if isinstance(x, Quantity):
+    assert x.is_unitless, 'Input should be unitless for the function "rint".'
+    x = x.value
+  return jnp.rint(x)
+
+
+@set_module_as('brainunit.math')
+def floor(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+  """
+  Return the floor of the argument.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  if isinstance(x, Quantity):
+    assert x.is_unitless, 'Input should be unitless for the function "floor".'
+    x = x.value
+  return jnp.floor(x)
+
+
+@set_module_as('brainunit.math')
+def ceil(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+  """
+  Return the ceiling of the argument.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  if isinstance(x, Quantity):
+    assert x.is_unitless, 'Input should be unitless for the function "ceil".'
+    x = x.value
+  return jnp.ceil(x)
+
+
+@set_module_as('brainunit.math')
+def trunc(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+  """
+  Return the truncated value of the argument.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  if isinstance(x, Quantity):
+    assert x.is_unitless, 'Input should be unitless for the function "trunc".'
+    x = x.value
+  return jnp.trunc(x)
+
+
+@set_module_as('brainunit.math')
+def fix(
+    x: Union[Quantity, jax.typing.ArrayLike],
+) -> jax.Array:
+  """
+  Return the nearest integer towards zero.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  if isinstance(x, Quantity):
+    assert x.is_unitless, 'Input should be unitless for the function "fix".'
+    x = x.value
+  return jnp.fix(x)
+
+
+@set_module_as('brainunit.math')
+def corrcoef(
+    x: Union[Array, Quantity],
+    y: Union[Array, Quantity],
+    rowvar: bool = True
+) -> Array:
+  """
+  Return Pearson product-moment correlation coefficients.
+
+  Please refer to the documentation for `cov` for more detail.  The
+  relationship between the correlation coefficient matrix, `R`, and the
+  covariance matrix, `C`, is
+
+  .. math:: R_{ij} = \\frac{ C_{ij} } { \\sqrt{ C_{ii} C_{jj} } }
+
+  The values of `R` are between -1 and 1, inclusive.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    A 1-D or 2-D array containing multiple variables and observations.
+    Each row of `x` represents a variable, and each column a single
+    observation of all those variables. Also see `rowvar` below.
+  y : array_like, Quantity, optional
+    An additional set of variables and observations. `y` has the same
+    shape as `x`.
+  rowvar : bool, optional
+    If `rowvar` is True (default), then each row represents a
+    variable, with observations in the columns. Otherwise, the relationship
+    is transposed: each column represents a variable, while the rows
+    contain observations.
+
+  Returns
+  -------
+  R : ndarray
+    The correlation coefficient matrix of the variables.
+  """
+  if isinstance(x, Quantity):
+    assert x.is_unitless, 'Input should be unitless for the function "corrcoef".'
+    x = x.value
+  if isinstance(y, Quantity):
+    assert y.is_unitless, 'Input should be unitless for the function "corrcoef".'
+    y = y.value
+  return jnp.corrcoef(x, y, rowvar=rowvar)
+
+
+@set_module_as('brainunit.math')
+def correlate(
+    a: Union[Array, Quantity],
+    v: Union[Array, Quantity],
+    mode: str = 'valid',
+    *,
+    precision: Any = None,
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
+) -> Array:
+  """
+  Cross-correlation of two 1-dimensional sequences.
+
+  This function computes the correlation as generally defined in signal
+  processing texts:
+
+  .. math:: c_k = \sum_n a_{n+k} \cdot \overline{v}_n
+
+  with a and v sequences being zero-padded where necessary and
+  :math:`\overline x` denoting complex conjugation.
+
+  Parameters
+  ----------
+  a, v : array_like, Quantity
+    Input sequences.
+  mode : {'valid', 'same', 'full'}, optional
+    Refer to the `convolve` docstring.  Note that the default
+    is 'valid', unlike `convolve`, which uses 'full'.
+  precision : Optional. Either ``None``, which means the default precision for
+    the backend, a :class:`~jax.lax.Precision` enum value
+    (``Precision.DEFAULT``, ``Precision.HIGH`` or ``Precision.HIGHEST``), a
+    string (e.g. 'highest' or 'fastest', see the
+    ``jax.default_matmul_precision`` context manager), or a tuple of two
+    :class:`~jax.lax.Precision` enums or strings indicating precision of
+    ``lhs`` and ``rhs``.
+  preferred_element_type : Optional. Either ``None``, which means the default
+    accumulation type for the input types, or a datatype, indicating to
+    accumulate results to and return a result with that datatype.
+
+  Returns
+  -------
+  out : ndarray
+    Discrete cross-correlation of `a` and `v`.
+  """
+  if isinstance(a, Quantity):
+    assert a.is_unitless, 'Input should be unitless for the function "correlate".'
+    a = a.value
+  if isinstance(v, Quantity):
+    assert v.is_unitless, 'Input should be unitless for the function "correlate".'
+    v = v.value
+  return jnp.correlate(a, v, mode=mode, precision=precision,
+                       preferred_element_type=preferred_element_type)
+
+
+@set_module_as('brainunit.math')
+def cov(
+    m: Union[Array, Quantity],
+    y: Optional[Union[Array, Quantity]] = None,
+    rowvar: bool = True,
+    bias: bool = False,
+    ddof: Optional[int] = None,
+    fweights: Optional[jax.typing.ArrayLike] = None,
+    aweights: Optional[jax.typing.ArrayLike] = None
+) -> Array:
+  """
+  Estimate a covariance matrix, given data and weights.
+
+  Covariance indicates the level to which two variables vary together.
+  If we examine N-dimensional samples, :math:`X = [x_1, x_2, ... x_N]^T`,
+  then the covariance matrix element :math:`C_{ij}` is the covariance of
+  :math:`x_i` and :math:`x_j`. The element :math:`C_{ii}` is the variance
+  of :math:`x_i`.
+
+  See the notes for an outline of the algorithm.
+
+  Parameters
+  ----------
+  m : array_like, Quantity
+    A 1-D or 2-D array containing multiple variables and observations.
+    Each row of `m` represents a variable, and each column a single
+    observation of all those variables. Also see `rowvar` below.
+  y : array_like, Quantity or optional
+    An additional set of variables and observations. `y` has the same form
+    as that of `m`.
+  rowvar : bool, optional
+    If `rowvar` is True (default), then each row represents a
+    variable, with observations in the columns. Otherwise, the relationship
+    is transposed: each column represents a variable, while the rows
+    contain observations.
+  bias : bool, optional
+    Default normalization (False) is by ``(N - 1)``, where ``N`` is the
+    number of observations given (unbiased estimate). If `bias` is True,
+    then normalization is by ``N``. These values can be overridden by using
+    the keyword ``ddof`` in numpy versions >= 1.5.
+  ddof : int, optional
+    If not ``None`` the default value implied by `bias` is overridden.
+    Note that ``ddof=1`` will return the unbiased estimate, even if both
+    `fweights` and `aweights` are specified, and ``ddof=0`` will return
+    the simple average. See the notes for the details. The default value
+    is ``None``.
+  fweights : array_like, int, optional
+    1-D array of integer frequency weights; the number of times each
+    observation vector should be repeated.
+  aweights : array_like, optional
+    1-D array of observation vector weights. These relative weights are
+    typically large for observations considered "important" and smaller for
+    observations considered less "important". If ``ddof=0`` the array of
+    weights can be used to assign probabilities to observation vectors.
+
+  Returns
+  -------
+  out : ndarray
+    The covariance matrix of the variables.
+  """
+  if isinstance(m, Quantity):
+    assert m.is_unitless, 'Input should be unitless for the function "cov".'
+    m = m.value
+  if isinstance(y, Quantity):
+    assert y.is_unitless, 'Input should be unitless for the function "cov".'
+    y = y.value
+  return jnp.cov(m, y,
+                 rowvar=rowvar, bias=bias, ddof=ddof, fweights=fweights,
+                 aweights=aweights)

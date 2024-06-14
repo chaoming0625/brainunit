@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+from __future__ import annotations
+
 from typing import (Union)
 
-import jax
 import jax.numpy as jnp
-import numpy as np
 from jax import Array
 
 from .._base import (Quantity,
@@ -35,22 +35,16 @@ __all__ = [
 
 def funcs_match_unit_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    fail_for_dimension_mismatch(x, y)
+    fail_for_dimension_mismatch(x, y, func.__name__)
     return Quantity(func(x.value, y.value, *args, **kwargs), dim=x.dim)
-  elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
-    return func(x, y, *args, **kwargs)
   elif isinstance(x, Quantity):
-    if x.is_unitless:
-      return Quantity(func(x.value, y, *args, **kwargs), dim=x.dim)
-    else:
-      raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
+    assert x.is_unitless, f'Expected unitless Quantity when y is not a Quantity, got {x}'
+    return func(x.value, y, *args, **kwargs)
   elif isinstance(y, Quantity):
-    if y.is_unitless:
-      return Quantity(func(x, y.value, *args, **kwargs), dim=y.dim)
-    else:
-      raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
+    assert y.is_unitless, f'Expected unitless Quantity when x is not a Quantity, got {y}'
+    return func(x, y.value, *args, **kwargs)
   else:
-    raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
+    return func(x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -61,9 +55,6 @@ def add(
     **kwargs
 ) -> Union[Quantity, Array]:
   """
-  add(x1, x2, /, out=None, *, where=True, casting='same_kind',
-  order='K', dtype=None, subok=True[, signature, extobj])
-
   Add arguments element-wise.
 
   Parameters
@@ -72,11 +63,6 @@ def add(
     The arrays to be added.
     If ``x.shape != y.shape``, they must be broadcastable to a common
     shape (which becomes the shape of the output).
-  out : ndarray, None, or tuple of ndarray and None, optional
-    A location into which the result is stored. If provided, it must have
-    a shape that the inputs broadcast to. If not provided or None,
-    a freshly-allocated array is returned. A tuple (possible only as a
-    keyword argument) must have length equal to the number of outputs.
   where : array_like, optional
     This condition is broadcast over the input. At locations where the
     condition is True, the `out` array will be set to the ufunc result.
@@ -116,11 +102,6 @@ def subtract(
     The arrays to be subtracted from each other.
     If ``x.shape != y.shape``, they must be broadcastable to a common
     shape (which becomes the shape of the output).
-  out : ndarray, None, or tuple of ndarray and None, optional
-    A location into which the result is stored. If provided, it must have
-    a shape that the inputs broadcast to. If not provided or None,
-    a freshly-allocated array is returned. A tuple (possible only as a
-    keyword argument) must have length equal to the number of outputs.
   where : array_like, optional
     This condition is broadcast over the input. At locations where the
     condition is True, the `out` array will be set to the ufunc result.
@@ -162,11 +143,6 @@ def nextafter(
     The direction where to look for the next representable value of `x`.
     If ``x.shape != y.shape``, they must be broadcastable to a common
     shape (which becomes the shape of the output).
-  out : ndarray, None, or tuple of ndarray and None, optional
-    A location into which the result is stored. If provided, it must have
-    a shape that the inputs broadcast to. If not provided or None,
-    a freshly-allocated array is returned. A tuple (possible only as a
-    keyword argument) must have length equal to the number of outputs.
   where : array_like, optional
     This condition is broadcast over the input. At locations where the
     condition is True, the `out` array will be set to the ufunc result.

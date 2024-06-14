@@ -21,7 +21,7 @@ import jax.numpy as jnp
 import numpy as np
 from jax import Array
 
-from .._base import (Quantity, fail_for_dimension_mismatch)
+from .._base import (Quantity, DIMENSIONLESS, fail_for_dimension_mismatch)
 from .._misc import set_module_as
 
 __all__ = [
@@ -169,6 +169,12 @@ def logic_func_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     fail_for_dimension_mismatch(x, y)
     return func(x.value, y.value, *args, **kwargs)
+  elif isinstance(x, Quantity):
+    assert x.is_unitless, f'Expected unitless array when y is not Quantity, while got {x}'
+    return func(x.value, y, *args, **kwargs)
+  elif isinstance(y, Quantity):
+    assert y.is_unitless, f'Expected unitless array when x is not Quantity, while got {y}'
+    return func(x, y.value, *args, **kwargs)
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
     return func(x, y, *args, **kwargs)
   else:
@@ -476,8 +482,8 @@ def array_equal(
 def isclose(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike],
-    rtol: float = 1e-05,
-    atol: float = 1e-08,
+    rtol: float | Quantity = 1e-05,
+    atol: float | Quantity = 1e-08,
     equal_nan: bool = False
 ) -> Union[bool, Array]:
   """
@@ -493,9 +499,9 @@ def isclose(
   ----------
   x, y : array_like, Quantity
     Input arrays to compare.
-  rtol : float
+  rtol : float, Quantity
     The relative tolerance parameter (see Notes).
-  atol : float
+  atol : float, Quantity
     The absolute tolerance parameter (see Notes).
   equal_nan : bool
     Whether to compare NaN's as equal.  If True, NaN's in `a` will be
@@ -508,14 +514,19 @@ def isclose(
     given tolerance. If both `a` and `b` are scalars, returns a single
     boolean value.
   """
+  dim = DIMENSIONLESS
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     fail_for_dimension_mismatch(x, y)
-    if rtol is None:
-      rtol = (1e-05 / x.dim.value[0])
-    if atol is None:
-      atol = (1e-08 / x.dim.value[0])
-    return jnp.isclose(x.value, y.value, rtol=rtol, atol=atol, equal_nan=equal_nan)
-  return jnp.isclose(x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
+    dim = x.dim
+  elif isinstance(x, Quantity):
+    assert x.is_unitless, f'Expected unitless array when y is not Quantity, while got {x}'
+  elif isinstance(y, Quantity):
+    assert y.is_unitless, f'Expected unitless array when x is not Quantity, while got {y}'
+  if isinstance(rtol, Quantity):
+    fail_for_dimension_mismatch(rtol, Quantity(0., dim=dim), 'rtol should be a Quantity with {dim}.', dim=dim)
+  if isinstance(atol, Quantity):
+    fail_for_dimension_mismatch(atol, Quantity(0., dim=dim), 'atol should be a Quantity with {dim}.', dim=dim)
+  return logic_func_binary(jnp.isclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @set_module_as('brainunit.math')
@@ -556,15 +567,19 @@ def allclose(
     Returns True if the two arrays are equal within the given
     tolerance; False otherwise.
   """
+  dim = DIMENSIONLESS
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     fail_for_dimension_mismatch(x, y)
-    if rtol is None:
-      rtol = (1e-05 / x.dim.value[0])
-    if atol is None:
-      atol = (1e-08 / x.dim.value[0])
-    return jnp.allclose(x.value, y.value, rtol=rtol, atol=atol, equal_nan=equal_nan)
-  else:
-    return jnp.allclose(x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
+    dim = x.dim
+  elif isinstance(x, Quantity):
+    assert x.is_unitless, f'Expected unitless array when y is not Quantity, while got {x}'
+  elif isinstance(y, Quantity):
+    assert y.is_unitless, f'Expected unitless array when x is not Quantity, while got {y}'
+  if isinstance(rtol, Quantity):
+    fail_for_dimension_mismatch(rtol, Quantity(0., dim=dim), 'rtol should be a Quantity with {dim}.', dim=dim)
+  if isinstance(atol, Quantity):
+    fail_for_dimension_mismatch(atol, Quantity(0., dim=dim), 'atol should be a Quantity with {dim}.', dim=dim)
+  return logic_func_binary(jnp.allclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @set_module_as('brainunit.math')
@@ -573,8 +588,7 @@ def logical_and(
     y: Union[Quantity, jax.typing.ArrayLike],
     *args,
     **kwargs
-) -> Union[
-  bool, Array]:
+) -> Union[bool, Array]:
   """
   logical_and(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
@@ -618,8 +632,7 @@ def logical_or(
     y: Union[Quantity, jax.typing.ArrayLike],
     *args,
     **kwargs
-) -> Union[
-  bool, Array]:
+) -> Union[bool, Array]:
   """
   logical_or(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
@@ -663,8 +676,7 @@ def logical_xor(
     y: Union[Quantity, jax.typing.ArrayLike],
     *args,
     **kwargs
-) -> Union[
-  bool, Array]:
+) -> Union[bool, Array]:
   """
   logical_xor(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
