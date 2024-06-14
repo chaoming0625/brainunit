@@ -1668,6 +1668,7 @@ def test_jit_array():
   @jax.jit
   def f1(a):
     b = a * bu.siemens / bu.cm ** 2
+    print(b)
     return b
 
   val = np.random.rand(3)
@@ -1682,3 +1683,15 @@ def test_jit_array():
   val = np.random.rand(3) * bu.siemens / bu.cm ** 2
   r = f2(val)
   bu.math.allclose(val + 1 * bu.siemens / bu.cm ** 2, r)
+
+
+def test_jit_array2():
+  a = 2.0 * (bu.farad / bu.metre ** 2)
+  print(a)
+
+  @jax.jit
+  def f(b):
+    print(b)
+    return b
+
+  f(a)

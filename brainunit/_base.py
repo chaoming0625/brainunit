@@ -51,6 +51,17 @@ __all__ = [
 _all_slice = slice(None, None, None)
 _unit_checking = True
 _allow_python_scalar_value = False
+_auto_register_unit = True
+
+
+@contextmanager
+def turn_off_auto_unit_register():
+  try:
+    global _auto_register_unit
+    _auto_register_unit = False
+    yield
+  finally:
+    _auto_register_unit = True
 
 
 @contextmanager
@@ -945,7 +956,8 @@ class Quantity(object):
   ):
     scale, dim = _get_dim(dim, unit)
 
-    if isinstance(value, numbers.Number) and _allow_python_scalar_value:
+    # always allow python scalar
+    if isinstance(value, numbers.Number):
       self._dim = dim
       self._value = (value if scale is None else (value * scale))
       return
@@ -1021,11 +1033,11 @@ class Quantity(object):
     else:
       value = jnp.asarray(value, dtype=self.dtype)
     # check
-    if value.shape != self_value.shape:
-      raise ValueError(f"The shape of the original data is {self_value.shape}, "
+    if value.shape != jnp.shape(self_value):
+      raise ValueError(f"The shape of the original data is {jnp.shape(self_value)}, "
                        f"while we got {value.shape}.")
-    if value.dtype != self_value.dtype:
-      raise ValueError(f"The dtype of the original data is {self_value.dtype}, "
+    if value.dtype != jax.dtypes.result_type(self_value):
+      raise ValueError(f"The dtype of the original data is {jax.dtypes.result_type(self_value)}, "
                        f"while we got {value.dtype}.")
     self._value = value
 
@@ -1174,22 +1186,25 @@ class Quantity(object):
     """
     fail_for_dimension_mismatch(self, u, 'Non-matching unit for method "in_unit"')
     value = jnp.asarray(self.value / u.value)
-    if value.shape == ():
-      s = jnp.array_str(jnp.array([value]), precision=precision)
-      s = s.replace("[", "").replace("]", "").strip()
+    if isinstance(value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
+      s = str(value)
     else:
-      if value.size > 100:
-        if python_code:
-          s = jnp.array_repr(value, precision=precision)[:100]
-          s += "..."
-        else:
-          s = jnp.array_str(value, precision=precision)[:100]
-          s += "..."
+      if value.shape == ():
+        s = jnp.array_str(jnp.array([value]), precision=precision)
+        s = s.replace("[", "").replace("]", "").strip()
       else:
-        if python_code:
-          s = jnp.array_repr(value, precision=precision)
+        if value.size > 100:
+          if python_code:
+            s = jnp.array_repr(value, precision=precision)[:100]
+            s += "..."
+          else:
+            s = jnp.array_str(value, precision=precision)[:100]
+            s += "..."
         else:
-          s = jnp.array_str(value, precision=precision)
+          if python_code:
+            s = jnp.array_repr(value, precision=precision)
+          else:
+            s = jnp.array_str(value, precision=precision)
 
     if not u.is_unitless:
       if isinstance(u, Unit):
@@ -1292,7 +1307,7 @@ class Quantity(object):
 
   @property
   def T(self) -> 'Quantity':
-    return Quantity(self.value.T, dim=self.dim)
+    return Quantity(jnp.asarray(self.value).T, dim=self.dim)
 
   @property
   def isreal(self) -> jax.Array:
@@ -1328,8 +1343,6 @@ class Quantity(object):
     return self.repr_in_best_unit(python_code=True)
 
   def __str__(self) -> str:
-    if isinstance(self.value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
-      return f'{self.value} * {Quantity(1, dim=self.dim)}'
     return self.repr_in_best_unit()
 
   def __format__(self, format_spec: str) -> str:
@@ -1718,7 +1731,7 @@ class Quantity(object):
     return Quantity(self.value.__round__(ndigits), dim=self.dim)
 
   def __reduce__(self):
-    return array_with_unit, (self.value, self.dim, self.value.dtype)
+    return array_with_unit, (self.value, self.dim, None)
 
   # ----------------------- #
   #      NumPy methods      #
@@ -1756,7 +1769,7 @@ class Quantity(object):
     if dtype is None:
       return Quantity(self.value, dim=self.dim)
     else:
-      return Quantity(self.value.astype(dtype), dim=self.dim)
+      return Quantity(jnp.astype(self.value, dtype), dim=self.dim)
 
   def clip(self, min: Quantity = None, max: Quantity = None, *args, **kwds) -> 'Quantity':
     """Return an array whose values are limited to [min, max]. One of max or min must be given."""
@@ -1802,11 +1815,10 @@ class Quantity(object):
 
   def item(self, *args) -> 'Quantity':
     """Copy an element of an array to a standard Python scalar and return it."""
-    with allow_python_scalar():
-      if isinstance(self.value, jax.Array):
-        return Quantity(self.value.item(*args), dim=self.dim)
-      else:
-        return Quantity(self.value, dim=self.dim)
+    if isinstance(self.value, jax.Array):
+      return Quantity(self.value.item(*args), dim=self.dim)
+    else:
+      return Quantity(self.value, dim=self.dim)
 
   def prod(self, *args, **kwds) -> 'Quantity':
     """Return the product of the array elements over the given axis."""
@@ -1991,8 +2003,7 @@ class Quantity(object):
     if isinstance(self.value, jax.Array):
       return replace_with_array(self.value.tolist(), self.dim)
     else:
-      with allow_python_scalar():
-        return Quantity(self.value, dim=self.dim)
+      return Quantity(self.value, dim=self.dim)
 
   def transpose(self, *axes) -> 'Quantity':
     """Returns a view of the array with axes transposed.
@@ -2087,7 +2098,7 @@ class Quantity(object):
 
     Example::
 
-        >>> import brainstate
+        >>> import brainstate, brainunit
         >>> x = brainstate.random.randn(4, 4)
         >>> x.size
        [4, 4]
@@ -2107,7 +2118,7 @@ class Quantity(object):
         >>> c = a.view(1, 3, 2, 4)  # Does not change tensor layout in memory
         >>> c.size
         [1, 3, 2, 4]
-        >>> brainstate.math.equal(b, c)
+        >>> brainunit.math.equal(b, c)
         False
 
 
@@ -2346,8 +2357,7 @@ class Quantity(object):
   def clone(self) -> 'Quantity':
     if isinstance(self.value, jax.Array):
       return self.copy()
-    with allow_python_scalar():
-      return type(self)(self.value, dim=self.dim)
+    return type(self)(self.value, dim=self.dim)
 
   def tree_flatten(self) -> Tuple[jax.Array | numbers.Number, Any]:
     """
@@ -2532,6 +2542,9 @@ class Unit(Quantity):
     self.iscompound = iscompound
 
     super().__init__(value, dtype=dtype, dim=dim)
+
+    if _auto_register_unit:
+      register_new_unit(self)
 
   @staticmethod
   def create(unit: Dimension, name: str, dispname: str, scale: int = 0):
@@ -2763,13 +2776,14 @@ class UnitRegistry:
   __module__ = "brainunit"
 
   def __init__(self):
-    self.units = collections.OrderedDict()
     self.units_for_dimensions = collections.defaultdict(dict)
 
-  def add(self, u):
+  def add(self, u: Unit):
     """Add a unit to the registry"""
-    self.units[repr(u)] = u
-    self.units_for_dimensions[u.dim][float(u)] = u
+    if isinstance(u.value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
+      self.units_for_dimensions[u.dim][1.] = u
+    else:
+      self.units_for_dimensions[u.dim][float(u)] = u
 
   def __getitem__(self, x):
     """Returns the best unit for array x
@@ -2787,8 +2801,10 @@ class UnitRegistry:
     if len(matching) == 0:
       raise KeyError("Unit not found in registry.")
 
-    matching_values = jnp.array(list(matching.keys()))
-    print_opts = jnp.get_printoptions()
+    matching_values = np.array(list(matching.keys()))
+    if isinstance(x.value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
+      return matching[1.0]
+    print_opts = np.get_printoptions()
     edgeitems, threshold = print_opts["edgeitems"], print_opts["threshold"]
     if x.size > threshold:
       # Only care about optimizing the units for the values that will
@@ -2801,19 +2817,16 @@ class UnitRegistry:
           slices.append((slice(0, edgeitems), slice(-edgeitems, None)))
         else:
           slices.append((slice(None),))
-      x_flat = jnp.hstack(
-        [jnp.array(x[use_slices].flatten().value) for use_slices in itertools.product(*slices)]
-      )
+      x_flat = np.hstack([np.array(x[use_slices].flatten().value)
+                          for use_slices in itertools.product(*slices)])
     else:
-      x_flat = jnp.array(x.value).flatten()
-    floatreps = jnp.tile(jnp.abs(x_flat), (len(matching), 1)).T / matching_values
+      x_flat = np.array(x.value).flatten()
+    floatreps = np.tile(np.abs(x_flat), (len(matching), 1)).T / matching_values
     # ignore zeros, they are well represented in any unit
-    floatreps = floatreps.at[floatreps == 0].set(jnp.nan)
-    # floatreps[floatreps == 0] = jnp.nan
-    if jnp.all(jnp.isnan(floatreps)):
+    floatreps[floatreps == 0] = np.nan
+    if np.all(np.isnan(floatreps)):
       return matching[1.0]  # all zeros, use the base unit
-
-    deviations = jnp.nansum((jnp.log10(floatreps) - 1) ** 2, axis=0)
+    deviations = np.nansum((np.log10(floatreps) - 1) ** 2, axis=0)
     return list(matching.values())[deviations.argmin()]
 
 
