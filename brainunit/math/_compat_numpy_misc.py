@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+
+from __future__ import annotations
+
 from collections.abc import Sequence
 from typing import (Callable, Union, Tuple, Any, Optional)
 
@@ -30,7 +33,7 @@ from .._base import (DIMENSIONLESS,
                      Quantity,
                      fail_for_dimension_mismatch,
                      is_unitless,
-                     get_unit, )
+                     get_dim, )
 
 __all__ = [
 
@@ -77,14 +80,9 @@ def iinfo(a: Union[Quantity, jax.typing.ArrayLike]) -> jnp.iinfo:
 # ----
 @set_module_as('brainunit.math')
 def broadcast_arrays(*args: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, list[Array]]:
-  if all(isinstance(arg, Quantity) for arg in args):
-    if any(arg.dim != args[0].dim for arg in args):
-      raise ValueError("All arguments must have the same unit")
-    return Quantity(jnp.broadcast_arrays(*[arg.value for arg in args]), dim=args[0].dim)
-  elif all(isinstance(arg, (jax.Array, np.ndarray)) for arg in args):
-    return jnp.broadcast_arrays(*args)
-  else:
-    raise ValueError(f"Unsupported types : {type(args)} for broadcast_arrays")
+  leaves, tree = jax.tree.flatten(args)
+  leaves = jnp.broadcast_arrays(*leaves)
+  return jax.tree.unflatten(tree, leaves)
 
 
 broadcast_shapes = jnp.broadcast_shapes
@@ -149,13 +147,11 @@ def einsum(
     from jax._src.numpy.lax_numpy import _default_poly_einsum_handler
     contract_path = _default_poly_einsum_handler
 
-  operands, contractions = contract_path(
-    *operands, einsum_call=True, use_blas=True, optimize=optimize)
+  operands, contractions = contract_path(*operands, einsum_call=True, use_blas=True, optimize=optimize)
 
   unit = None
   for i in range(len(contractions) - 1):
     if contractions[i][4] == 'False':
-
       fail_for_dimension_mismatch(
         Quantity([], dim=unit), operands[i + 1], 'einsum'
       )
@@ -248,13 +244,13 @@ def gradient(
     else:
       return jnp.gradient(f)
   elif len(varargs) == 1:
-    unit = get_unit(f) / get_unit(varargs[0])
+    unit = get_dim(f) / get_dim(varargs[0])
     if unit is None or unit == DIMENSIONLESS:
       return jnp.gradient(f, varargs[0], axis=axis)
     else:
       return [Quantity(r, dim=unit) for r in jnp.gradient(f.value, varargs[0].value, axis=axis)]
   else:
-    unit_list = [get_unit(f) / get_unit(v) for v in varargs]
+    unit_list = [get_dim(f) / get_dim(v) for v in varargs]
     f = f.value if isinstance(f, Quantity) else f
     varargs = [v.value if isinstance(v, Quantity) else v for v in varargs]
     result_list = jnp.gradient(f, *varargs, axis=axis)
@@ -307,7 +303,7 @@ def intersect1d(
   result = jnp.intersect1d(ar1, ar2, assume_unique=assume_unique, return_indices=return_indices)
   if return_indices:
     if unit is not None:
-      return (Quantity(result[0], dim=unit), result[1], result[2])
+      return Quantity(result[0], dim=unit), result[1], result[2]
     else:
       return result
   else:
@@ -320,9 +316,9 @@ def intersect1d(
 @set_module_as('brainunit.math')
 def nan_to_num(
     x: Union[jax.typing.ArrayLike, Quantity],
-    nan: float = 0.0,
-    posinf: float = jnp.inf,
-    neginf: float = -jnp.inf
+    nan: float | Quantity = 0.0,
+    posinf: float | Quantity = jnp.inf,
+    neginf: float | Quantity = -jnp.inf
 ) -> Union[jax.Array, Quantity]:
   """
   Replace NaN with zero and infinity with large finite numbers (default
@@ -472,9 +468,6 @@ def nanargmax(
     Input data.
   axis : int, optional
     Axis along which to operate.  By default flattened input is used.
-  out : array, optional
-    If provided, the result will be inserted into this array. It should
-    be of the appropriate shape and dtype.
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left
     in the result as dimensions with size one. With this option,
@@ -509,9 +502,6 @@ def nanargmin(
     Input data.
   axis : int, optional
     Axis along which to operate.  By default flattened input is used.
-  out : array, optional
-    If provided, the result will be inserted into this array. It should
-    be of the appropriate shape and dtype.
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left
     in the result as dimensions with size one. With this option,
@@ -534,8 +524,6 @@ def frexp(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Tuple[jax.Array, jax.Array]:
   """
-  frexp(x[, out1, out2], / [, out=(None, None)], *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
-
   Decompose the elements of x into mantissa and twos exponent.
 
   Returns (`mantissa`, `exponent`), where ``x = mantissa * 2**exponent``.
@@ -556,4 +544,6 @@ def frexp(
     Integer exponents of 2.
     This is a scalar if `x` is a scalar.
   """
+  assert not isinstance(x, Quantity) or is_unitless(x), "Input must be unitless"
+  x = x.value if isinstance(x, Quantity) else x
   return jnp.frexp(x)

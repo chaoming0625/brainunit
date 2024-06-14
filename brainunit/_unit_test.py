@@ -36,7 +36,7 @@ from brainunit._base import (
   check_units,
   fail_for_dimension_mismatch,
   get_or_create_dimension,
-  get_unit,
+  get_dim,
   get_basic_unit,
   have_same_unit,
   in_unit,
@@ -74,7 +74,7 @@ def assert_allclose(actual, desired, rtol=4.5e8, atol=0, **kwds):
 def assert_quantity(q, values, unit):
   values = jnp.asarray(values)
   if isinstance(q, Quantity):
-    assert have_same_unit(q.dim, unit), f"Dimension mismatch: ({get_unit(q)}) ({get_unit(unit)})"
+    assert have_same_unit(q.dim, unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
     if not jnp.allclose(q.value, values):
       raise AssertionError(f"Values do not match: {q.value} != {values}")
   elif isinstance(q, jnp.ndarray):
@@ -145,19 +145,19 @@ def test_get_dimensions():
   Test various ways of getting/comparing the dimensions of a Array.
   """
   q = 500 * ms
-  assert get_unit(q) is get_or_create_dimension(q.dim._dims)
-  assert get_unit(q) is q.dim
+  assert get_dim(q) is get_or_create_dimension(q.dim._dims)
+  assert get_dim(q) is q.dim
   assert q.has_same_unit(3 * second)
   dims = q.dim
   assert_equal(dims.get_dimension("time"), 1.0)
   assert_equal(dims.get_dimension("length"), 0)
 
-  assert get_unit(5) is DIMENSIONLESS
-  assert get_unit(5.0) is DIMENSIONLESS
-  assert get_unit(np.array(5, dtype=np.int32)) is DIMENSIONLESS
-  assert get_unit(np.array(5.0)) is DIMENSIONLESS
-  assert get_unit(np.float32(5.0)) is DIMENSIONLESS
-  assert get_unit(np.float64(5.0)) is DIMENSIONLESS
+  assert get_dim(5) is DIMENSIONLESS
+  assert get_dim(5.0) is DIMENSIONLESS
+  assert get_dim(np.array(5, dtype=np.int32)) is DIMENSIONLESS
+  assert get_dim(np.array(5.0)) is DIMENSIONLESS
+  assert get_dim(np.float32(5.0)) is DIMENSIONLESS
+  assert get_dim(np.float64(5.0)) is DIMENSIONLESS
   assert is_scalar_type(5)
   assert is_scalar_type(5.0)
   assert is_scalar_type(np.array(5, dtype=np.int32))

@@ -19,7 +19,6 @@ from jax import Array
 from brainunit._misc import set_module_as
 
 __all__ = [
-
   # window funcs
   'bartlett', 'blackman', 'hamming', 'hanning', 'kaiser',
 ]

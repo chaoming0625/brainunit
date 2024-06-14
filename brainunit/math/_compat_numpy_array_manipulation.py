@@ -1276,7 +1276,7 @@ def searchsorted(
 
 @set_module_as('brainunit.math')
 def extract(
-    condition: Union[Array, Quantity],
+    condition: Array,
     arr: Union[Array, Quantity],
     *,
     size: Optional[int] = None,

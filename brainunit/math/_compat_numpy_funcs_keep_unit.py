@@ -19,7 +19,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from brainunit._misc import set_module_as
-from .._base import Quantity
+from .._base import Quantity, fail_for_dimension_mismatch
 
 __all__ = [
   # math funcs keep unit (unary)
@@ -1090,6 +1090,7 @@ def modf(
 
 def funcs_keep_unit_binary(func, x1, x2, *args, **kwargs):
   if isinstance(x1, Quantity) and isinstance(x2, Quantity):
+    fail_for_dimension_mismatch(x1, x2, func.__name__)
     return Quantity(func(x1.value, x2.value, *args, **kwargs), dim=x1.dim)
   elif isinstance(x1, (jax.Array, np.ndarray)) and isinstance(x2, (jax.Array, np.ndarray)):
     return func(x1, x2, *args, **kwargs)
@@ -1098,7 +1099,8 @@ def funcs_keep_unit_binary(func, x1, x2, *args, **kwargs):
 
 
 @set_module_as('brainunit.math')
-def fmod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def fmod(x1: Union[Quantity, jax.Array],
+         x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
   """
   Return the element-wise remainder of division.
 
@@ -1158,7 +1160,8 @@ def copysign(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> 
 
 
 @set_module_as('brainunit.math')
-def heaviside(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def heaviside(x1: Union[Quantity, jax.Array],
+              x2: jax.typing.ArrayLike) -> Union[Quantity, jax.Array]:
   """
   Compute the Heaviside step function.
 
@@ -1174,7 +1177,8 @@ def heaviside(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) ->
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  return funcs_keep_unit_binary(jnp.heaviside, x1, x2)
+  x1 = x1.value if isinstance(x1, Quantity) else x1
+  return jnp.heaviside(x1, x2)
 
 
 @set_module_as('brainunit.math')
@@ -1300,12 +1304,14 @@ def gcd(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
 # math funcs keep unit (n-ary)
 # ----------------------------
 @set_module_as('brainunit.math')
-def interp(x: Union[Quantity, jax.typing.ArrayLike],
-           xp: Union[Quantity, jax.typing.ArrayLike],
-           fp: Union[Quantity, jax.typing.ArrayLike],
-           left: Union[Quantity, jax.typing.ArrayLike] = None,
-           right: Union[Quantity, jax.typing.ArrayLike] = None,
-           period: Union[Quantity, jax.typing.ArrayLike] = None) -> Union[Quantity, jax.Array]:
+def interp(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    xp: Union[Quantity, jax.typing.ArrayLike],
+    fp: Union[Quantity, jax.typing.ArrayLike],
+    left: Union[Quantity, jax.typing.ArrayLike] = None,
+    right: Union[Quantity, jax.typing.ArrayLike] = None,
+    period: Union[Quantity, jax.typing.ArrayLike] = None
+) -> Union[Quantity, jax.Array]:
   """
   One-dimensional linear interpolation.
 
@@ -1343,9 +1349,11 @@ def interp(x: Union[Quantity, jax.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def clip(a: Union[Quantity, jax.typing.ArrayLike],
-         a_min: Union[Quantity, jax.typing.ArrayLike],
-         a_max: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def clip(
+    a: Union[Quantity, jax.typing.ArrayLike],
+    a_min: Union[Quantity, jax.typing.ArrayLike],
+    a_max: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[Quantity, jax.Array]:
   """
   Clip (limit) the values in an array.
 

@@ -36,7 +36,7 @@ __all__ = [
   'DIMENSIONLESS',
   'DimensionMismatchError',
   'get_or_create_dimension',
-  'get_unit',
+  'get_dim',
   'get_basic_unit',
   'is_unitless',
   'have_same_unit',
@@ -119,7 +119,7 @@ def get_unit_for_display(d):
   if (isinstance(d, int) and d == 1) or d is DIMENSIONLESS:
     return "1"
   else:
-    return str(get_unit(d))
+    return str(get_dim(d))
 
 
 # SI dimensions (see table at the top of the file) and various descriptions,
@@ -497,7 +497,7 @@ class DimensionMismatchError(Exception):
     return s
 
 
-def get_unit(obj) -> Dimension:
+def get_dim(obj) -> Dimension:
   """
   Return the unit of any object that has them.
 
@@ -551,8 +551,8 @@ def have_same_unit(obj1, obj2) -> bool:
   #   should only add a small amount of unnecessary computation for cases in
   #   which this function returns False which very likely leads to a
   #   DimensionMismatchError anyway.
-  dim1 = get_unit(obj1)
-  dim2 = get_unit(obj2)
+  dim1 = get_dim(obj1)
+  dim2 = get_dim(obj2)
   return (dim1 is dim2) or (dim1 == dim2) or dim1 is None or dim2 is None
 
 
@@ -598,11 +598,11 @@ def fail_for_dimension_mismatch(
   if not _unit_checking:
     return None, None
 
-  dim1 = get_unit(obj1)
+  dim1 = get_dim(obj1)
   if obj2 is None:
     dim2 = DIMENSIONLESS
   else:
-    dim2 = get_unit(obj2)
+    dim2 = get_dim(obj2)
 
   if dim1 is not dim2 and not (dim1 is None or dim2 is None):
     # Special treatment for "0":
@@ -779,7 +779,7 @@ def is_unitless(obj) -> bool:
   dimensionless : `bool`
       ``True`` if `obj` is dimensionless.
   """
-  return get_unit(obj) is DIMENSIONLESS
+  return get_dim(obj) is DIMENSIONLESS
 
 
 def is_scalar_type(obj) -> bool:
@@ -1105,8 +1105,8 @@ class Quantity(object):
     """
     if not _unit_checking:
       return True
-    other_unit = get_unit(other.dim)
-    return (get_unit(self.dim) is other_unit) or (get_unit(self.dim) == other_unit)
+    other_unit = get_dim(other.dim)
+    return (get_dim(self.dim) is other_unit) or (get_dim(self.dim) == other_unit)
 
   def get_best_unit(self, *regs) -> 'Quantity':
     """
@@ -1475,7 +1475,7 @@ class Quantity(object):
         _, other_dim = fail_for_dimension_mismatch(self, other, message, value1=self, value2=other)
 
     if other_dim is None:
-      other_dim = get_unit(other)
+      other_dim = get_dim(other)
 
     new_dim = unit_operation(self.dim, other_dim)
     result = value_operation(self.value, other.value)
@@ -1944,14 +1944,13 @@ class Quantity(object):
       self,
       indices,
       axis=None,
-      out=None,
       mode=None,
       unique_indices=False,
       indices_are_sorted=False,
       fill_value=None,
   ) -> 'Quantity':
     """Return an array formed from the elements of a at the given indices."""
-    return Quantity(jnp.take(self.value, indices=indices, axis=axis, out=out, mode=mode,
+    return Quantity(jnp.take(self.value, indices=indices, axis=axis, mode=mode,
                              unique_indices=unique_indices, indices_are_sorted=indices_are_sorted,
                              fill_value=fill_value), dim=self.dim)
 
@@ -3032,8 +3031,8 @@ def check_units(**au):
               )
               raise TypeError(error_message)
             if not have_same_unit(newkeyset[k], newkeyset[au[k]]):
-              d1 = get_unit(newkeyset[k])
-              d2 = get_unit(newkeyset[au[k]])
+              d1 = get_dim(newkeyset[k])
+              d2 = get_dim(newkeyset[au[k]])
               error_message = (
                 f"Function '{f.__name__}' expected "
                 f"the argument '{k}' to have the same "
@@ -3054,13 +3053,13 @@ def check_units(**au):
               f"'{value}'"
             )
             raise DimensionMismatchError(
-              error_message, get_unit(newkeyset[k])
+              error_message, get_dim(newkeyset[k])
             )
 
       result = f(*args, **kwds)
       if "result" in au:
         if isinstance(au["result"], Callable) and au["result"] != bool:
-          expected_result = au["result"](*[get_unit(a) for a in args])
+          expected_result = au["result"](*[get_dim(a) for a in args])
         else:
           expected_result = au["result"]
         if au["result"] == bool:
@@ -3080,7 +3079,7 @@ def check_units(**au):
             f"unit {unit} but was "
             f"'{result}'"
           )
-          raise DimensionMismatchError(error_message, get_unit(result))
+          raise DimensionMismatchError(error_message, get_dim(result))
       return result
 
     new_f._orig_func = f
