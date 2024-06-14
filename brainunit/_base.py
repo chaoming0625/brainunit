@@ -1033,11 +1033,11 @@ class Quantity(object):
     else:
       value = jnp.asarray(value, dtype=self.dtype)
     # check
-    if value.shape != self_value.shape:
-      raise ValueError(f"The shape of the original data is {self_value.shape}, "
+    if value.shape != jnp.shape(self_value):
+      raise ValueError(f"The shape of the original data is {jnp.shape(self_value)}, "
                        f"while we got {value.shape}.")
-    if value.dtype != self_value.dtype:
-      raise ValueError(f"The dtype of the original data is {self_value.dtype}, "
+    if value.dtype != jax.dtypes.result_type(self_value):
+      raise ValueError(f"The dtype of the original data is {jax.dtypes.result_type(self_value)}, "
                        f"while we got {value.dtype}.")
     self._value = value
 
@@ -2802,6 +2802,8 @@ class UnitRegistry:
       raise KeyError("Unit not found in registry.")
 
     matching_values = np.array(list(matching.keys()))
+    if isinstance(x.value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
+      return matching[1.0]
     print_opts = np.get_printoptions()
     edgeitems, threshold = print_opts["edgeitems"], print_opts["threshold"]
     if x.size > threshold:
