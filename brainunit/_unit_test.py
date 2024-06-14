@@ -1668,6 +1668,7 @@ def test_jit_array():
   @jax.jit
   def f1(a):
     b = a * bu.siemens / bu.cm ** 2
+    print(b)
     return b
 
   val = np.random.rand(3)
