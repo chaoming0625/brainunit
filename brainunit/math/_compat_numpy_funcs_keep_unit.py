@@ -1235,7 +1235,7 @@ def interp(
   if isinstance(period, Quantity):
     fail_for_dimension_mismatch(x, period)
     period = period.value
-  return funcs_keep_unit_unary(jnp.interp, x.value, xp=xp, fp=fp, left=left, right=right, period=period)
+  return funcs_keep_unit_unary(jnp.interp, x, xp=xp, fp=fp, left=left, right=right, period=period)
 
 
 @set_module_as('brainunit.math')
@@ -1319,8 +1319,8 @@ def histogram(
   """
   dim = DIMENSIONLESS
   if isinstance(x, Quantity):
-    x = x.value
     dim = x.dim
+    x = x.value
   if range is not None:
     fail_for_dimension_mismatch(range[0], Quantity(0., dim=dim))
     fail_for_dimension_mismatch(range[1], Quantity(0., dim=dim))
