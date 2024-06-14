@@ -1659,7 +1659,7 @@ class TestArrayManipulation(unittest.TestCase):
     result = bu.math.compress(jnp.array([0, 1, 1, 0]), array)
     self.assertTrue(jnp.all(result == jnp.compress(jnp.array([0, 1, 1, 0]), array)))
 
-    q = [1, 2, 3, 4] * bu.second
+    q = jnp.array([1, 2, 3, 4])
     a = [0, 1, 1, 0] * bu.second
     result_q = bu.math.compress(q, a)
     expected_q = jnp.compress(jnp.array([1, 2, 3, 4]), jnp.array([0, 1, 1, 0]))
@@ -1785,10 +1785,10 @@ class TestArrayManipulation(unittest.TestCase):
     result = bu.math.extract(array > 1, array)
     self.assertTrue(jnp.all(result == jnp.extract(array > 1, array)))
 
-    q = [1, 2, 3] * bu.second
+    q = jnp.array([1, 2, 3])
     a = array * bu.second
-    result_q = bu.math.extract(q > 1 * bu.second, a)
-    expected_q = jnp.extract(jnp.array([0, 1, 2]), jnp.array([1, 2, 3]))
+    result_q = bu.math.extract(q > 1, a)
+    expected_q = jnp.extract(jnp.array([1, 2, 3]) > 1, jnp.array([1, 2, 3])) * bu.second
     assert jnp.all(result_q == expected_q)
 
   def test_count_nonzero(self):
@@ -2251,7 +2251,8 @@ class TestMore(unittest.TestCase):
     q2 = [[4], [5]] * bu.second
     result_q = bu.math.broadcast_arrays(q1, q2)
     expected_q = jnp.broadcast_arrays(jnp.array([1, 2, 3]), jnp.array([[4], [5]]))
-    assert_quantity(result_q, expected_q, bu.second)
+    for r, e in zip(result_q, expected_q):
+      assert_quantity(r, e, bu.second)
 
   def test_broadcast_shapes(self):
     a = jnp.array([1, 2, 3])
@@ -2276,6 +2277,13 @@ class TestMore(unittest.TestCase):
     result_q = bu.math.einsum('i,i->i', q1, q2)
     expected_q = jnp.einsum('i,i->i', jnp.array([1, 2, 3]), jnp.array([1, 2, 3]))
     assert_quantity(result_q, expected_q, bu.second)
+
+    q1 = [1, 2, 3] * bu.second
+    q2 = [1, 2, 3] * bu.volt
+    q3 = [1, 2, 3] * bu.ampere
+    result_q = bu.math.einsum('i,i,i->i', q1, q2, q3)
+    expected_q = jnp.einsum('i,i,i->i', jnp.array([1, 2, 3]), jnp.array([1, 2, 3]), jnp.array([1, 2, 3]))
+    assert_quantity(result_q, expected_q, bu.second * bu.volt * bu.ampere)
 
   def test_gradient(self):
     f = jnp.array([1, 2, 4, 7, 11, 16], dtype=float)

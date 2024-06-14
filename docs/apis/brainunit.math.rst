@@ -174,7 +174,6 @@ Functions Changing Unit
    nanvar
    cbrt
    square
-   frexp
    sqrt
    multiply
    divide
@@ -390,6 +389,7 @@ More Functions
    nanargmin
    rot90
    tensordot
+   frexp
    dtype
    e
    pi

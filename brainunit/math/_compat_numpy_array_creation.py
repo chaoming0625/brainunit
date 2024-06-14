@@ -21,7 +21,6 @@ import jax.numpy as jnp
 import numpy as np
 from jax import Array
 
-from brainunit._misc import set_module_as
 from .._base import (
   DIMENSIONLESS,
   Quantity,
@@ -29,6 +28,7 @@ from .._base import (
   fail_for_dimension_mismatch,
   is_unitless,
 )
+from .._misc import set_module_as
 
 __all__ = [
   # array creation
@@ -46,17 +46,23 @@ def full(
     dtype: Optional[Any] = None,
 ) -> Union[Array, Quantity]:
   """
-  Returns a Quantity of `shape`, filled with `fill_value` if `fill_value` is a Quantity.
+  Returns a quantity of `shape`, filled with `fill_value` if `fill_value` is a Quantity.
   else return an array of `shape` filled with `fill_value`.
 
-  Args:
-    shape: sequence of integers, describing the shape of the output array.
-    fill_value: the value to fill the new array with.
-    dtype: the type of the output array, or `None`. If not `None`, `fill_value`
-      will be cast to `dtype`.
+  Parameters
+  ----------
+  shape : int or sequence of ints
+    Shape of the new array, e.g., ``(2, 3)`` or ``2``.
+  fill_value : scalar, array_like or Quantity
+      Fill value.
+  dtype : data-type, optional
+    The desired data-type for the array  The default, None, means ``np.array(fill_value).dtype`
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  out : quantity or ndarray
+    Quantity with the given shape if `fill_value` is a Quantity, else an array.
+    Array of `fill_value` with the given shape, dtype, and order.
   """
   if isinstance(fill_value, Quantity):
     return Quantity(jnp.full(shape, fill_value.value, dtype=dtype), dim=fill_value.dim)
@@ -69,23 +75,31 @@ def eye(
     M: Optional[int] = None,
     k: int = 0,
     dtype: Optional[Any] = None,
-    unit: Optional[Unit] = None
+    unit: Optional[Unit] = None,
 ) -> Union[Array, Quantity]:
   """
-  Returns a Quantity of `shape` and `unit`, representing an identity matrix if `unit` is provided.
-  else return an identity matrix of `shape`.
+  Returns a 2-D quantity or array of `shape` and `unit` with ones on the diagonal and zeros elsewhere.
 
-  Args:
-    n: the number of rows (and columns) in the output array.
-    k: the index of the diagonal: 0 (the default) refers to the main diagonal,
-       a positive value refers to an upper diagonal, and a negative value to a
-       lower diagonal.
-    dtype: the type of the output array, or `None`. If not `None`, elements
-      will be cast to `dtype`.
-    unit: the unit of the output array, or `None`.
+  Parameters
+  ----------
+  N : int
+    Number of rows in the output.
+  M : int, optional
+    Number of columns in the output. If None, defaults to `N`.
+  k : int, optional
+    Index of the diagonal: 0 (the default) refers to the main diagonal,
+    a positive value refers to an upper diagonal, and a negative value
+    to a lower diagonal.
+  dtype : data-type, optional
+    Data-type of the returned array.
+  unit : Unit, optional
+    Unit of the returned Quantity.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  I : quantity or ndarray of shape (N,M)
+    An array where all elements are equal to zero, except for the `k`-th
+    diagonal, whose values are equal to one.
   """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -101,17 +115,25 @@ def identity(
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
   """
-  Returns a Quantity of `shape` and `unit`, representing an identity matrix if `unit` is provided.
-  else return an identity matrix of `shape`.
+  Return the identity Quantity or array.
 
-  Args:
-    n: the number of rows (and columns) in the output array.
-    dtype: the type of the output array, or `None`. If not `None`, elements
-      will be cast to `dtype`.
-    unit: the unit of the output array, or `None`.
+  The identity array is a square array with ones on
+  the main diagonal.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Parameters
+  ----------
+  n : int
+    Number of rows (and columns) in `n` x `n` output.
+  dtype : data-type, optional
+    Data-type of the output.  Defaults to ``float``.
+  unit : Unit, optional
+    Unit of the returned Quantity.
+
+  Returns
+  -------
+  out : quantity or ndarray
+    `n` x `n` quantity or array with its main diagonal set to one,
+    and all other elements 0.
   """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -129,21 +151,29 @@ def tri(
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
   """
-  Returns a Quantity of `shape` and `unit`, representing a triangular matrix if `unit` is provided.
-  else return a triangular matrix of `shape`.
+  A quantity or an array with ones at and below the given diagonal and zeros elsewhere.
 
-  Args:
-    n: the number of rows in the output array.
-    m: the number of columns with default being `n`.
-    k: the index of the diagonal: 0 (the default) refers to the main diagonal,
-       a positive value refers to an upper diagonal, and a negative value to a
-       lower diagonal.
-    dtype: the type of the output array, or `None`. If not `None`, elements
-      will be cast to `dtype`.
-    unit: the unit of the output array, or `None`.
+  Parameters
+  ----------
+  N : int
+    Number of rows in the array.
+  M : int, optional
+    Number of columns in the array.
+    By default, `M` is taken equal to `N`.
+  k : int, optional
+    The sub-diagonal at and below which the array is filled.
+    `k` = 0 is the main diagonal, while `k` < 0 is below it,
+    and `k` > 0 is above.  The default is 0.
+  dtype : dtype, optional
+    Data type of the returned array.  The default is float.
+  unit : Unit, optional
+    Unit of the returned Quantity.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  tri : quantity or ndarray of shape (N, M)
+    quantity or array with its lower triangle filled with ones and zero elsewhere;
+    in other words ``T[i,j] == 1`` for ``j <= i + k``, 0 otherwise.
   """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -159,17 +189,21 @@ def empty(
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
   """
-  Returns a Quantity of `shape` and `unit`, with uninitialized values if `unit` is provided.
-  else return an array of `shape` with uninitialized values.
+  Return a new quantity or array of given shape and type, without initializing entries.
 
-  Args:
-    shape: sequence of integers, describing the shape of the output array.
-    dtype: the type of the output array, or `None`. If not `None`, elements
-      will be of type `dtype`.
-    unit: the unit of the output array, or `None`.
+  Parameters
+  ----------
+  shape : sequence of int
+    Shape of the empty quantity or array.
+  dtype : data-type, optional
+    Data-type of the output.  Defaults to ``float``.
+  unit : Unit, optional
+    Unit of the returned Quantity.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  out : quantity or ndarray
+    quantity or array of uninitialized (arbitrary) data of the given shape, dtype, and order.
   """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -185,17 +219,21 @@ def ones(
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
   """
-  Returns a Quantity of `shape` and `unit`, filled with 1 if `unit` is provided.
-  else return an array of `shape` filled with 1.
+  Returns a new quantity or array of given shape and type, filled with ones.
 
-  Args:
-    shape: sequence of integers, describing the shape of the output array.
-    dtype: the type of the output array, or `None`. If not `None`, elements
-      will be cast to `dtype`.
-    unit: the unit of the output array, or `None`.
+  Parameters
+  ----------
+  shape : sequence of int
+    Shape of the new quantity or array.
+  dtype : data-type, optional
+    The desired data-type for the array.  Default is `float`.
+  unit : Unit, optional
+    Unit of the returned Quantity.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  out : quantity or ndarray
+    Array of ones with the given shape, dtype, and order.
   """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -211,17 +249,21 @@ def zeros(
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
   """
-  Returns a Quantity of `shape` and `unit`, filled with 0 if `unit` is provided.
-  else return an array of `shape` filled with 0.
+  Returns a new quantity or array of given shape and type, filled with zeros.
 
-  Args:
-    shape: sequence of integers, describing the shape of the output array.
-    dtype: the type of the output array, or `None`. If not `None`, elements
-      will be cast to `dtype`.
-    unit: the unit of the output array, or `None`.
+  Parameters
+  ----------
+  shape : sequence of int
+    Shape of the new quantity or array.
+  dtype : data-type, optional
+    The desired data-type for the array.  Default is `float`.
+  unit : Unit, optional
+    Unit of the returned Quantity.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  out : quantity or ndarray
+    Array of zeros with the given shape, dtype, and order.
   """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -238,24 +280,32 @@ def full_like(
     shape: Any = None
 ) -> Union[Quantity, jax.Array]:
   """
-  Return a Quantity if `a` and `fill_value` are Quantities that have the same unit or only `fill_value` is a Quantity.
-  else return an array of `a` filled with `fill_value`.
+  Return a new quantity or array with the same shape and type as a given array or quantity, filled with `fill_value`.
 
-  Args:
-    a: array_like, Quantity, shape, or dtype
-    fill_value: scalar or array_like
-    dtype: data-type, optional
-    shape: sequence of ints, optional
+  Parameters
+  ----------
+  a : quantity or ndarray
+    The shape and data-type of `a` define these same attributes of the returned quantity or array.
+  fill_value : quantity or ndarray
+    Value to fill the new quantity or array with.
+  dtype : data-type, optional
+    Overrides the data type of the result.
+  shape : sequence of int, optional
+    Overrides the shape of the result. If `shape` is not given, the shape of `a` is used.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  out : quantity or ndarray
+    New quantity or array with the same shape and type as `a`, filled with `fill_value`.
   """
   if isinstance(fill_value, Quantity):
     if isinstance(a, Quantity):
       fail_for_dimension_mismatch(a, fill_value, error_message="a and fill_value have to have the same units.")
-      return Quantity(jnp.full_like(a.value, fill_value.value, dtype=dtype, shape=shape), dim=a.dim)
+      return Quantity(jnp.full_like(a.value, fill_value.value, dtype=dtype, shape=shape),
+                      dim=a.dim)
     else:
-      return Quantity(jnp.full_like(a, fill_value.value, dtype=dtype, shape=shape), dim=fill_value.dim)
+      return Quantity(jnp.full_like(a, fill_value.value, dtype=dtype, shape=shape),
+                      dim=fill_value.dim)
   else:
     if isinstance(a, Quantity):
       return jnp.full_like(a.value, fill_value, dtype=dtype, shape=shape)
@@ -264,145 +314,186 @@ def full_like(
 
 
 @set_module_as('brainunit.math')
-def diag(a: Union[Quantity, jax.typing.ArrayLike],
-         k: int = 0,
-         unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
+def diag(
+    v: Union[Quantity, jax.typing.ArrayLike],
+    k: int = 0,
+    unit: Optional[Unit] = None
+) -> Union[Quantity, jax.Array]:
   """
   Extract a diagonal or construct a diagonal array.
 
-  Args:
-    a: array_like, Quantity
-    k: int, optional
-    unit: Unit, optional
+  Parameters
+  ----------
+  v : quantity or ndarray
+    If `a` is a 1-D array, `diag` constructs a 2-D array with `v` on the `k`-th diagonal.
+    If `a` is a 2-D array, `diag` extracts the `k`-th diagonal and returns a 1-D array.
+  k : int, optional
+    Diagonal in question. The default is 0. Use `k>0` for diagonals above the main diagonal, and `k<0` for diagonals
+    below the main diagonal.
+  unit : Unit, optional
+    Unit of the returned Quantity.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  out : quantity or ndarray
+    The extracted diagonal or constructed diagonal array.
   """
-  if isinstance(a, Quantity):
+  if isinstance(v, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-      fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.diag(a.value, k=k), dim=a.dim)
-  elif isinstance(a, (jax.Array, np.ndarray)):
+      fail_for_dimension_mismatch(v, unit, error_message="a and unit have to have the same units.")
+    return Quantity(jnp.diag(v.value, k=k), dim=v.dim)
+  elif isinstance(v, (jax.Array, np.ndarray)):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-      return jnp.diag(a, k=k) * unit
+      return jnp.diag(v, k=k) * unit
     else:
-      return jnp.diag(a, k=k)
+      return jnp.diag(v, k=k)
   else:
-    return jnp.diag(a, k=k)
+    return jnp.diag(v, k=k)
 
 
 @set_module_as('brainunit.math')
-def tril(a: Union[Quantity, jax.typing.ArrayLike],
-         k: int = 0,
-         unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
+def tril(
+    m: Union[Quantity, jax.typing.ArrayLike],
+    k: int = 0,
+    unit: Optional[Unit] = None
+) -> Union[Quantity, jax.Array]:
   """
   Lower triangle of an array.
 
-  Args:
-    a: array_like, Quantity
-    k: int, optional
-    unit: Unit, optional
+  Return a copy of a matrix with the elements above the `k`-th diagonal zeroed.
+  For quantities or arrays with ``ndim`` exceeding 2, `tril` will apply to the final two axes.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Parameters
+  ----------
+  m : quantity or ndarray
+    Input array.
+  k : int, optional
+    Diagonal above which to zero elements. `k = 0` is the main diagonal, `k < 0` is below it, and `k > 0` is above.
+  unit : Unit, optional
+    Unit of the returned Quantity.
+
+  Returns
+  -------
+  out : quantity or ndarray
+    Lower triangle of `m`, of the same shape and data-type as `m`.
   """
-  if isinstance(a, Quantity):
+  if isinstance(m, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-      fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.tril(a.value, k=k), dim=a.dim)
-  elif isinstance(a, (jax.Array, np.ndarray)):
+      fail_for_dimension_mismatch(m, unit, error_message="a and unit have to have the same units.")
+    return Quantity(jnp.tril(m.value, k=k), dim=m.dim)
+  elif isinstance(m, (jax.Array, np.ndarray)):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-      return jnp.tril(a, k=k) * unit
+      return jnp.tril(m, k=k) * unit
     else:
-      return jnp.tril(a, k=k)
+      return jnp.tril(m, k=k)
   else:
-    return jnp.tril(a, k=k)
+    return jnp.tril(m, k=k)
 
 
 @set_module_as('brainunit.math')
-def triu(a: Union[Quantity, jax.typing.ArrayLike],
-         k: int = 0,
-         unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
+def triu(
+    m: Union[Quantity, jax.typing.ArrayLike],
+    k: int = 0,
+    unit: Optional[Unit] = None
+) -> Union[Quantity, jax.Array]:
   """
-  Upper triangle of an array.
+  Upper triangle of a quantity or an array.
 
-  Args:
-    a: array_like, Quantity
-    k: int, optional
-    unit: Unit, optional
+  Return a copy of an array with the elements below the `k`-th diagonal
+  zeroed. For arrays with ``ndim`` exceeding 2, `triu` will apply to the
+  final two axes.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Please refer to the documentation for `tril` for further details.
+
+  See Also
+  --------
+  tril : lower triangle of an array
   """
-  if isinstance(a, Quantity):
+  if isinstance(m, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-      fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.triu(a.value, k=k), dim=a.dim)
-  elif isinstance(a, (jax.Array, np.ndarray)):
+      fail_for_dimension_mismatch(m, unit, error_message="a and unit have to have the same units.")
+    return Quantity(jnp.triu(m.value, k=k), dim=m.dim)
+  elif isinstance(m, (jax.Array, np.ndarray)):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-      return jnp.triu(a, k=k) * unit
+      return jnp.triu(m, k=k) * unit
     else:
-      return jnp.triu(a, k=k)
+      return jnp.triu(m, k=k)
   else:
-    return jnp.triu(a, k=k)
+    return jnp.triu(m, k=k)
 
 
 @set_module_as('brainunit.math')
-def empty_like(a: Union[Quantity, jax.typing.ArrayLike],
-               dtype: Optional[jax.typing.DTypeLike] = None,
-               shape: Any = None,
-               unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
+def empty_like(
+    prototype: Union[Quantity, jax.typing.ArrayLike],
+    dtype: Optional[jax.typing.DTypeLike] = None,
+    shape: Any = None,
+    unit: Optional[Unit] = None
+) -> Union[Quantity, jax.Array]:
   """
-  Return a Quantity of `a` and `unit`, with uninitialized values if `unit` is provided.
-  else return an array of `a` with uninitialized values.
+  Return a new quantity or array with the same shape and type as a given array.
 
-  Args:
-    a: array_like, Quantity, shape, or dtype
-    dtype: data-type, optional
-    shape: sequence of ints, optional
-    unit: Unit, optional
+  Parameters
+  ----------
+  prototype : quantity or ndarray
+    The shape and data-type of `prototype` define these same attributes of the returned array.
+  dtype : data-type, optional
+    Overrides the data type of the result.
+  shape : int or tuple of ints, optional
+    Overrides the shape of the result. If not given, `prototype.shape` is used.
+  unit : Unit, optional
+    Unit of the returned Quantity.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  out : quantity or ndarray
+    Array of uninitialized (arbitrary) data with the same shape and type as `prototype`.
   """
-  if isinstance(a, Quantity):
+  if isinstance(prototype, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit)
-      fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.empty_like(a.value, dtype=dtype, shape=shape), dim=a.dim)
-  elif isinstance(a, (jax.Array, np.ndarray)):
+      fail_for_dimension_mismatch(prototype, unit, error_message="a and unit have to have the same units.")
+    return Quantity(jnp.empty_like(prototype.value, dtype=dtype), dim=prototype.dim)
+  elif isinstance(prototype, (jax.Array, np.ndarray)):
     if unit is not None:
       assert isinstance(unit, Unit)
-      return jnp.empty_like(a, dtype=dtype, shape=shape) * unit
+      return jnp.empty_like(prototype, dtype=dtype, shape=shape) * unit
     else:
-      return jnp.empty_like(a, dtype=dtype, shape=shape)
+      return jnp.empty_like(prototype, dtype=dtype, shape=shape)
   else:
-    return jnp.empty_like(a, dtype=dtype, shape=shape)
+    return jnp.empty_like(prototype, dtype=dtype, shape=shape)
 
 
 @set_module_as('brainunit.math')
-def ones_like(a: Union[Quantity, jax.typing.ArrayLike],
-              dtype: Optional[jax.typing.DTypeLike] = None,
-              shape: Any = None,
-              unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
+def ones_like(
+    a: Union[Quantity, jax.typing.ArrayLike],
+    dtype: Optional[jax.typing.DTypeLike] = None,
+    shape: Any = None,
+    unit: Optional[Unit] = None
+) -> Union[Quantity, jax.Array]:
   """
-  Return a Quantity of `a` and `unit`, filled with 1 if `unit` is provided.
-  else return an array of `a` filled with 1.
+  Return a quantity or an array of ones with the same shape and type as a given array.
 
-  Args:
-    a: array_like, Quantity, shape, or dtype
-    dtype: data-type, optional
-    shape: sequence of ints, optional
-    unit: Unit, optional
+  Parameters
+  ----------
+  a : quantity or ndarray
+    The shape and data-type of `a` define these same attributes of the returned array.
+  dtype : data-type, optional
+    Overrides the data type of the result.
+  shape : int or tuple of ints, optional
+    Overrides the shape of the result. If not given, `a.shape` is used.
+  unit : Unit, optional
+    Unit of the returned Quantity.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  out : quantity or ndarray
+    Array of ones with the same shape and type as `a`.
   """
   if isinstance(a, Quantity):
     if unit is not None:
@@ -420,22 +511,30 @@ def ones_like(a: Union[Quantity, jax.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def zeros_like(a: Union[Quantity, jax.typing.ArrayLike],
-               dtype: Optional[jax.typing.DTypeLike] = None,
-               shape: Any = None,
-               unit: Optional[Unit] = None) -> Union[Quantity, jax.Array]:
+def zeros_like(
+    a: Union[Quantity, jax.typing.ArrayLike],
+    dtype: Optional[jax.typing.DTypeLike] = None,
+    shape: Any = None,
+    unit: Optional[Unit] = None
+) -> Union[Quantity, jax.Array]:
   """
-  Return a Quantity of `a` and `unit`, filled with 0 if `unit` is provided.
-  else return an array of `a` filled with 0.
+  Return a quantity or an array of zeros with the same shape and type as a given array.
 
-  Args:
-    a: array_like, Quantity, shape, or dtype
-    dtype: data-type, optional
-    shape: sequence of ints, optional
-    unit: Unit, optional
+  Parameters
+  ----------
+  a : quantity or ndarray
+    The shape and data-type of `a` define these same attributes of the returned array.
+  dtype : data-type, optional
+    Overrides the data type of the result.
+  shape : int or tuple of ints, optional
+    Overrides the shape of the result. If not given, `a.shape` is used.
+  unit : Unit, optional
+    Unit of the returned Quantity.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  out : quantity or ndarray
+    Array of zeros with the same shape and type as `a`.
   """
   if isinstance(a, Quantity):
     if unit is not None:
@@ -466,14 +565,22 @@ def asarray(
   (If they have same dimension but different magnitude, the input will be converted to the provided unit.)
   If unit is not provided, the input will be converted to an array.
 
-  Args:
-    a: array_like, Quantity, or Sequence[Quantity]
-    dtype: data-type, optional
-    order: {'C', 'F', 'A', 'K'}, optional
-    unit: Unit, optional
+  Parameters
+  ----------
+  a : quantity, ndarray, list[Quantity], list[ndarray]
+    Input data, in any form that can be converted to an array.
+  dtype : data-type, optional
+    By default, the data-type is inferred from the input data.
+  order : {'C', 'F', 'A', 'K'}, optional
+    Whether to use row-major (C-style) or column-major (Fortran-style) memory representation.
+    Defaults to 'K', which means that the memory layout is used in the order the array elements are stored in memory.
+  unit : Unit, optional
+    Unit of the returned Quantity.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `unit` is provided, else an array.
+  Returns
+  -------
+  out : quantity or array
+    Array interpretation of `a`. No copy is made if the input is already an array.
   """
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -515,47 +622,54 @@ array = asarray
 
 
 @set_module_as('brainunit.math')
-def arange(*args, **kwargs):
+def arange(
+    start: Union[Quantity, jax.typing.ArrayLike] = None,
+    stop: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
+    step: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
+    dtype: Optional[jax.typing.DTypeLike] = None
+) -> Union[Quantity, jax.Array]:
   """
-  Return a Quantity of `arange` and `unit`, with uninitialized values if `unit` is provided.
+  Return evenly spaced values within a given interval.
 
-  Args:
-    start: number, Quantity, optional
-    stop: number, Quantity, optional
-    step: number, optional
-    dtype: dtype, optional
-    unit: Unit, optional
+  Parameters
+  ----------
+  start : Quantity or array, optional
+      Start of the interval. The interval includes this value. The default start value is 0.
+  stop : Quantity or array
+      End of the interval. The interval does not include this value, except in some cases where `step` is not an integer
+      and floating point round-off affects the length of `out`.
+  step : Quantity or array, optional
+      Spacing between values. For any output `out`, this is the distance between two adjacent values, `out[i+1] - out[i]`.
+      The default step size is 1.
+  dtype : data-type, optional
+      The type of the output array. If `dtype` is not given, infer the data type from the other input arguments.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if start and stop are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  out : quantity or array
+      Array of evenly spaced values.
   """
-  # arange has a bit of a complicated argument structure unfortunately
-  # we leave the actual checking of the number of arguments to numpy, though
+
+  arg_len = len([x for x in [start, stop, step] if x is not None])
+
+  if arg_len == 1:
+    if stop is not None:
+      raise TypeError("Duplicate definition of 'stop'")
+    stop = start
+    start = 0
+  elif arg_len == 2:
+    if start is not None and stop is None:
+      stop = start
+      start = 0
+
+  elif arg_len > 3:
+    raise TypeError("Need between 1 and 3 non-keyword arguments")
 
   # default values
-  start = kwargs.pop("start", 0)
-  step = kwargs.pop("step", 1)
-  stop = kwargs.pop("stop", None)
-  if len(args) == 1:
-    if stop is not None:
-      raise TypeError("Duplicate definition of 'stop'")
-    stop = args[0]
-  elif len(args) == 2:
-    if start != 0:
-      raise TypeError("Duplicate definition of 'start'")
-    if stop is not None:
-      raise TypeError("Duplicate definition of 'stop'")
-    start, stop = args
-  elif len(args) == 3:
-    if start != 0:
-      raise TypeError("Duplicate definition of 'start'")
-    if stop is not None:
-      raise TypeError("Duplicate definition of 'stop'")
-    if step != 1:
-      raise TypeError("Duplicate definition of 'step'")
-    start, stop, step = args
-  elif len(args) > 3:
-    raise TypeError("Need between 1 and 3 non-keyword arguments")
+  if start is None:
+    start = 0
+  if step is None:
+    step = 1
 
   if stop is None:
     raise TypeError("Missing stop argument.")
@@ -565,32 +679,27 @@ def arange(*args, **kwargs):
   fail_for_dimension_mismatch(
     start,
     stop,
-    error_message=(
-      "Start value {start} and stop value {stop} have to have the same units."
-    ),
+    error_message="Start value {start} and stop value {stop} have to have the same units.",
     start=start,
     stop=stop,
   )
   fail_for_dimension_mismatch(
     stop,
     step,
-    error_message=(
-      "Stop value {stop} and step value {step} have to have the same units."
-    ),
+    error_message="Stop value {stop} and step value {step} have to have the same units.",
     stop=stop,
     step=step,
   )
+
   unit = getattr(stop, "dim", DIMENSIONLESS)
-  # start is a position-only argument in numpy 2.0
-  # https://numpy.org/devdocs/release/2.0.0-notes.html#arange-s-start-argument-is-positional-only
-  # TODO: check whether this is still the case in the final release
+
   if start == 0:
     return Quantity(
       jnp.arange(
         start=start.value if isinstance(start, Quantity) else jnp.asarray(start),
         stop=stop.value if isinstance(stop, Quantity) else jnp.asarray(stop),
         step=step.value if isinstance(step, Quantity) else jnp.asarray(step),
-        **kwargs,
+        dtype=dtype,
       ),
       dim=unit,
     )
@@ -600,7 +709,7 @@ def arange(*args, **kwargs):
         start.value if isinstance(start, Quantity) else jnp.asarray(start),
         stop=stop.value if isinstance(stop, Quantity) else jnp.asarray(stop),
         step=step.value if isinstance(step, Quantity) else jnp.asarray(step),
-        **kwargs,
+        dtype=dtype,
       ),
       dim=unit,
     )
@@ -616,18 +725,30 @@ def linspace(
     dtype: Optional[jax.typing.DTypeLike] = None
 ) -> Union[Quantity, jax.Array]:
   """
-  Return a Quantity of `linspace` and `unit`, with uninitialized values if `unit` is provided.
+  Return evenly spaced numbers over a specified interval.
 
-  Args:
-    start: number, Quantity
-    stop: number, Quantity
-    num: int, optional
-    endpoint: bool, optional
-    retstep: bool, optional
-    dtype: dtype, optional
+  Returns `num` evenly spaced samples, calculated over the interval [`start`, `stop`].
+  The endpoint of the interval can optionally be excluded.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if start and stop are Quantities that have the same unit, else an array.
+  Parameters
+  ----------
+  start : Quantity or array
+    The starting value of the sequence.
+  stop : Quantity or array
+    The end value of the sequence.
+  num : int, optional
+    Number of samples to generate. Default is 50.
+  endpoint : bool, optional
+    If True, `stop` is the last sample. Otherwise, it is not included. Default is True.
+  retstep : bool, optional
+    If True, return (`samples`, `step`), where `step` is the spacing between samples.
+  dtype : data-type, optional
+    The type of the output array. If `dtype` is not given, infer the data type from the other input arguments.
+
+  Returns
+  -------
+  samples : quantity or array
+    There are `num` equally spaced samples in the closed interval [`start`, `stop`] or the half-open interval [`start`, `stop`).
   """
   fail_for_dimension_mismatch(
     start,
@@ -652,18 +773,29 @@ def logspace(start: Union[Quantity, jax.typing.ArrayLike],
              base: Optional[float] = 10.0,
              dtype: Optional[jax.typing.DTypeLike] = None):
   """
-  Return a Quantity of `logspace` and `unit`, with uninitialized values if `unit` is provided.
+  Return numbers spaced evenly on a log scale.
 
-  Args:
-    start: number, Quantity
-    stop: number, Quantity
-    num: int, optional
-    endpoint: bool, optional
-    base: float, optional
-    dtype: dtype, optional
+  In linear space, the sequence starts at `base ** start` (`base` to the power of `start`) and ends with `base ** stop` in `num` steps.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if start and stop are Quantities that have the same unit, else an array.
+  Parameters
+  ----------
+  start : Quantity or array
+    The starting value of the sequence.
+  stop : Quantity or array
+    The end value of the sequence.
+  num : int, optional
+    Number of samples to generate. Default is 50.
+  endpoint : bool, optional
+    If True, `stop` is the last sample. Otherwise, it is not included. Default is True.
+  base : float, optional
+    The base of the log space. The step size between the elements in `ln(samples)` is `base`.
+  dtype : data-type, optional
+    The type of the output array. If `dtype` is not given, infer the data type from the other input arguments.
+
+  Returns
+  -------
+  samples : quantity or array
+    There are `num` equally spaced samples in the closed interval [`start`, `stop`] or the half-open interval [`start`, `stop`).
   """
   fail_for_dimension_mismatch(
     start,
@@ -686,16 +818,27 @@ def fill_diagonal(a: Union[Quantity, jax.typing.ArrayLike],
                   wrap: Optional[bool] = False,
                   inplace: Optional[bool] = False) -> Union[Quantity, jax.Array]:
   """
-  Fill the main diagonal of the given array of `a` with `val`.
+  Fill the main diagonal of the given array of any dimensionality.
 
-  Args:
-    a: array_like, Quantity
-    val: scalar, Quantity
-    wrap: bool, optional
-    unit: Unit, optional
+  For an array `a` with `a.ndim >= 2`, the diagonal is the list of locations with indices `a[i, i, ..., i]`
+  all identical.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `a` and `val` are Quantities that have the same unit, else an array.
+  Parameters
+  ----------
+  a : Quantity or array
+    Array in which to fill the diagonal.
+  val : Quantity or array
+    Value to be written on the diagonal. Its type must be compatible with that of the array a.
+  wrap : bool, optional
+    For tall matrices in NumPy version 1.6.2 and earlier, the matrix is considered "tall" if `a.shape[0] > a.shape[1]`.
+    If `wrap` is True, the diagonal is "wrapped" after `a.shape[1]` and continues in the first column.
+  inplace : bool, optional
+    If True, the diagonal is filled in-place. Default is False.
+
+  Returns
+  -------
+  out : Quantity or array
+    The input array with the diagonal filled.
   """
   if isinstance(val, Quantity):
     if isinstance(a, Quantity):
@@ -711,19 +854,29 @@ def fill_diagonal(a: Union[Quantity, jax.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def array_split(ary: Union[Quantity, jax.typing.ArrayLike],
-                indices_or_sections: Union[int, jax.typing.ArrayLike],
-                axis: Optional[int] = 0) -> Union[list[Quantity], list[Array]]:
+def array_split(
+    ary: Union[Quantity, jax.typing.ArrayLike],
+    indices_or_sections: Union[int, jax.typing.ArrayLike],
+    axis: Optional[int] = 0
+) -> Union[list[Quantity], list[Array]]:
   """
   Split an array into multiple sub-arrays.
 
-  Args:
-    ary: array_like, Quantity
-    indices_or_sections: int, array_like
-    axis: int, optional
+  Parameters
+  ----------
+  ary : Quantity or array
+    Array to be divided into sub-arrays.
+  indices_or_sections : int or 1-D array
+    If `indices_or_sections` is an integer, `ary` is divided into `indices_or_sections` sub-arrays along `axis`.
+    If such a split is not possible, an error is raised.
+    If `indices_or_sections` is a 1-D array of sorted integers, the entries indicate where along `axis` the array is split.
+  axis : int, optional
+    The axis along which to split, default is 0.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `ary` is a Quantity, else an array.
+  Returns
+  -------
+  sub-arrays : list of Quantity or list of array
+    A list of sub-arrays.
   """
   if isinstance(ary, Quantity):
     return [Quantity(x, dim=ary.dim) for x in jnp.array_split(ary.value, indices_or_sections, axis)]
@@ -734,26 +887,41 @@ def array_split(ary: Union[Quantity, jax.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def meshgrid(*xi: Union[Quantity, jax.typing.ArrayLike],
-             copy: Optional[bool] = True,
-             sparse: Optional[bool] = False,
-             indexing: Optional[str] = 'xy'):
+def meshgrid(
+    *xi: Union[Quantity, jax.typing.ArrayLike],
+    copy: Optional[bool] = True,
+    sparse: Optional[bool] = False,
+    indexing: Optional[str] = 'xy'
+) -> Union[list[Quantity], list[Array]]:
   """
   Return coordinate matrices from coordinate vectors.
 
-  Args:
-    xi: array_like, Quantity
-    copy: bool, optional
-    sparse: bool, optional
-    indexing: str, optional
+  Make N-D coordinate arrays for vectorized evaluations of N-D scalar/vector fields over N-D grids,
+  given one-dimensional coordinate arrays x1, x2,..., xn.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `xi` are Quantities that have the same unit, else an array.
+  Parameters
+  ----------
+  xi : Quantity or array
+    1-D arrays representing the coordinates of a grid.
+  copy : bool, optional
+    If True (default), the returned arrays are copies. If False, the view is returned.
+  sparse : bool, optional
+    If True, return a sparse grid (meshgrid) instead of a dense grid.
+  indexing : {'xy', 'ij'}, optional
+    Cartesian ('xy', default) or matrix ('ij') indexing of output.
+
+  Returns
+  -------
+  X1, X2,..., XN : Quantity or array
+    For vectors x1, x2,..., 'xn' with lengths Ni=len(xi), return (N1, N2, N3,..., Nn) shaped arrays if indexing='ij'
+    or (N2, N1, N3,..., Nn) shaped arrays if indexing='xy' with the elements of xi repeated to fill the matrix along
+    the first dimension for x1, the second for x2 and so on.
   """
   from builtins import all as origin_all
   if origin_all(isinstance(x, Quantity) for x in xi):
     fail_for_dimension_mismatch(*xi)
-    return Quantity(jnp.meshgrid(*[x.value for x in xi], copy=copy, sparse=sparse, indexing=indexing), dim=xi[0].dim)
+    return [Quantity(x, dim=xi[0].dim) for x in
+            jnp.meshgrid(*[x.value for x in xi], copy=copy, sparse=sparse, indexing=indexing)]
   elif origin_all(isinstance(x, (jax.Array, np.ndarray)) for x in xi):
     return jnp.meshgrid(*xi, copy=copy, sparse=sparse, indexing=indexing)
   else:
@@ -761,19 +929,31 @@ def meshgrid(*xi: Union[Quantity, jax.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def vander(x: Union[Quantity, jax.typing.ArrayLike],
-           N: Optional[bool] = None,
-           increasing: Optional[bool] = False) -> Union[Quantity, jax.Array]:
+def vander(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    N: Optional[bool] = None,
+    increasing: Optional[bool] = False
+) -> Union[Quantity, jax.Array]:
   """
   Generate a Vandermonde matrix.
 
-  Args:
-    x: array_like, Quantity
-    N: int, optional
-    increasing: bool, optional
+  The Vandermonde matrix is a matrix with the terms of a geometric progression in each row.
+  The geometric progression is defined by the vector `x` and the number of columns `N`.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Parameters
+  ----------
+  x : Quantity or array
+    1-D input array.
+  N : int, optional
+    Number of columns in the output. If `N` is not specified, a square array is returned (N = len(x)).
+  increasing : bool, optional
+    Order of the powers of the columns. If True, the powers increase from left to right, if False (the default),
+    they are reversed.
+
+  Returns
+  -------
+  out : Quantity or array
+    Vandermonde matrix. If `increasing` is False, the first column is `x^(N-1)`, the second `x^(N-2)` and so forth.
   """
   if isinstance(x, Quantity):
     return Quantity(jnp.vander(x.value, N=N, increasing=increasing), dim=x.dim)

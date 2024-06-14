@@ -19,11 +19,10 @@ import jax.numpy as jnp
 import numpy as np
 from jax import Array
 
-from brainunit._misc import set_module_as
 from .._base import Quantity
+from .._misc import set_module_as
 
 __all__ = [
-
   # Elementwise bit operations (unary)
   'bitwise_not', 'invert',
 
@@ -37,7 +36,7 @@ __all__ = [
 
 def elementwise_bit_operation_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
-    raise ValueError(f'Expected integers, got {x}')
+    raise ValueError(f'Expected arrays, got {x}')
   elif isinstance(x, (jax.Array, np.ndarray)):
     return func(x, *args, **kwargs)
   else:
@@ -49,11 +48,15 @@ def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   """
   Compute the bit-wise NOT of an array, element-wise.
 
-  Args:
-    x: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_unary(jnp.bitwise_not, x)
 
@@ -63,11 +66,15 @@ def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   """
   Compute bit-wise inversion, or bit-wise NOT, element-wise.
 
-  Args:
-    x: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_unary(jnp.invert, x)
 
@@ -78,7 +85,7 @@ def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
 
 def elementwise_bit_operation_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity) or isinstance(y, Quantity):
-    raise ValueError(f'Expected integers, got {x} and {y}')
+    raise ValueError(f'Expected array, got {x} and {y}')
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray, int, float)):
     return func(x, y, *args, **kwargs)
   else:
@@ -93,12 +100,17 @@ def bitwise_and(
   """
   Compute the bit-wise AND of two arrays element-wise.
 
-  Args:
-    x: array_like
-    y: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
+  y: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_binary(jnp.bitwise_and, x, y)
 
@@ -111,12 +123,17 @@ def bitwise_or(
   """
   Compute the bit-wise OR of two arrays element-wise.
 
-  Args:
-    x: array_like
-    y: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
+  y: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_binary(jnp.bitwise_or, x, y)
 
@@ -129,12 +146,17 @@ def bitwise_xor(
   """
   Compute the bit-wise XOR of two arrays element-wise.
 
-  Args:
-    x: array_like
-    y: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
+  y: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_binary(jnp.bitwise_xor, x, y)
 
@@ -147,12 +169,17 @@ def left_shift(
   """
   Shift the bits of an integer to the left.
 
-  Args:
-    x: array_like
-    y: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
+  y: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_binary(jnp.left_shift, x, y)
 
@@ -165,11 +192,16 @@ def right_shift(
   """
   Shift the bits of an integer to the right.
 
-  Args:
-    x: array_like
-    y: array_like
+  Parameters
+  ----------
+  x: array_like, quantity
+    Input array.
+  y: array_like, quantity
+    Input array.
 
-  Returns:
-    jax.Array: an array
+  Returns
+  -------
+  out : jax.Array
+    Output array.
   """
   return elementwise_bit_operation_binary(jnp.right_shift, x, y)
