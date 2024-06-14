@@ -23,7 +23,6 @@ from brainunit._misc import set_module_as
 from .._base import Quantity
 
 __all__ = [
-
   # Elementwise bit operations (unary)
   'bitwise_not', 'invert',
 
@@ -37,7 +36,7 @@ __all__ = [
 
 def elementwise_bit_operation_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
-    raise ValueError(f'Expected integers, got {x}')
+    raise ValueError(f'Expected arrays, got {x}')
   elif isinstance(x, (jax.Array, np.ndarray)):
     return func(x, *args, **kwargs)
   else:
@@ -86,7 +85,7 @@ def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
 
 def elementwise_bit_operation_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity) or isinstance(y, Quantity):
-    raise ValueError(f'Expected integers, got {x} and {y}')
+    raise ValueError(f'Expected array, got {x} and {y}')
   elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray, int, float)):
     return func(x, y, *args, **kwargs)
   else:

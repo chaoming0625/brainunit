@@ -76,7 +76,6 @@ def eye(
     k: int = 0,
     dtype: Optional[Any] = None,
     unit: Optional[Unit] = None,
-    order: str = 'C',
 ) -> Union[Array, Quantity]:
   """
   Returns a 2-D quantity or array of `shape` and `unit` with ones on the diagonal and zeros elsewhere.
@@ -95,9 +94,6 @@ def eye(
     Data-type of the returned array.
   unit : Unit, optional
     Unit of the returned Quantity.
-  order : {'C', 'F'}, optional
-      Whether the output should be stored in row-major (C-style) or
-      column-major (Fortran-style) order in memory.
 
   Returns
   -------

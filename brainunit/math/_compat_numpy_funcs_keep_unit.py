@@ -226,7 +226,6 @@ def around(
 def round(
     x: Union[Quantity, jax.typing.ArrayLike],
     decimals: int = 0,
-    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None
 ) -> Union[Quantity, jax.Array]:
   """
   Round an array to the nearest integer.
@@ -245,7 +244,7 @@ def round(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.round, x)
+  return funcs_keep_unit_unary(jnp.round, x, decimals=decimals)
 
 
 @set_module_as('brainunit.math')
@@ -323,7 +322,6 @@ def trunc(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array
 @set_module_as('brainunit.math')
 def fix(
     x: Union[Quantity, jax.typing.ArrayLike],
-    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None
 ) -> Union[Quantity, jax.Array]:
   """
   Return the nearest integer towards zero.
@@ -332,15 +330,13 @@ def fix(
   ----------
   x : array_like, Quantity
     Input array.
-  out : array_like, Quantity, optional
-    Output array.
 
   Returns
   -------
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.fix, x, out=out)
+  return funcs_keep_unit_unary(jnp.fix, x)
 
 
 @set_module_as('brainunit.math')
@@ -348,7 +344,6 @@ def sum(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
     dtype: Union[jax.typing.DTypeLike, None] = None,
-    out: None = None,
     keepdims: bool = False,
     initial: Union[jax.typing.ArrayLike, None] = None,
     where: Union[jax.typing.ArrayLike, None] = None,
@@ -376,10 +371,6 @@ def sum(
     integer.  In that case, if `a` is signed then the platform integer
     is used while if `a` is unsigned then an unsigned integer of the
     same precision as the platform integer is used.
-  out : ndarray, optional
-    Alternative output array in which to place the result. It must have
-    the same shape as the expected output, but the type of the output
-    values will be cast if necessary.
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left
     in the result as dimensions with size one. With this option,
@@ -402,7 +393,8 @@ def sum(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.sum, x, axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial,
+  return funcs_keep_unit_unary(jnp.sum, x,
+                               axis=axis, dtype=dtype, keepdims=keepdims, initial=initial,
                                where=where, promote_integers=promote_integers)
 
 
@@ -411,7 +403,6 @@ def nancumsum(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
     dtype: Union[jax.typing.DTypeLike, None] = None,
-    out: None = None,
 ) -> Union[Quantity, jax.Array]:
   """
   Return the cumulative sum of the array elements, ignoring NaNs.
@@ -429,18 +420,13 @@ def nancumsum(
     to the dtype of `a`, unless `a` has an integer dtype with a
     precision less than that of the default platform integer.  In
     that case, the default platform integer is used.
-  out : ndarray, optional
-    Alternative output array in which to place the result. It must
-    have the same shape and buffer length as the expected output
-    but the type will be cast if necessary. See :ref:`ufuncs-output-type` for
-    more details.
 
   Returns
   -------
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nancumsum, x, axis=axis, dtype=dtype, out=out)
+  return funcs_keep_unit_unary(jnp.nancumsum, x, axis=axis, dtype=dtype)
 
 
 @set_module_as('brainunit.math')
@@ -448,7 +434,6 @@ def nansum(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
     dtype: Union[jax.typing.DTypeLike, None] = None,
-    out: None = None,
     keepdims: bool = False,
     initial: Union[jax.typing.ArrayLike, None] = None,
     where: Union[jax.typing.ArrayLike, None] = None,
@@ -470,12 +455,6 @@ def nansum(
     the platform (u)intp. In that case, the default will be either
     (u)int32 or (u)int64 depending on whether the platform is 32 or 64
     bits. For inexact inputs, dtype must be inexact.
-  out : ndarray, optional
-    Alternate output array in which to place the result.  The default
-    is ``None``. If provided, it must have the same shape as the
-    expected output, but the type will be cast if necessary.  See
-    :ref:`ufuncs-output-type` for more details. The casting of NaN to integer
-    can yield unexpected results.
   keepdims : bool, optional
       If this is set to True, the axes which are reduced are left
       in the result as dimensions with size one. With this option,
@@ -495,7 +474,8 @@ def nansum(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nansum, x, axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial,
+  return funcs_keep_unit_unary(jnp.nansum, x,
+                               axis=axis, dtype=dtype, keepdims=keepdims, initial=initial,
                                where=where)
 
 
@@ -504,7 +484,6 @@ def cumsum(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
     dtype: Union[jax.typing.DTypeLike, None] = None,
-    out: None = None,
 ) -> Union[Quantity, jax.Array]:
   """
   Return the cumulative sum of the array elements.
@@ -522,18 +501,13 @@ def cumsum(
     to the dtype of `a`, unless `a` has an integer dtype with a
     precision less than that of the default platform integer.  In
     that case, the default platform integer is used.
-  out : ndarray, optional
-    Alternative output array in which to place the result. It must
-    have the same shape and buffer length as the expected output
-    but the type will be cast if necessary. See :ref:`ufuncs-output-type` for
-    more details.
 
   Returns
   -------
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.cumsum, x, axis=axis, dtype=dtype, out=out)
+  return funcs_keep_unit_unary(jnp.cumsum, x, axis=axis, dtype=dtype)
 
 
 @set_module_as('brainunit.math')
@@ -602,7 +576,6 @@ def fabs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
 def median(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
-    out: None = None,
     overwrite_input: bool = False,
     keepdims: bool = False
 ) -> Union[Quantity, jax.Array]:
@@ -617,10 +590,6 @@ def median(
     Axis or axes along which the medians are computed. The default
     is to compute the median along a flattened version of the array.
     A sequence of axes is supported since version 1.9.0.
-  out : ndarray, optional
-    Alternative output array in which to place the result. It must
-    have the same shape and buffer length as the expected output,
-    but the type (of the output) will be cast if necessary.
   overwrite_input : bool, optional
    If True, then allow use of memory of input array `a` for
    calculations. The input array will be modified by the call to
@@ -639,14 +608,13 @@ def median(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.median, x, axis=axis, out=out, overwrite_input=overwrite_input, keepdims=keepdims)
+  return funcs_keep_unit_unary(jnp.median, x, axis=axis, overwrite_input=overwrite_input, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
 def nanmin(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
-    out: None = None,
     keepdims: bool = False,
     initial: Union[jax.typing.ArrayLike, None] = None,
     where: Union[jax.typing.ArrayLike, None] = None,
@@ -661,11 +629,6 @@ def nanmin(
   axis : {int, tuple of int, None}, optional
     Axis or axes along which the minimum is computed. The default is to compute
     the minimum of the flattened array.
-  out : ndarray, optional
-    Alternate output array in which to place the result.  The default
-    is ``None``; if provided, it must have the same shape as the
-    expected output, but the type will be cast if necessary. See
-    :ref:`ufuncs-output-type` for more details.
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left
     in the result as dimensions with size one. With this option,
@@ -687,14 +650,13 @@ def nanmin(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanmin, x, axis=axis, out=out, keepdims=keepdims, initial=initial, where=where)
+  return funcs_keep_unit_unary(jnp.nanmin, x, axis=axis, keepdims=keepdims, initial=initial, where=where)
 
 
 @set_module_as('brainunit.math')
 def nanmax(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
-    out: None = None,
     keepdims: bool = False,
     initial: Union[jax.typing.ArrayLike, None] = None,
     where: Union[jax.typing.ArrayLike, None] = None,
@@ -709,11 +671,6 @@ def nanmax(
   axis : {int, tuple of int, None}, optional
     Axis or axes along which the minimum is computed. The default is to compute
     the minimum of the flattened array.
-  out : ndarray, optional
-    Alternate output array in which to place the result.  The default
-    is ``None``; if provided, it must have the same shape as the
-    expected output, but the type will be cast if necessary. See
-    :ref:`ufuncs-output-type` for more details.
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left
     in the result as dimensions with size one. With this option,
@@ -735,14 +692,13 @@ def nanmax(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanmax, x, axis=axis, out=out, keepdims=keepdims, initial=initial, where=where)
+  return funcs_keep_unit_unary(jnp.nanmax, x, axis=axis, keepdims=keepdims, initial=initial, where=where)
 
 
 @set_module_as('brainunit.math')
 def ptp(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
-    out: None = None,
     keepdims: bool = False,
 ) -> Union[Quantity, jax.Array]:
   """
@@ -759,10 +715,6 @@ def ptp(
 
     If this is a tuple of ints, a reduction is performed on multiple
     axes, instead of a single axis or all the axes as before.
-  out : array_like
-    Alternative output array in which to place the result. It must
-    have the same shape and buffer length as the expected output,
-    but the type of the output values will be cast if necessary.
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left
     in the result as dimensions with size one. With this option,
@@ -779,7 +731,7 @@ def ptp(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.ptp, x, axis=axis, out=out, keepdims=keepdims)
+  return funcs_keep_unit_unary(jnp.ptp, x, axis=axis, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
@@ -841,7 +793,6 @@ def mean(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
     dtype: Union[jax.typing.DTypeLike, None] = None,
-    out: None = None,
     keepdims: bool = False, *,
     where: Union[jax.typing.ArrayLike, None] = None
 ) -> Union[Quantity, jax.Array]:
@@ -862,11 +813,6 @@ def mean(
     Type to use in computing the mean.  For integer inputs, the default
     is `float64`; for floating point inputs, it is the same as the
     input dtype.
-  out : ndarray, optional
-    Alternate output array in which to place the result.  The default
-    is ``None``; if provided, it must have the same shape as the
-    expected output, but the type will be cast if necessary.
-    See :ref:`ufuncs-output-type` for more details.
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left
     in the result as dimensions with size one. With this option,
@@ -885,7 +831,7 @@ def mean(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.mean, x, axis=axis, dtype=dtype, out=out, keepdims=keepdims, where=where)
+  return funcs_keep_unit_unary(jnp.mean, x, axis=axis, dtype=dtype, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -893,7 +839,6 @@ def std(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
     dtype: Union[jax.typing.DTypeLike, None] = None,
-    out: None = None,
     ddof: int = 0,
     keepdims: bool = False, *,
     where: Union[jax.typing.ArrayLike, None] = None
@@ -915,10 +860,6 @@ def std(
     Type to use in computing the standard deviation. For arrays of
     integer type the default is float64, for arrays of float types it is
     the same as the array type.
-  out : ndarray, optional
-    Alternative output array in which to place the result. It must have
-    the same shape as the expected output but the type (of the calculated
-    values) will be cast if necessary.
   ddof : int, optional
     Means Delta Degrees of Freedom.  The divisor used in calculations
     is ``N - ddof``, where ``N`` represents the number of elements.
@@ -942,14 +883,14 @@ def std(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.std, x, axis=axis, dtype=dtype, out=out, ddof=ddof, keepdims=keepdims, where=where)
+  return funcs_keep_unit_unary(jnp.std, x, axis=axis, dtype=dtype, ddof=ddof, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
 def nanmedian(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, tuple[int, ...], None] = None,
-    out: None = None, overwrite_input: bool = False,
+    overwrite_input: bool = False,
     keepdims: bool = False
 ) -> Union[Quantity, jax.Array]:
   """
@@ -963,10 +904,6 @@ def nanmedian(
     Axis or axes along which the medians are computed. The default
     is to compute the median along a flattened version of the array.
     A sequence of axes is supported since version 1.9.0.
-  out : ndarray, optional
-    Alternative output array in which to place the result. It must
-    have the same shape and buffer length as the expected output,
-    but the type (of the output) will be cast if necessary.
   overwrite_input : bool, optional
    If True, then allow use of memory of input array `a` for
    calculations. The input array will be modified by the call to
@@ -991,7 +928,7 @@ def nanmedian(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanmedian, x, axis=axis, out=out, overwrite_input=overwrite_input, keepdims=keepdims)
+  return funcs_keep_unit_unary(jnp.nanmedian, x, axis=axis, overwrite_input=overwrite_input, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
@@ -999,7 +936,6 @@ def nanmean(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
     dtype: Union[jax.typing.DTypeLike, None] = None,
-    out: None = None,
     keepdims: bool = False, *,
     where: Union[jax.typing.ArrayLike, None] = None
 ) -> Union[Quantity, jax.Array]:
@@ -1020,11 +956,6 @@ def nanmean(
     Type to use in computing the mean.  For integer inputs, the default
     is `float64`; for floating point inputs, it is the same as the
     input dtype.
-  out : ndarray, optional
-    Alternate output array in which to place the result.  The default
-    is ``None``; if provided, it must have the same shape as the
-    expected output, but the type will be cast if necessary.
-    See :ref:`ufuncs-output-type` for more details.
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left
     in the result as dimensions with size one. With this option,
@@ -1043,7 +974,7 @@ def nanmean(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanmean, x, axis=axis, dtype=dtype, out=out, keepdims=keepdims, where=where)
+  return funcs_keep_unit_unary(jnp.nanmean, x, axis=axis, dtype=dtype, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -1051,7 +982,6 @@ def nanstd(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Union[int, Sequence[int], None] = None,
     dtype: Union[jax.typing.DTypeLike, None] = None,
-    out: None = None,
     ddof: int = 0,
     keepdims: bool = False, *,
     where: Union[jax.typing.ArrayLike, None] = None
@@ -1073,10 +1003,6 @@ def nanstd(
     Type to use in computing the standard deviation. For arrays of
     integer type the default is float64, for arrays of float types it is
     the same as the array type.
-  out : ndarray, optional
-    Alternative output array in which to place the result. It must have
-    the same shape as the expected output but the type (of the calculated
-    values) will be cast if necessary.
   ddof : int, optional
     Means Delta Degrees of Freedom.  The divisor used in calculations
     is ``N - ddof``, where ``N`` represents the number of elements.
@@ -1100,7 +1026,7 @@ def nanstd(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanstd, x, axis=axis, dtype=dtype, out=out, ddof=ddof, keepdims=keepdims,
+  return funcs_keep_unit_unary(jnp.nanstd, x, axis=axis, dtype=dtype, ddof=ddof, keepdims=keepdims,
                                where=where)
 
 
@@ -1142,8 +1068,6 @@ def diff(
 @set_module_as('brainunit.math')
 def modf(
     x: Union[Quantity, jax.typing.ArrayLike],
-    /,
-    out: None = None,
 ) -> Union[Quantity, jax.Array]:
   """
   Return the fractional and integer parts of the array elements.
@@ -1152,17 +1076,13 @@ def modf(
   ----------
   x : array_like, Quantity
     Input array.
-  out : tuple of jax.Array, optional
-    A tuple of array-like objects representing the fractional and
-    integral parts of `x`. The dtypes of the output arrays are the
-    same as the input array.
 
   Returns
   -------
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.modf, x, out)
+  return funcs_keep_unit_unary(jnp.modf, x)
 
 
 # math funcs keep unit (binary)

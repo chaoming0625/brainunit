@@ -458,7 +458,6 @@ def tensordot(
 def nanargmax(
     a: Union[jax.typing.ArrayLike, Quantity],
     axis: int = None,
-    out: None = None,
     keepdims: bool = False
 ) -> jax.Array:
   """
@@ -490,7 +489,6 @@ def nanargmax(
                                  a,
                                  return_quantity=False,
                                  axis=axis,
-                                 out=out,
                                  keepdims=keepdims)
 
 
@@ -498,7 +496,6 @@ def nanargmax(
 def nanargmin(
     a: Union[jax.typing.ArrayLike, Quantity],
     axis: int = None,
-    out: None = None,
     keepdims: bool = False
 ) -> jax.Array:
   """
@@ -529,7 +526,6 @@ def nanargmin(
                                  a,
                                  return_quantity=False,
                                  axis=axis,
-                                 out=out,
                                  keepdims=keepdims)
 
 

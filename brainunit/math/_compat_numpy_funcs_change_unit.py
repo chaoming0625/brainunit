@@ -21,8 +21,7 @@ import numpy as np
 
 from brainunit._misc import set_module_as
 from ._compat_numpy_get_attribute import isscalar
-from .._base import (DIMENSIONLESS,
-                     Quantity, )
+from .._base import (DIMENSIONLESS, Quantity, )
 from .._base import _return_check_unitless
 
 __all__ = [
@@ -83,7 +82,6 @@ def var(
     a: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
     dtype: Optional[Any] = None,
-    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     ddof: int = 0,
     keepdims: bool = False,
     *,
@@ -111,10 +109,6 @@ def var(
     Type to use in computing the variance.  For arrays of integer type
     the default is `float64`; for arrays of float types it is the same as
     the array type.
-  out : ndarray, optional
-    Alternate output array in which to place the result.  It must have
-    the same shape as the expected output, but the type is cast if
-    necessary.
   ddof : int, optional
     "Delta Degrees of Freedom": the divisor used in the calculation is
     ``N - ddof``, where ``N`` represents the number of elements. By
@@ -146,7 +140,6 @@ def var(
                                  a,
                                  axis=axis,
                                  dtype=dtype,
-                                 out=out,
                                  ddof=ddof,
                                  keepdims=keepdims,
                                  where=where)
@@ -157,7 +150,6 @@ def nanvar(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
     dtype: Optional[Any] = None,
-    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     ddof: int = 0,
     keepdims: bool = False,
     where: Optional[jax.typing.ArrayLike] = None
@@ -184,10 +176,6 @@ def nanvar(
     Type to use in computing the variance.  For arrays of integer type
     the default is `float64`; for arrays of float types it is the same as
     the array type.
-  out : ndarray, optional
-    Alternate output array in which to place the result.  It must have
-    the same shape as the expected output, but the type is cast if
-    necessary.
   ddof : int, optional
     "Delta Degrees of Freedom": the divisor used in the calculation is
     ``N - ddof``, where ``N`` represents the number of non-NaN
@@ -215,7 +203,6 @@ def nanvar(
                                  x,
                                  axis=axis,
                                  dtype=dtype,
-                                 out=out,
                                  ddof=ddof,
                                  keepdims=keepdims,
                                  where=where)
@@ -307,7 +294,6 @@ def square(
 def prod(x: Union[Quantity, jax.typing.ArrayLike],
          axis: Optional[int] = None,
          dtype: Optional[jax.typing.DTypeLike] = None,
-         out: None = None,
          keepdims: Optional[bool] = False,
          initial: Union[Quantity, jax.typing.ArrayLike] = None,
          where: Union[Quantity, jax.typing.ArrayLike] = None,
@@ -335,10 +321,6 @@ def prod(x: Union[Quantity, jax.typing.ArrayLike],
     default platform integer.  In that case, if `a` is signed then the
     platform integer is used while if `a` is unsigned then an unsigned
     integer of the same precision as the platform integer is used.
-  out : ndarray, optional
-    Alternative output array in which to place the result. It must have
-    the same shape as the expected output, but the type of the output
-    values will be cast if necessary.
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left in the
     result as dimensions with size one. With this option, the result
@@ -363,10 +345,10 @@ def prod(x: Union[Quantity, jax.typing.ArrayLike],
     This is a Quantity if the product of the unit of `x` is not dimensionless.
   """
   if isinstance(x, Quantity):
-    return x.prod(axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial, where=where,
+    return x.prod(axis=axis, dtype=dtype, keepdims=keepdims, initial=initial, where=where,
                   promote_integers=promote_integers)
   else:
-    return jnp.prod(x, axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial, where=where,
+    return jnp.prod(x, axis=axis, dtype=dtype, keepdims=keepdims, initial=initial, where=where,
                     promote_integers=promote_integers)
 
 
@@ -374,7 +356,6 @@ def prod(x: Union[Quantity, jax.typing.ArrayLike],
 def nanprod(x: Union[Quantity, jax.typing.ArrayLike],
             axis: Optional[int] = None,
             dtype: Optional[jax.typing.DTypeLike] = None,
-            out: None = None,
             keepdims: bool = False,
             initial: Union[Quantity, jax.typing.ArrayLike] = None,
             where: Union[Quantity, jax.typing.ArrayLike] = None):
@@ -429,9 +410,9 @@ def nanprod(x: Union[Quantity, jax.typing.ArrayLike],
     This is a Quantity if the product of the unit of `x` is not dimensionless.
   """
   if isinstance(x, Quantity):
-    return x.nanprod(axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial, where=where)
+    return x.nanprod(axis=axis, dtype=dtype, keepdims=keepdims, initial=initial, where=where)
   else:
-    return jnp.nanprod(x, axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial, where=where)
+    return jnp.nanprod(x, axis=axis, dtype=dtype, keepdims=keepdims, initial=initial, where=where)
 
 
 product = prod
@@ -440,8 +421,7 @@ product = prod
 @set_module_as('brainunit.math')
 def cumprod(x: Union[Quantity, jax.typing.ArrayLike],
             axis: Optional[int] = None,
-            dtype: Optional[jax.typing.DTypeLike] = None,
-            out: None = None) -> Union[Quantity, jax.typing.ArrayLike]:
+            dtype: Optional[jax.typing.DTypeLike] = None) -> Union[Quantity, jax.typing.ArrayLike]:
   """
   Return the cumulative product of elements along a given axis.
 
@@ -472,16 +452,17 @@ def cumprod(x: Union[Quantity, jax.typing.ArrayLike],
     This is a Quantity if the product of the unit of `x` is not dimensionless.
   """
   if isinstance(x, Quantity):
-    return x.cumprod(axis=axis, dtype=dtype, out=out)
+    return x.cumprod(axis=axis, dtype=dtype)
   else:
-    return jnp.cumprod(x, axis=axis, dtype=dtype, out=out)
+    return jnp.cumprod(x, axis=axis, dtype=dtype)
 
 
 @set_module_as('brainunit.math')
-def nancumprod(x: Union[Quantity, jax.typing.ArrayLike],
-               axis: Optional[int] = None,
-               dtype: Optional[jax.typing.DTypeLike] = None,
-               out: None = None) -> Union[Quantity, jax.typing.ArrayLike]:
+def nancumprod(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    axis: Optional[int] = None,
+    dtype: Optional[jax.typing.DTypeLike] = None
+) -> Union[Quantity, jax.typing.ArrayLike]:
   """
   Return the cumulative product of elements along a given axis treating Not a Numbers (NaNs) as one.
 
@@ -512,9 +493,9 @@ def nancumprod(x: Union[Quantity, jax.typing.ArrayLike],
     This is a Quantity if the product of the unit of `x` is not dimensionless.
   """
   if isinstance(x, Quantity):
-    return x.nancumprod(axis=axis, dtype=dtype, out=out)
+    return x.nancumprod(axis=axis, dtype=dtype)
   else:
-    return jnp.nancumprod(x, axis=axis, dtype=dtype, out=out)
+    return jnp.nancumprod(x, axis=axis, dtype=dtype)
 
 
 cumproduct = cumprod

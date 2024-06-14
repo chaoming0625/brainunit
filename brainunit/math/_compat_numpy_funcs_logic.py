@@ -19,9 +19,8 @@ import jax.numpy as jnp
 import numpy as np
 from jax import Array
 
-from brainunit._misc import set_module_as
-from .._base import (Quantity,
-                     fail_for_dimension_mismatch, )
+from .._misc import set_module_as
+from .._base import (Quantity, fail_for_dimension_mismatch)
 
 __all__ = [
   # logic funcs (unary)
@@ -40,7 +39,7 @@ __all__ = [
 
 def logic_func_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
-    raise ValueError(f'Expected booleans, got {x}')
+    raise ValueError(f'Expected arrays, got {x}')
   elif isinstance(x, (jax.Array, np.ndarray)):
     return func(x, *args, **kwargs)
   else:
@@ -51,7 +50,6 @@ def logic_func_unary(func, x, *args, **kwargs):
 def all(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[int] = None,
-    out: Optional[Array] = None,
     keepdims: bool = False,
     where: Optional[Array] = None
 ) -> Union[bool, Array]:
@@ -70,12 +68,6 @@ def all(
 
     If this is a tuple of ints, a reduction is performed on multiple
     axes, instead of a single axis or all the axes as before.
-  out : ndarray, optional
-    Alternate output array in which to place the result.
-    It must have the same shape as the expected output and its
-    type is preserved (e.g., if ``dtype(out)`` is float, the result
-    will consist of 0.0's and 1.0's). See :ref:`ufuncs-output-type` for more
-    details.
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left
     in the result as dimensions with size one. With this option,
@@ -95,14 +87,13 @@ def all(
     A new boolean or array is returned unless `out` is specified,
     in which case a reference to `out` is returned.
   """
-  return logic_func_unary(jnp.all, x, axis=axis, out=out, keepdims=keepdims, where=where)
+  return logic_func_unary(jnp.all, x, axis=axis, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
 def any(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[int] = None,
-    out: Optional[Array] = None,
     keepdims: bool = False,
     where: Optional[Array] = None
 ) -> Union[bool, Array]:
@@ -121,12 +112,6 @@ def any(
 
     If this is a tuple of ints, a reduction is performed on multiple
     axes, instead of a single axis or all the axes as before.
-  out : ndarray, optional
-    Alternate output array in which to place the result.
-    It must have the same shape as the expected output and its
-    type is preserved (e.g., if ``dtype(out)`` is float, the result
-    will consist of 0.0's and 1.0's). See :ref:`ufuncs-output-type` for more
-    details.
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left
     in the result as dimensions with size one. With this option,
@@ -146,7 +131,7 @@ def any(
     A new boolean or array is returned unless `out` is specified,
     in which case a reference to `out` is returned.
   """
-  return logic_func_unary(jnp.any, x, axis=axis, out=out, keepdims=keepdims, where=where)
+  return logic_func_unary(jnp.any, x, axis=axis, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')

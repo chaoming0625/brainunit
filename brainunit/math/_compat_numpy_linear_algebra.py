@@ -261,7 +261,6 @@ def trace(
     axis1: int = 0,
     axis2: int = 1,
     dtype: Optional[jax.typing.DTypeLike] = None,
-    out: None = None
 ) -> Union[Array, Quantity]:
   """
   Return the sum along diagonals of the array.
@@ -291,9 +290,6 @@ def trace(
     of integer type of precision less than the default integer
     precision, then the default integer precision is used. Otherwise,
     the precision is the same as that of `a`.
-  out : ndarray, optional
-    Array into which the output is placed. Its type is preserved and
-    it must be of the right shape to hold the output.
 
   Returns
   -------
@@ -303,4 +299,4 @@ def trace(
 
     This is a Quantity if `a` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.trace, a, offset=offset, axis1=axis1, axis2=axis2, dtype=dtype, out=out)
+  return funcs_keep_unit_unary(jnp.trace, a, offset=offset, axis1=axis1, axis2=axis2, dtype=dtype)

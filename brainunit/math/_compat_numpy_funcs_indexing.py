@@ -19,12 +19,9 @@ import jax.numpy as jnp
 import numpy as np
 
 from brainunit._misc import set_module_as
-from .._base import (Quantity,
-                     fail_for_dimension_mismatch,
-                     is_unitless, )
+from .._base import (Quantity, fail_for_dimension_mismatch, is_unitless, )
 
 __all__ = [
-
   # indexing funcs
   'where', 'tril_indices', 'tril_indices_from', 'triu_indices',
   'triu_indices_from', 'take', 'select',
@@ -195,7 +192,6 @@ def take(
     a: Union[Quantity, jax.typing.ArrayLike],
     indices: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[int] = None,
-    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     mode: Optional[str] = None,
     unique_indices: bool = False,
     indices_are_sorted: bool = False,
@@ -205,10 +201,10 @@ def take(
 
   '''
   if isinstance(a, Quantity):
-    return a.take(indices, axis=axis, out=out, mode=mode, unique_indices=unique_indices,
+    return a.take(indices, axis=axis, mode=mode, unique_indices=unique_indices,
                   indices_are_sorted=indices_are_sorted, fill_value=fill_value)
   else:
-    return jnp.take(a, indices, axis=axis, out=out, mode=mode, unique_indices=unique_indices,
+    return jnp.take(a, indices, axis=axis, mode=mode, unique_indices=unique_indices,
                     indices_are_sorted=indices_are_sorted, fill_value=fill_value)
 
 
