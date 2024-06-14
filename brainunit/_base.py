@@ -1307,7 +1307,7 @@ class Quantity(object):
 
   @property
   def T(self) -> 'Quantity':
-    return Quantity(self.value.T, dim=self.dim)
+    return Quantity(jnp.asarray(self.value).T, dim=self.dim)
 
   @property
   def isreal(self) -> jax.Array:
@@ -1343,8 +1343,6 @@ class Quantity(object):
     return self.repr_in_best_unit(python_code=True)
 
   def __str__(self) -> str:
-    # if isinstance(self.value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
-    #   return f'{self.value} * {Quantity(1., dim=self.dim)}'
     return self.repr_in_best_unit()
 
   def __format__(self, format_spec: str) -> str:
@@ -1771,7 +1769,7 @@ class Quantity(object):
     if dtype is None:
       return Quantity(self.value, dim=self.dim)
     else:
-      return Quantity(self.value.astype(dtype), dim=self.dim)
+      return Quantity(jnp.astype(self.value, dtype), dim=self.dim)
 
   def clip(self, min: Quantity = None, max: Quantity = None, *args, **kwds) -> 'Quantity':
     """Return an array whose values are limited to [min, max]. One of max or min must be given."""
@@ -2100,7 +2098,7 @@ class Quantity(object):
 
     Example::
 
-        >>> import brainstate
+        >>> import brainstate, brainunit
         >>> x = brainstate.random.randn(4, 4)
         >>> x.size
        [4, 4]
@@ -2120,7 +2118,7 @@ class Quantity(object):
         >>> c = a.view(1, 3, 2, 4)  # Does not change tensor layout in memory
         >>> c.size
         [1, 3, 2, 4]
-        >>> brainstate.math.equal(b, c)
+        >>> brainunit.math.equal(b, c)
         False
 
 
