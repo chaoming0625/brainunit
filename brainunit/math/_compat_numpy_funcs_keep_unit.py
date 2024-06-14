@@ -1148,11 +1148,19 @@ def modf(
   """
   Return the fractional and integer parts of the array elements.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  out : tuple of jax.Array, optional
+    A tuple of array-like objects representing the fractional and
+    integral parts of `x`. The dtypes of the output arrays are the
+    same as the input array.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity tuple if `x` is a Quantity, else an array tuple.
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x` is a Quantity, else an array.
   """
   return funcs_keep_unit_unary(jnp.modf, x, out)
 

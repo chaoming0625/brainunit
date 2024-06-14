@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 from collections.abc import Sequence
-from typing import (Union, Optional)
+from typing import (Union, Optional, Tuple, Any)
 
 import jax
 import jax.numpy as jnp
@@ -29,7 +29,7 @@ __all__ = [
 
   # math funcs change unit (unary)
   'reciprocal', 'prod', 'product', 'nancumprod', 'nanprod', 'cumprod',
-  'cumproduct', 'var', 'nanvar', 'cbrt', 'square', 'frexp', 'sqrt',
+  'cumproduct', 'var', 'nanvar', 'cbrt', 'square', 'sqrt',
 
   # math funcs change unit (binary)
   'multiply', 'divide', 'power', 'cross', 'ldexp',
@@ -56,13 +56,22 @@ def reciprocal(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
   """
-  Return the reciprocal of the argument.
+  Return the reciprocal of the argument, element-wise.
 
-  Args:
-    x: array_like, Quantity
+  Calculates ``1/x``.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  y : ndarray, Quantity
+    Return array.
+    This is a scalar if `x` is a scalar.
+
+    This is a Quantity if the reciprocal of the unit of `x` is not dimensionless.
   """
   return funcs_change_unit_unary(jnp.reciprocal,
                                  lambda x: x ** -1,
@@ -73,6 +82,7 @@ def reciprocal(
 def var(
     a: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
+    dtype: Optional[Any] = None,
     out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     ddof: int = 0,
     keepdims: bool = False,
@@ -82,16 +92,60 @@ def var(
   """
   Compute the variance along the specified axis.
 
-  Args:
-    a: array_like, Quantity
+  Returns the variance of the array elements, a measure of the spread of a
+  distribution.  The variance is computed for the flattened array by
+  default, otherwise over the specified axis.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array containing numbers whose variance is desired.  If `a` is not an
+    array, a conversion is attempted.
+  axis : None or int or tuple of ints, optional
+    Axis or axes along which the variance is computed.  The default is to
+    compute the variance of the flattened array.
+
+    If this is a tuple of ints, a variance is performed over multiple axes,
+    instead of a single axis or all the axes as before.
+  dtype : data-type, optional
+    Type to use in computing the variance.  For arrays of integer type
+    the default is `float64`; for arrays of float types it is the same as
+    the array type.
+  out : ndarray, optional
+    Alternate output array in which to place the result.  It must have
+    the same shape as the expected output, but the type is cast if
+    necessary.
+  ddof : int, optional
+    "Delta Degrees of Freedom": the divisor used in the calculation is
+    ``N - ddof``, where ``N`` represents the number of elements. By
+    default `ddof` is zero.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the input array.
+
+    If the default value is passed, then `keepdims` will not be
+    passed through to the `var` method of sub-classes of
+    `ndarray`, however any non-default value will be.  If the
+    sub-class' method does not implement `keepdims` any
+    exceptions will be raised.
+  where : array_like of bool, optional
+      Elements to include in the variance. See `~numpy.ufunc.reduce` for
+      details.
+
+  Returns
+  -------
+  variance : ndarray, quantity, see dtype parameter above
+    If ``out=None``, returns a new array containing the variance;
+    otherwise, a reference to the output array is returned.
+
+    This is a Quantity if the square of the unit of `a` is not dimensionless.
   """
   return funcs_change_unit_unary(jnp.var,
                                  lambda x: x ** 2,
                                  a,
                                  axis=axis,
+                                 dtype=dtype,
                                  out=out,
                                  ddof=ddof,
                                  keepdims=keepdims,
@@ -102,46 +156,69 @@ def var(
 def nanvar(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
+    dtype: Optional[Any] = None,
     out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     ddof: int = 0,
     keepdims: bool = False,
     where: Optional[jax.typing.ArrayLike] = None
 ) -> Union[Quantity, jax.Array]:
   """
-  Compute the variance along the specified axis, ignoring NaNs.
+  Compute the variance along the specified axis, while ignoring NaNs.
 
-  Args:
-    x: array_like, Quantity
+  Returns the variance of the array elements, a measure of the spread of
+  a distribution.  The variance is computed for the flattened array by
+  default, otherwise over the specified axis.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
+  For all-NaN slices or slices with zero degrees of freedom, NaN is
+  returned and a `RuntimeWarning` is raised.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Array containing numbers whose variance is desired.  If `a` is not an
+    array, a conversion is attempted.
+  axis : {int, tuple of int, None}, optional
+    Axis or axes along which the variance is computed.  The default is to compute
+    the variance of the flattened array.
+  dtype : data-type, optional
+    Type to use in computing the variance.  For arrays of integer type
+    the default is `float64`; for arrays of float types it is the same as
+    the array type.
+  out : ndarray, optional
+    Alternate output array in which to place the result.  It must have
+    the same shape as the expected output, but the type is cast if
+    necessary.
+  ddof : int, optional
+    "Delta Degrees of Freedom": the divisor used in the calculation is
+    ``N - ddof``, where ``N`` represents the number of non-NaN
+    elements. By default `ddof` is zero.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the original `a`.
+  where : array_like of bool, optional
+    Elements to include in the variance. See `~numpy.ufunc.reduce` for
+    details.
+
+  Returns
+  -------
+  variance : ndarray, quantity, see dtype parameter above
+    If `out` is None, return a new array containing the variance,
+    otherwise return a reference to the output array. If ddof is >= the
+    number of non-NaN elements in a slice or the slice contains only
+    NaNs, then the result for that slice is NaN.
+
+    This is a Quantity if the square of the unit of `a` is not dimensionless.
   """
   return funcs_change_unit_unary(jnp.nanvar,
                                  lambda x: x ** 2,
                                  x,
                                  axis=axis,
-                                  out=out,
+                                 dtype=dtype,
+                                 out=out,
                                  ddof=ddof,
                                  keepdims=keepdims,
                                  where=where)
-
-
-@set_module_as('brainunit.math')
-def frexp(
-    x: Union[Quantity, jax.typing.ArrayLike]
-) -> Union[Quantity, jax.Array]:
-  """
-  Decompose a floating-point number into its mantissa and exponent.
-
-  Args:
-    x: array_like, Quantity
-
-  Returns:
-    Union[jax.Array, Quantity]: Tuple of Quantity if the final unit is the product of the unit of `x` and 2 raised to the power of the exponent, else a tuple of arrays.
-  """
-  return funcs_change_unit_unary(jnp.frexp,
-                                 lambda x: x * 2 ** -1,
-                                 x)
 
 
 @set_module_as('brainunit.math')
@@ -151,11 +228,23 @@ def sqrt(
   """
   Compute the square root of each element.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    The values whose square-roots are required.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the square root of the unit of `x`, else an array.
+  Returns
+  -------
+  y : ndarray, quantity
+    An array of the same shape as `x`, containing the positive
+    square-root of each element in `x`.  If any element in `x` is
+    complex, a complex array is returned (and the square-roots of
+    negative reals are calculated).  If all of the elements in `x`
+    are real, so is `y`, with negative elements returning ``nan``.
+    If `out` was provided, `y` is a reference to it.
+    This is a scalar if `x` is a scalar.
+
+    This is a Quantity if the square root of the unit of `x` is not dimensionless.
   """
   return funcs_change_unit_unary(jnp.sqrt,
                                  lambda x: x ** 0.5,
@@ -169,11 +258,20 @@ def cbrt(
   """
   Compute the cube root of each element.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    The values whose cube-roots are required.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the cube root of the unit of `x`, else an array.
+  Returns
+  -------
+  y : ndarray, quantity
+    An array of the same shape as `x`, containing the cube
+    cube-root of each element in `x`.
+    If `out` was provided, `y` is a reference to it.
+    This is a scalar if `x` is a scalar.
+
+    This is a Quantity if the cube root of the unit of `x` is not dimensionless.
   """
   return funcs_change_unit_unary(jnp.cbrt,
                                  lambda x: x ** (1 / 3),
@@ -187,11 +285,18 @@ def square(
   """
   Compute the square of each element.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+      Input data.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the square of the unit of `x`, else an array.
+  Returns
+  -------
+  out : ndarray, quantity or scalar
+    Element-wise `x*x`, of the same shape and dtype as `x`.
+    This is a scalar if `x` is a scalar.
+
+    This is a Quantity if the square of the unit of `x` is not dimensionless.
   """
   return funcs_change_unit_unary(jnp.square,
                                  lambda x: x ** 2,
@@ -210,18 +315,52 @@ def prod(x: Union[Quantity, jax.typing.ArrayLike],
   """
   Return the product of array elements over a given axis.
 
-  Args:
-    x: array_like, Quantity
-    axis: int, optional
-    dtype: dtype, optional
-    out: array, optional
-    keepdims: bool, optional
-    initial: array_like, Quantity, optional
-    where: array_like, Quantity, optional
-    promote_integers: bool, optional
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input data.
+  axis : None or int or tuple of ints, optional
+    Axis or axes along which a product is performed.  The default,
+    axis=None, will calculate the product of all the elements in the
+    input array. If axis is negative it counts from the last to the
+    first axis.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If axis is a tuple of ints, a product is performed on all of the
+    axes specified in the tuple instead of a single axis or all the
+    axes as before.
+  dtype : dtype, optional
+    The type of the returned array, as well as of the accumulator in
+    which the elements are multiplied.  The dtype of `a` is used by
+    default unless `a` has an integer dtype of less precision than the
+    default platform integer.  In that case, if `a` is signed then the
+    platform integer is used while if `a` is unsigned then an unsigned
+    integer of the same precision as the platform integer is used.
+  out : ndarray, optional
+    Alternative output array in which to place the result. It must have
+    the same shape as the expected output, but the type of the output
+    values will be cast if necessary.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the
+    result as dimensions with size one. With this option, the result
+    will broadcast correctly against the input array.
+
+    If the default value is passed, then `keepdims` will not be
+    passed through to the `prod` method of sub-classes of
+    `ndarray`, however any non-default value will be.  If the
+    sub-class' method does not implement `keepdims` any
+    exceptions will be raised.
+  initial : scalar, optional
+    The starting value for this product. See `~numpy.ufunc.reduce` for details.
+  where : array_like of bool, optional
+    Elements to include in the product. See `~numpy.ufunc.reduce` for details.
+
+  Returns
+  -------
+  product_along_axis : ndarray, see `dtype` parameter above.
+    An array shaped as `a` but with the specified axis removed.
+    Returns a reference to `out` if specified.
+
+    This is a Quantity if the product of the unit of `x` is not dimensionless.
   """
   if isinstance(x, Quantity):
     return x.prod(axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial, where=where,
@@ -242,17 +381,52 @@ def nanprod(x: Union[Quantity, jax.typing.ArrayLike],
   """
   Return the product of array elements over a given axis treating Not a Numbers (NaNs) as one.
 
-  Args:
-    x: array_like, Quantity
-    axis: int, optional
-    dtype: dtype, optional
-    out: array, optional
-    keepdims: bool, optional
-    initial: array_like, Quantity, optional
-    where: array_like, Quantity, optional
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input data.
+  axis : None or int or tuple of ints, optional
+    Axis or axes along which a product is performed.  The default,
+    axis=None, will calculate the product of all the elements in the
+    input array. If axis is negative it counts from the last to the
+    first axis.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+    If axis is a tuple of ints, a product is performed on all of the
+    axes specified in the tuple instead of a single axis or all the
+    axes as before.
+  dtype : dtype, optional
+    The type of the returned array, as well as of the accumulator in
+    which the elements are multiplied.  The dtype of `a` is used by
+    default unless `a` has an integer dtype of less precision than the
+    default platform integer.  In that case, if `a` is signed then the
+    platform integer is used while if `a` is unsigned then an unsigned
+    integer of the same precision as the platform integer is used.
+  out : ndarray, optional
+    Alternative output array in which to place the result. It must have
+    the same shape as the expected output, but the type of the output
+    values will be cast if necessary.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the
+    result as dimensions with size one. With this option, the result
+    will broadcast correctly against the input array.
+
+    If the default value is passed, then `keepdims` will not be
+    passed through to the `prod` method of sub-classes of
+    `ndarray`, however any non-default value will be.  If the
+    sub-class' method does not implement `keepdims` any
+    exceptions will be raised.
+  initial : scalar, optional
+    The starting value for this product. See `~numpy.ufunc.reduce` for details.
+  where : array_like of bool, optional
+    Elements to include in the product. See `~numpy.ufunc.reduce` for details.
+
+  Returns
+  -------
+  product_along_axis : ndarray, see `dtype` parameter above.
+    An array shaped as `a` but with the specified axis removed.
+    Returns a reference to `out` if specified.
+
+    This is a Quantity if the product of the unit of `x` is not dimensionless.
   """
   if isinstance(x, Quantity):
     return x.nanprod(axis=axis, dtype=dtype, out=out, keepdims=keepdims, initial=initial, where=where)
@@ -271,14 +445,31 @@ def cumprod(x: Union[Quantity, jax.typing.ArrayLike],
   """
   Return the cumulative product of elements along a given axis.
 
-  Args:
-    x: array_like, Quantity
-    axis: int, optional
-    dtype: dtype, optional
-    out: array, optional
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : int, optional
+    Axis along which the cumulative product is computed.  By default
+    the input is flattened.
+  dtype : dtype, optional
+    Type of the returned array, as well as of the accumulator in which
+    the elements are multiplied.  If *dtype* is not specified, it
+    defaults to the dtype of `a`, unless `a` has an integer dtype with
+    a precision less than that of the default platform integer.  In
+    that case, the default platform integer is used instead.
+  out : ndarray, optional
+    Alternative output array in which to place the result. It must
+    have the same shape and buffer length as the expected output
+    but the type of the resulting values will be cast if necessary.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  cumprod : ndarray, quantity
+    A new array holding the result is returned unless `out` is
+    specified, in which case a reference to out is returned.
+
+    This is a Quantity if the product of the unit of `x` is not dimensionless.
   """
   if isinstance(x, Quantity):
     return x.cumprod(axis=axis, dtype=dtype, out=out)
@@ -294,14 +485,31 @@ def nancumprod(x: Union[Quantity, jax.typing.ArrayLike],
   """
   Return the cumulative product of elements along a given axis treating Not a Numbers (NaNs) as one.
 
-  Args:
-    x: array_like, Quantity
-    axis: int, optional
-    dtype: dtype, optional
-    out: array, optional
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  axis : int, optional
+    Axis along which the cumulative product is computed.  By default
+    the input is flattened.
+  dtype : dtype, optional
+    Type of the returned array, as well as of the accumulator in which
+    the elements are multiplied.  If *dtype* is not specified, it
+    defaults to the dtype of `a`, unless `a` has an integer dtype with
+    a precision less than that of the default platform integer.  In
+    that case, the default platform integer is used instead.
+  out : ndarray, optional
+    Alternative output array in which to place the result. It must
+    have the same shape and buffer length as the expected output
+    but the type of the resulting values will be cast if necessary.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` is a Quantity, else an array.
+  Returns
+  -------
+  cumprod : ndarray, quantity
+    A new array holding the result is returned unless `out` is
+    specified, in which case a reference to out is returned.
+
+    This is a Quantity if the product of the unit of `x` is not dimensionless.
   """
   if isinstance(x, Quantity):
     return x.nancumprod(axis=axis, dtype=dtype, out=out)
@@ -341,12 +549,19 @@ def multiply(
   """
   Multiply arguments element-wise.
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Input arrays to be multiplied.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
+  Returns
+  -------
+  out : ndarray, Quantity
+    The product of `x` and `y`, element-wise.
+    This is a scalar if both `x` and `y` are scalars.
+
+    This is a Quantity if the product of the unit of `x` and the unit of `y` is not dimensionless.
   """
   return funcs_change_unit_binary(jnp.multiply,
                                   lambda x, y: x * y,
@@ -361,11 +576,19 @@ def divide(
   """
   Divide arguments element-wise.
 
-  Args:
-    x: array_like, Quantity
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Input arrays to be divided.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
+  Returns
+  -------
+  out : ndarray, Quantity
+    The quotient of `x` and `y`, element-wise.
+    This is a scalar if both `x` and `y` are scalars.
+
+    This is a Quantity if the product of the unit of `x` and the unit of `y` is not dimensionless.
   """
   return funcs_change_unit_binary(jnp.divide,
                                   lambda x, y: x / y,
@@ -374,38 +597,82 @@ def divide(
 
 @set_module_as('brainunit.math')
 def cross(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    a: Union[Quantity, jax.typing.ArrayLike],
+    b: Union[Quantity, jax.typing.ArrayLike],
+    axisa: int = -1,
+    axisb: int = -1,
+    axisc: int = -1,
+    axis: Optional[int] = None
 ) -> Union[Quantity, jax.typing.ArrayLike]:
   """
   Return the cross product of two (arrays of) vectors.
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  The cross product of `a` and `b` in :math:`R^3` is a vector perpendicular
+  to both `a` and `b`.  If `a` and `b` are arrays of vectors, the vectors
+  are defined by the last axis of `a` and `b` by default, and these axes
+  can have dimensions 2 or 3.  Where the dimension of either `a` or `b` is
+  2, the third component of the input vector is assumed to be zero and the
+  cross product calculated accordingly.  In cases where both input vectors
+  have dimension 2, the z-component of the cross product is returned.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Components of the first vector(s).
+  b : array_like, Quantity
+    Components of the second vector(s).
+  axisa : int, optional
+    Axis of `a` that defines the vector(s).  By default, the last axis.
+  axisb : int, optional
+    Axis of `b` that defines the vector(s).  By default, the last axis.
+  axisc : int, optional
+    Axis of `c` containing the cross product vector(s).  Ignored if
+    both input vectors have dimension 2, as the return is scalar.
+    By default, the last axis.
+  axis : int, optional
+    If defined, the axis of `a`, `b` and `c` that defines the vector(s)
+    and cross product(s).  Overrides `axisa`, `axisb` and `axisc`.
+
+  Returns
+  -------
+  c : ndarray, Quantity
+    Vector cross product(s).
+
+    This is a Quantity if the cross product of the unit of `a` and the unit of `b` is not dimensionless.
   """
   return funcs_change_unit_binary(jnp.cross,
                                   lambda x, y: x * y,
-                                  x, y)
+                                  a, b,
+                                  axisa=axisa, axisb=axisb, axisc=axisc, axis=axis)
 
 
 @set_module_as('brainunit.math')
 def ldexp(
     x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    y: jax.typing.ArrayLike
 ) -> Union[Quantity, jax.typing.ArrayLike]:
   """
-  Return x1 * 2**x2, element-wise.
+  Returns x * 2**y, element-wise.
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  The mantissas `x` and twos exponents `y` are used to construct
+  floating point numbers ``x * 2**y``.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and 2 raised to the power of the unit of `y`, else an array.
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Array of multipliers.
+  y : array_like, int
+    Array of twos exponents.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+
+  Returns
+  -------
+  out : ndarray, quantity or scalar
+    The result of ``x * 2**y``.
+    This is a scalar if both `x` and `y` are scalars.
+
+    This is a Quantity if the product of the square of the unit of `x` and the unit of `y` is not dimensionless.
   """
   return funcs_change_unit_binary(jnp.ldexp,
                                   lambda x, y: x * 2 ** y,
@@ -420,12 +687,22 @@ def true_divide(
   """
   Returns a true division of the inputs, element-wise.
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Dividend array.
+  y : array_like, Quantity
+    Divisor array.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
+  Returns
+  -------
+  out : ndarray, quantity or scalar
+    The quotient ``x/y``, element-wise.
+    This is a scalar if both `x` and `y` are scalars.
+
+    This is a Quantity if the division of the unit of `x` and the unit of `y` is not dimensionless.
   """
   return funcs_change_unit_binary(jnp.true_divide,
                                   lambda x, y: x / y,
@@ -436,16 +713,30 @@ def true_divide(
 def divmod(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
-) -> Union[Quantity, jax.typing.ArrayLike]:
+) -> Tuple[Union[Quantity, jax.typing.ArrayLike], Union[Quantity, jax.typing.ArrayLike]]:
   """
   Return element-wise quotient and remainder simultaneously.
+  ``bu.divmod(x, y)`` is equivalent to ``(x // y, x % y)``, but faster
+  because it avoids redundant work. It is used to implement the Python
+  built-in function ``divmod`` on NumPy arrays.
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Dividend array.
+  y : array_like, Quantity
+    Divisor array.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
+  Returns
+  -------
+  out1 : ndarray, quantity or scalar
+    Element-wise quotient resulting from floor division.
+    This is a scalar if both `x` and `y` are scalars.
+  out2 : ndarray, quantity or scalar
+    Element-wise remainder from floor division.
+    This is a scalar if both `x` and `y` are scalars.
   """
   return funcs_change_unit_binary(jnp.divmod,
                                   lambda x, y: x / y,
@@ -454,22 +745,59 @@ def divmod(
 
 @set_module_as('brainunit.math')
 def convolve(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    a: Union[Quantity, jax.typing.ArrayLike],
+    v: Union[Quantity, jax.typing.ArrayLike],
+    mode: str = 'full',
+    *,
+    precision: Any = None,
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
 ) -> Union[Quantity, jax.typing.ArrayLike]:
   """
   Returns the discrete, linear convolution of two one-dimensional sequences.
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  The convolution operator is often seen in signal processing, where it
+  models the effect of a linear time-invariant system on a signal [1]_.  In
+  probability theory, the sum of two independent random variables is
+  distributed according to the convolution of their individual
+  distributions.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
+  If `v` is longer than `a`, the arrays are swapped before computation.
+
+  Parameters
+  ----------
+  a : (N,) array_like, Quantity
+    First one-dimensional input array.
+  v : (M,) array_like, Quantity
+    Second one-dimensional input array.
+  mode : {'full', 'valid', 'same'}, optional
+    'full':
+      By default, mode is 'full'.  This returns the convolution
+      at each point of overlap, with an output shape of (N+M-1,). At
+      the end-points of the convolution, the signals do not overlap
+      completely, and boundary effects may be seen.
+    'same':
+      Mode 'same' returns output of length ``max(M, N)``.  Boundary
+      effects are still visible.
+    'valid':
+      Mode 'valid' returns output of length
+      ``max(M, N) - min(M, N) + 1``.  The convolution product is only given
+      for points where the signals overlap completely.  Values outside
+      the signal boundary have no effect.
+
+  Returns
+  -------
+  out : ndarray, quantity or scalar
+    Discrete, linear convolution of `a` and `v`.
+    This is a scalar if both `a` and `v` are scalars.
+
+    This is a Quantity if the convolution of the unit of `a` and the unit of `v` is not dimensionless.
   """
   return funcs_change_unit_binary(jnp.convolve,
                                   lambda x, y: x * y,
-                                  x, y)
+                                  a, v,
+                                  mode=mode,
+                                  precision=precision,
+                                  preferred_element_type=preferred_element_type)
 
 
 @set_module_as('brainunit.math')
@@ -478,12 +806,32 @@ def power(x: Union[Quantity, jax.typing.ArrayLike],
   """
   First array elements raised to powers from second array, element-wise.
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Raise each base in `x` to the positionally-corresponding power in
+  `y`.  `x` and `y` must be broadcastable to the same shape.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
+  An integer type raised to a negative integer power will raise a
+  ``ValueError``.
+
+  Negative values raised to a non-integral value will return ``nan``.
+  To get complex results, cast the input to complex, or specify the
+  ``dtype`` to be ``complex`` (see the example below).
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    The bases.
+  y : array_like, Quantity
+    The exponents.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+
+  Returns
+  -------
+  out : ndarray, quantity or scalar
+    The bases in `x` raised to the exponents in `y`.
+    This is a scalar if both `x` and `y` are scalars.
+
+    This is a Quantity if the unit of `x` raised to the unit of `y` is not dimensionless.
   """
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     return _return_check_unitless(Quantity(jnp.power(x.value, y.value), dim=x.dim ** y.dim))
@@ -502,13 +850,24 @@ def floor_divide(x: Union[Quantity, jax.typing.ArrayLike],
                  y: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   """
   Return the largest integer smaller or equal to the division of the inputs.
+    It is equivalent to the Python ``//`` operator and pairs with the
+    Python ``%`` (`remainder`), function so that ``a = a % b + b * (a // b)``
+    up to roundoff.
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Numerator.
+  y : array_like, Quantity
+    Denominator.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the quotient of the unit of `x` and the unit of `y`, else an array.
+  Returns
+  -------
+  out : ndarray
+    out = floor(`x`/`y`)
+    This is a scalar if both `x` and `y` are scalars.
   """
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y.value), dim=x.dim / y.dim))
@@ -528,12 +887,33 @@ def float_power(x: Union[Quantity, jax.typing.ArrayLike],
   """
   First array elements raised to powers from second array, element-wise.
 
-  Args:
-    x: array_like, Quantity
-    y: array_like
+  Raise each base in `x` to the positionally-corresponding power in `y`.
+  `x` and `y` must be broadcastable to the same shape. This differs from
+  the power function in that integers, float16, and float32  are promoted to
+  floats with a minimum precision of float64 so that the result is always
+  inexact.  The intent is that the function will return a usable result for
+  negative powers and seldom overflow for positive powers.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the product of the unit of `x` and the unit of `y`, else an array.
+  Negative values raised to a non-integral value will return ``nan``.
+  To get complex results, cast the input to complex, or specify the
+  ``dtype`` to be ``complex`` (see the example below).
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    The bases.
+  y : array_like
+    The exponents.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+
+  Returns
+  -------
+  out : ndarray
+    The bases in `x` raised to the exponents in `y`.
+    This is a scalar if both `x` and `y` are scalars.
+
+    This is a Quantity if the unit of `x` raised to the unit of `y` is not dimensionless.
   """
   if isinstance(y, Quantity):
     assert isscalar(y), f'{jnp.float_power.__name__} only supports scalar exponent'
@@ -549,14 +929,29 @@ def float_power(x: Union[Quantity, jax.typing.ArrayLike],
 def remainder(x: Union[Quantity, jax.typing.ArrayLike],
               y: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   """
-  Return element-wise remainder of division.
+  Returns the element-wise remainder of division.
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Computes the remainder complementary to the `floor_divide` function.  It is
+  equivalent to the Python modulus operator``x1 % x2`` and has the same sign
+  as the divisor `x2`. The MATLAB function equivalent to ``np.remainder``
+  is ``mod``.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if the final unit is the remainder of the unit of `x` and the unit of `y`, else an array.
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Dividend array.
+  y : array_like, Quantity
+    Divisor array.
+    If ``x1.shape != x2.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+
+  Returns
+  -------
+  out : ndarray, Quantity
+    The element-wise remainder of the quotient ``floor_divide(x1, x2)``.
+    This is a scalar if both `x1` and `x2` are scalars.
+
+    This is a Quantity if division of `x1` by `x2` is not dimensionless.
   """
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     return _return_check_unitless(Quantity(jnp.remainder(x.value, y.value), dim=x.dim / y.dim))

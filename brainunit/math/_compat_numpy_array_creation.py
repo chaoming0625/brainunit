@@ -14,7 +14,7 @@
 # ==============================================================================
 
 from collections.abc import Sequence
-from typing import (Union, Optional, Any, Tuple, List)
+from typing import (Union, Optional, Any)
 
 import jax
 import jax.numpy as jnp

@@ -656,8 +656,6 @@ def percentile(
     * 'nearest'
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-  interpolation : str, optional
-    Deprecated name for the method keyword argument.
 
   Returns
   -------
@@ -719,8 +717,6 @@ def nanpercentile(
     * 'nearest'
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-  interpolation : str, optional
-    Deprecated name for the method keyword argument.
 
   Returns
   -------
@@ -782,8 +778,6 @@ def quantile(
     * 'nearest'
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-  interpolation : str, optional
-    Deprecated name for the method keyword argument.
 
   Returns
   -------
@@ -845,8 +839,6 @@ def nanquantile(
     * 'nearest'
   keepdims : bool, optional
     If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-  interpolation : str, optional
-    Deprecated name for the method keyword argument.
 
   Returns
   -------

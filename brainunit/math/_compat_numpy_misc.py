@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 from collections.abc import Sequence
-from typing import (Callable, Union, Tuple)
+from typing import (Callable, Union, Tuple, Any, Optional)
 
 import jax
 import jax.numpy as jnp
@@ -43,7 +43,7 @@ __all__ = [
   # more
   'broadcast_arrays', 'broadcast_shapes',
   'einsum', 'gradient', 'intersect1d', 'nan_to_num', 'nanargmax', 'nanargmin',
-  'rot90', 'tensordot',
+  'rot90', 'tensordot', 'frexp',
 ]
 
 # constants
@@ -77,13 +77,11 @@ def iinfo(a: Union[Quantity, jax.typing.ArrayLike]) -> jnp.iinfo:
 # ----
 @set_module_as('brainunit.math')
 def broadcast_arrays(*args: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, list[Array]]:
-  from builtins import all as origin_all
-  from builtins import any as origin_any
-  if origin_all(isinstance(arg, Quantity) for arg in args):
-    if origin_any(arg.dim != args[0].dim for arg in args):
+  if all(isinstance(arg, Quantity) for arg in args):
+    if any(arg.dim != args[0].dim for arg in args):
       raise ValueError("All arguments must have the same unit")
     return Quantity(jnp.broadcast_arrays(*[arg.value for arg in args]), dim=args[0].dim)
-  elif origin_all(isinstance(arg, (jax.Array, np.ndarray)) for arg in args):
+  elif all(isinstance(arg, (jax.Array, np.ndarray)) for arg in args):
     return jnp.broadcast_arrays(*args)
   else:
     raise ValueError(f"Unsupported types : {type(args)} for broadcast_arrays")
@@ -106,24 +104,33 @@ def einsum(
   """
   Evaluates the Einstein summation convention on the operands.
 
-  Args:
-      subscripts: string containing axes names separated by commas.
-      *operands: sequence of one or more arrays or quantities corresponding to the subscripts.
-      optimize: determine whether to optimize the order of computation. In JAX
-        this defaults to ``"optimize"`` which produces optimized expressions via
-        the opt_einsum_ package.
-      precision: either ``None`` (default), which means the default precision for
-        the backend, a :class:`~jax.lax.Precision` enum value (``Precision.DEFAULT``,
-        ``Precision.HIGH`` or ``Precision.HIGHEST``).
-      preferred_element_type: either ``None`` (default), which means the default
-        accumulation type for the input types, or a datatype, indicating to
-        accumulate results to and return a result with that datatype.
-      out: unsupported by JAX
-      _dot_general: optionally override the ``dot_general`` callable used by ``einsum``.
-        This parameter is experimental, and may be removed without warning at any time.
+  Parameters
+  ----------
+  subscripts : str
+    string containing axes names separated by commas.
+  *operands : array_like, Quantity, optional
+    sequence of one or more arrays or quantities corresponding to the subscripts.
+  optimize : {False, True, 'optimal'}, optional
+    determine whether to optimize the order of computation. In JAX
+    this defaults to ``"optimize"`` which produces optimized expressions via
+    the opt_einsum_ package.
+  precision : either ``None`` (default),
+    which means the default precision for the backend
+    a :class:`~jax.lax.Precision` enum value (``Precision.DEFAULT``,
+    ``Precision.HIGH`` or ``Precision.HIGHEST``).
+  preferred_element_type : either ``None`` (default)
+    which means the default accumulation type for the input types,
+    or a datatype, indicating to accumulate results to and return a result with that datatype.
+  out : {None}, optional
+    This parameter is not supported in JAX.
+  _dot_general : callable, optional
+    optionally override the ``dot_general`` callable used by ``einsum``.
+    This parameter is experimental, and may be removed without warning at any time.
 
-    Returns:
-      array containing the result of the einstein summation.
+  Returns
+  -------
+  output : Quantity or jax.Array
+    The calculation based on the Einstein summation convention.
   """
   operands = (subscripts, *operands)
   if out is not None:
@@ -191,14 +198,46 @@ def gradient(
   """
   Computes the gradient of a scalar field.
 
-  Args:
-    f: input array.
-    *varargs: list of scalar fields to compute the gradient.
-    axis: axis or axes along which to compute the gradient. The default is to compute the gradient along all axes.
-    edge_order: order of the edge used for the finite difference computation. The default is 1.
+  Return the gradient of an N-dimensional array.
 
-  Returns:
-    array containing the gradient of the scalar field.
+  The gradient is computed using second order accurate central differences
+  in the interior points and either first or second order accurate one-sides
+  (forward or backwards) differences at the boundaries.
+  The returned gradient hence has the same shape as the input array.
+
+  Parameters
+  ----------
+  f : array_like, Quantity
+    An N-dimensional array containing samples of a scalar function.
+  varargs : list of scalar or array, optional
+    Spacing between f values. Default unitary spacing for all dimensions.
+    Spacing can be specified using:
+
+    1. single scalar to specify a sample distance for all dimensions.
+    2. N scalars to specify a constant sample distance for each dimension.
+       i.e. `dx`, `dy`, `dz`, ...
+    3. N arrays to specify the coordinates of the values along each
+       dimension of F. The length of the array must match the size of
+       the corresponding dimension
+    4. Any combination of N scalars/arrays with the meaning of 2. and 3.
+
+    If `axis` is given, the number of varargs must equal the number of axes.
+    Default: 1.
+  edge_order : {1, 2}, optional
+    Gradient is calculated using N-th order accurate differences
+    at the boundaries. Default: 1.
+  axis : None or int or tuple of ints, optional
+    Gradient is calculated only along the given axis or axes
+    The default (axis = None) is to calculate the gradient for all the axes
+    of the input array. axis may be negative, in which case it counts from
+    the last to the first axis.
+
+  Returns
+  -------
+  gradient : ndarray or list of ndarray or Quantity
+    A list of ndarrays (or a single ndarray if there is only one dimension)
+    corresponding to the derivatives of f with respect to each dimension.
+    Each derivative has the same shape as f.
   """
   if edge_order is not None:
     raise NotImplementedError("The 'edge_order' argument to jnp.gradient is not supported.")
@@ -232,14 +271,32 @@ def intersect1d(
   """
   Find the intersection of two arrays.
 
-  Args:
-    ar1: input array.
-    ar2: input array.
-    assume_unique: if True, the input arrays are both assumed to be unique.
-    return_indices: if True, the indices which correspond to the intersection of the two arrays are returned.
+  Return the sorted, unique values that are in both of the input arrays.
 
-  Returns:
-    array containing the intersection of the two arrays.
+  Parameters
+  ----------
+  ar1, ar2 : array_like, Quantity
+    Input arrays. Will be flattened if not already 1D.
+  assume_unique : bool
+    If True, the input arrays are both assumed to be unique, which
+    can speed up the calculation.  If True but ``ar1`` or ``ar2`` are not
+    unique, incorrect results and out-of-bounds indices could result.
+    Default is False.
+  return_indices : bool
+    If True, the indices which correspond to the intersection of the two
+    arrays are returned. The first instance of a value is used if there are
+    multiple. Default is False.
+
+  Returns
+  -------
+  intersect1d : ndarray, Quantity
+    Sorted 1D array of common and unique elements.
+  comm1 : ndarray
+    The indices of the first occurrences of the common values in `ar1`.
+    Only provided if `return_indices` is True.
+  comm2 : ndarray
+    The indices of the first occurrences of the common values in `ar2`.
+    Only provided if `return_indices` is True.
   """
   fail_for_dimension_mismatch(ar1, ar2, 'intersect1d')
   unit = None
@@ -268,16 +325,43 @@ def nan_to_num(
     neginf: float = -jnp.inf
 ) -> Union[jax.Array, Quantity]:
   """
-  Replace NaN with zero and infinity with large finite numbers (default behaviour) or with the numbers defined by the user using the `nan`, `posinf` and `neginf` arguments.
+  Replace NaN with zero and infinity with large finite numbers (default
+  behaviour) or with the numbers defined by the user using the `nan`,
+  `posinf` and/or `neginf` keywords.
 
-  Args:
-    x: input array.
-    nan: value to replace NaNs with.
-    posinf: value to replace positive infinity with.
-    neginf: value to replace negative infinity with.
+  If `x` is inexact, NaN is replaced by zero or by the user defined value in
+  `nan` keyword, infinity is replaced by the largest finite floating point
+  values representable by ``x.dtype`` or by the user defined value in
+  `posinf` keyword and -infinity is replaced by the most negative finite
+  floating point values representable by ``x.dtype`` or by the user defined
+  value in `neginf` keyword.
 
-  Returns:
-    array with NaNs replaced by zero and infinities replaced by large finite numbers.
+  For complex dtypes, the above is applied to each of the real and
+  imaginary components of `x` separately.
+
+  If `x` is not inexact, then no replacements are made.
+
+  Parameters
+  ----------
+  x : scalar, array_like or Quantity
+    Input data.
+  nan : int, float, optional
+    Value to be used to fill NaN values. If no value is passed
+    then NaN values will be replaced with 0.0.
+  posinf : int, float, optional
+    Value to be used to fill positive infinity values. If no value is
+    passed then positive infinity values will be replaced with a very
+    large number.
+  neginf : int, float, optional
+    Value to be used to fill negative infinity values. If no value is
+    passed then negative infinity values will be replaced with a very
+    small (or negative) number.
+
+  Returns
+  -------
+  out : ndarray, Quantity
+    `x`, with the non-finite values replaced. If `copy` is False, this may
+    be `x` itself.
   """
   return funcs_keep_unit_unary(jnp.nan_to_num, x, nan=nan, posinf=posinf, neginf=neginf)
 
@@ -290,16 +374,26 @@ def rot90(
 ) -> Union[
   jax.Array, Quantity]:
   """
-  Return the index of the maximum value in an array, ignoring NaNs.
+  Rotate an array by 90 degrees in the plane specified by axes.
 
-  Args:
-    a: array like, Quantity.
-    axis: axis along which to operate. The default is to compute the index of the maximum over all the dimensions of the input array.
-    out: output array, optional.
-    keepdims: if True, the result is broadcast to the input array with the same number of dimensions.
+  Rotation direction is from the first towards the second axis.
 
-  Returns:
-    index of the maximum value in the array.
+  Parameters
+  ----------
+  m : array_like, Quantity
+    Array of two or more dimensions.
+  k : integer
+    Number of times the array is rotated by 90 degrees.
+  axes : (2,) array_like
+    The array is rotated in the plane defined by the axes.
+    Axes must be different.
+
+  Returns
+  -------
+  y : ndarray, Quantity
+    A rotated view of `m`.
+
+    This is a quantity if `m` is a quantity.
   """
   return funcs_keep_unit_unary(jnp.rot90, m, k=k, axes=axes)
 
@@ -308,56 +402,162 @@ def rot90(
 def tensordot(
     a: Union[jax.typing.ArrayLike, Quantity],
     b: Union[jax.typing.ArrayLike, Quantity],
-    axes: Union[int, Tuple[int, int]] = 2
+    axes: Union[int, Tuple[int, int]] = 2,
+    precision: Any = None,
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
 ) -> Union[jax.Array, Quantity]:
   """
-  Return the index of the minimum value in an array, ignoring NaNs.
+  Compute tensor dot product along specified axes.
 
-  Args:
-    a: array like, Quantity.
-    axis: axis along which to operate. The default is to compute the index of the minimum over all the dimensions of the input array.
-    out: output array, optional.
-    keepdims: if True, the result is broadcast to the input array with the same number of dimensions.
+  Given two tensors, `a` and `b`, and an array_like object containing
+  two array_like objects, ``(a_axes, b_axes)``, sum the products of
+  `a`'s and `b`'s elements (components) over the axes specified by
+  ``a_axes`` and ``b_axes``. The third argument can be a single non-negative
+  integer_like scalar, ``N``; if it is such, then the last ``N`` dimensions
+  of `a` and the first ``N`` dimensions of `b` are summed over.
 
-  Returns:
-    index of the minimum value in the array.
+  Parameters
+  ----------
+  a, b : array_like, Quantity
+    Tensors to "dot".
+
+  axes : int or (2,) array_like
+    * integer_like
+      If an int N, sum over the last N axes of `a` and the first N axes
+      of `b` in order. The sizes of the corresponding axes must match.
+    * (2,) array_like
+      Or, a list of axes to be summed over, first sequence applying to `a`,
+      second to `b`. Both elements array_like must be of the same length.
+  precision : Optional. Either ``None``, which means the default precision for
+    the backend, a :class:`~jax.lax.Precision` enum value
+    (``Precision.DEFAULT``, ``Precision.HIGH`` or ``Precision.HIGHEST``), a
+    string (e.g. 'highest' or 'fastest', see the
+    ``jax.default_matmul_precision`` context manager), or a tuple of two
+    :class:`~jax.lax.Precision` enums or strings indicating precision of
+    ``lhs`` and ``rhs``.
+  preferred_element_type : Optional. Either ``None``, which means the default
+    accumulation type for the input types, or a datatype, indicating to
+    accumulate results to and return a result with that datatype.
+
+  Returns
+  -------
+  output : ndarray, Quantity
+    The tensor dot product of the input.
+
+    This is a quantity if the product of the units of `a` and `b` is not dimensionless.
   """
-  return funcs_change_unit_binary(jnp.tensordot, lambda x, y: x * y, a, b, axes=axes)
+  return funcs_change_unit_binary(jnp.tensordot,
+                                  lambda x, y: x * y,
+                                  a, b,
+                                  axes=axes,
+                                  precision=precision,
+                                  preferred_element_type=preferred_element_type)
 
 
 @set_module_as('brainunit.math')
 def nanargmax(
     a: Union[jax.typing.ArrayLike, Quantity],
-    axis: int = None
+    axis: int = None,
+    out: None = None,
+    keepdims: bool = False
 ) -> jax.Array:
   """
-  Rotate an array by 90 degrees in the plane specified by axes.
+  Return the indices of the maximum values in the specified axis ignoring
+  NaNs. For all-NaN slices ``ValueError`` is raised. Warning: the
+  results cannot be trusted if a slice contains only NaNs and -Infs.
 
-  Args:
-    m: array like, Quantity.
-    k: number of times the array is rotated by 90 degrees.
-    axes: plane of rotation. Default is the last two axes.
 
-  Returns:
-    rotated array.
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    Axis along which to operate.  By default flattened input is used.
+  out : array, optional
+    If provided, the result will be inserted into this array. It should
+    be of the appropriate shape and dtype.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the array.
+
+  Returns
+  -------
+  index_array : ndarray
+    An array of indices or a single index value.
   """
-  return func_array_manipulation(jnp.nanargmax, a, return_quantity=False, axis=axis)
+  return func_array_manipulation(jnp.nanargmax,
+                                 a,
+                                 return_quantity=False,
+                                 axis=axis,
+                                 out=out,
+                                 keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
 def nanargmin(
     a: Union[jax.typing.ArrayLike, Quantity],
-    axis: int = None
+    axis: int = None,
+    out: None = None,
+    keepdims: bool = False
 ) -> jax.Array:
   """
-  Compute tensor dot product along specified axes for arrays.
+  Return the indices of the minimum values in the specified axis ignoring
+  NaNs. For all-NaN slices ``ValueError`` is raised. Warning: the results
+  cannot be trusted if a slice contains only NaNs and Infs.
 
-  Args:
-    a: array like, Quantity.
-    b: array like, Quantity.
-    axes: axes along which to compute the tensor dot product.
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    Axis along which to operate.  By default flattened input is used.
+  out : array, optional
+    If provided, the result will be inserted into this array. It should
+    be of the appropriate shape and dtype.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the array.
 
-  Returns:
-    tensor dot product of the two arrays.
+  Returns
+  -------
+  index_array : ndarray
+    An array of indices or a single index value.
   """
-  return func_array_manipulation(jnp.nanargmin, a, return_quantity=False, axis=axis)
+  return func_array_manipulation(jnp.nanargmin,
+                                 a,
+                                 return_quantity=False,
+                                 axis=axis,
+                                 out=out,
+                                 keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def frexp(
+    x: Union[Quantity, jax.typing.ArrayLike]
+) -> Tuple[jax.Array, jax.Array]:
+  """
+  frexp(x[, out1, out2], / [, out=(None, None)], *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
+
+  Decompose the elements of x into mantissa and twos exponent.
+
+  Returns (`mantissa`, `exponent`), where ``x = mantissa * 2**exponent``.
+  The mantissa lies in the open interval(-1, 1), while the twos
+  exponent is a signed integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Array of numbers to be decomposed.
+
+  Returns
+  -------
+  mantissa : ndarray
+    Floating values between -1 and 1.
+    This is a scalar if `x` is a scalar.
+  exponent : ndarray
+    Integer exponents of 2.
+    This is a scalar if `x` is a scalar.
+  """
+  return jnp.frexp(x)

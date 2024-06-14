@@ -56,52 +56,132 @@ def funcs_match_unit_binary(func, x, y, *args, **kwargs):
 @set_module_as('brainunit.math')
 def add(
     x: Union[Quantity, Array],
-    y: Union[Quantity, Array]
+    y: Union[Quantity, Array],
+    *args,
+    **kwargs
 ) -> Union[Quantity, Array]:
   """
+  add(x1, x2, /, out=None, *, where=True, casting='same_kind',
+  order='K', dtype=None, subok=True[, signature, extobj])
+
   Add arguments element-wise.
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    The arrays to be added.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or None,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` and `y` are Quantities that have the same unit, else an array.
+  Returns
+  -------
+  add : ndarray or scalar
+    The sum of `x` and `y`, element-wise.
+    This is a scalar if both `x` and `y` are scalars.
   """
-  return funcs_match_unit_binary(jnp.add, x, y)
+  return funcs_match_unit_binary(jnp.add, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
 def subtract(
     x: Union[Quantity, Array],
-    y: Union[Quantity, Array]
+    y: Union[Quantity, Array],
+    *args,
+    **kwargs
 ) -> Union[Quantity, Array]:
   """
-  Subtract arguments element-wise.
+  subtract(x1, x2, /, out=None, *, where=True, casting='same_kind',
+  order='K', dtype=None, subok=True[, signature, extobj])
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Subtract arguments, element-wise.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x` and `y` are Quantities that have the same unit, else an array.
+  Parameters
+  ----------
+  x, y : array_like
+    The arrays to be subtracted from each other.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or None,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  subtract : ndarray
+    The difference of `x` and `y`, element-wise.
+    This is a scalar if both `x` and `y` are scalars.
   """
-  return funcs_match_unit_binary(jnp.subtract, x, y)
+  return funcs_match_unit_binary(jnp.subtract, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
 def nextafter(
     x: Union[Quantity, Array],
-    y: Union[Quantity, Array]
+    y: Union[Quantity, Array],
+    *args,
+    **kwargs
 ) -> Union[Quantity, Array]:
   """
-  Return the next floating-point value after `x1` towards `x2`.
+  nextafter(x, y, /, out=None, *, where=True, casting='same_kind',
+  order='K', dtype=None, subok=True[, signature, extobj])
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Return the next floating-point value after x1 towards x2, element-wise.
 
-  Returns:
-    Union[jax.Array, Quantity]: Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Values to find the next representable value of.
+  y : array_like, Quantity
+    The direction where to look for the next representable value of `x`.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or None,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  out : ndarray or scalar
+    The next representable values of `x` in the direction of `y`.
+    This is a scalar if both `x` and `y` are scalars.
   """
-  return funcs_match_unit_binary(jnp.nextafter, x, y)
+  return funcs_match_unit_binary(jnp.nextafter, x, y, *args, **kwargs)

@@ -58,15 +58,42 @@ def all(
   """
   Test whether all array elements along a given axis evaluate to True.
 
-  Args:
-    a: array_like
-    axis: int, optional
-    out: array, optional
-    keepdims: bool, optional
-    where: array_like of bool, optional
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array or object that can be converted to an array.
+  axis : None or int or tuple of ints, optional
+    Axis or axes along which a logical AND reduction is performed.
+    The default (``axis=None``) is to perform a logical AND over all
+    the dimensions of the input array. `axis` may be negative, in
+    which case it counts from the last to the first axis.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+    If this is a tuple of ints, a reduction is performed on multiple
+    axes, instead of a single axis or all the axes as before.
+  out : ndarray, optional
+    Alternate output array in which to place the result.
+    It must have the same shape as the expected output and its
+    type is preserved (e.g., if ``dtype(out)`` is float, the result
+    will consist of 0.0's and 1.0's). See :ref:`ufuncs-output-type` for more
+    details.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the input array.
+
+    If the default value is passed, then `keepdims` will not be
+    passed through to the `all` method of sub-classes of
+    `ndarray`, however any non-default value will be.  If the
+    sub-class' method does not implement `keepdims` any
+    exceptions will be raised.
+  where : array_like of bool, optional
+    Elements to include in checking for all `True` values.
+
+  Returns
+  -------
+  all : ndarray, bool
+    A new boolean or array is returned unless `out` is specified,
+    in which case a reference to `out` is returned.
   """
   return logic_func_unary(jnp.all, x, axis=axis, out=out, keepdims=keepdims, where=where)
 
@@ -82,30 +109,63 @@ def any(
   """
   Test whether any array element along a given axis evaluates to True.
 
-  Args:
-    a: array_like
-    axis: int, optional
-    out: array, optional
-    keepdims: bool, optional
-    where: array_like of bool, optional
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array or object that can be converted to an array.
+  axis : None or int or tuple of ints, optional
+    Axis or axes along which a logical AND reduction is performed.
+    The default (``axis=None``) is to perform a logical AND over all
+    the dimensions of the input array. `axis` may be negative, in
+    which case it counts from the last to the first axis.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+    If this is a tuple of ints, a reduction is performed on multiple
+    axes, instead of a single axis or all the axes as before.
+  out : ndarray, optional
+    Alternate output array in which to place the result.
+    It must have the same shape as the expected output and its
+    type is preserved (e.g., if ``dtype(out)`` is float, the result
+    will consist of 0.0's and 1.0's). See :ref:`ufuncs-output-type` for more
+    details.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the input array.
+
+    If the default value is passed, then `keepdims` will not be
+    passed through to the `all` method of sub-classes of
+    `ndarray`, however any non-default value will be.  If the
+    sub-class' method does not implement `keepdims` any
+    exceptions will be raised.
+  where : array_like of bool, optional
+    Elements to include in checking for all `True` values.
+
+  Returns
+  -------
+  any : ndarray, bool
+    A new boolean or array is returned unless `out` is specified,
+    in which case a reference to `out` is returned.
   """
   return logic_func_unary(jnp.any, x, axis=axis, out=out, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
-def logical_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[bool, Array]:
+def logical_not(
+    x: Union[Quantity, jax.typing.ArrayLike],
+) -> Union[bool, Array]:
   """
   Compute the truth value of NOT x element-wise.
 
-  Args:
-    x: array_like
-    out: array, optional
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array or object that can be converted to an array.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Returns
+  -------
+  logical_not : ndarray, bool
+    A new boolean or array is returned unless `out` is specified,
+    in which case a reference to `out` is returned.
   """
   return logic_func_unary(jnp.logical_not, x)
 
@@ -131,130 +191,298 @@ def logic_func_binary(func, x, y, *args, **kwargs):
 @set_module_as('brainunit.math')
 def equal(
     x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    y: Union[Quantity, jax.typing.ArrayLike],
+    *args,
+    **kwargs
 ) -> Union[bool, Array]:
   """
-  Return (x == y) element-wise and have the same unit if x and y are Quantity.
+  equal(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Return (x == y) element-wise.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Input arrays.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or None,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  out : ndarray or scalar
+    Output array, element-wise comparison of `x` and `y`.
+    Typically of type bool, unless ``dtype=object`` is passed.
+    This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.equal, x, y)
+  return logic_func_binary(jnp.equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
 def not_equal(
     x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    y: Union[Quantity, jax.typing.ArrayLike],
+    *args,
+    **kwargs
 ) -> Union[bool, Array]:
   """
-  Return (x != y) element-wise and have the same unit if x and y are Quantity.
+  not_equal(x, y, /, out=None, *, where=True, casting='same_kind',
+  order='K', dtype=None, subok=True[, signature, extobj])
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Return (x != y) element-wise.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Input arrays.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or None,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  out : ndarray or scalar
+    Output array, element-wise comparison of `x` and `y`.
+    Typically of type bool, unless ``dtype=object`` is passed.
+    This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.not_equal, x, y)
+  return logic_func_binary(jnp.not_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
 def greater(
     x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    y: Union[Quantity, jax.typing.ArrayLike],
+    *args,
+    **kwargs
 ) -> Union[bool, Array]:
   """
-  Return (x > y) element-wise and have the same unit if x and y are Quantity.
+  greater(x, y, /, out=None, *, where=True, casting='same_kind',
+  order='K', dtype=None, subok=True[, signature, extobj])
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Return the truth value of (x > y) element-wise.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Input arrays.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or None,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  out : ndarray or scalar
+    Output array, element-wise comparison of `x` and `y`.
+    Typically of type bool, unless ``dtype=object`` is passed.
+    This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.greater, x, y)
+  return logic_func_binary(jnp.greater, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
 def greater_equal(
     x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    y: Union[Quantity, jax.typing.ArrayLike],
+    *args,
+    **kwargs
 ) -> Union[
   bool, Array]:
   """
-  Return (x >= y) element-wise and have the same unit if x and y are Quantity.
+  greater_equal(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Return the truth value of (x >= y) element-wise.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Input arrays.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or None,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  out : bool or ndarray of bool
+    Output array, element-wise comparison of `x` and `y`.
+    Typically of type bool, unless ``dtype=object`` is passed.
+    This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.greater_equal, x, y)
+  return logic_func_binary(jnp.greater_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
 def less(
     x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    y: Union[Quantity, jax.typing.ArrayLike],
+    *args,
+    **kwargs
 ) -> Union[bool, Array]:
   """
-  Return (x < y) element-wise and have the same unit if x and y are Quantity.
+  less(x, y, /, out=None, *, where=True, casting='same_kind',
+  order='K', dtype=None, subok=True[, signature, extobj])
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Return the truth value of (x < y) element-wise.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+      Input arrays.
+      If ``x1.shape != y.shape``, they must be broadcastable to a common
+      shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+      A location into which the result is stored. If provided, it must have
+      a shape that the inputs broadcast to. If not provided or None,
+      a freshly-allocated array is returned. A tuple (possible only as a
+      keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+      This condition is broadcast over the input. At locations where the
+      condition is True, the `out` array will be set to the ufunc result.
+      Elsewhere, the `out` array will retain its original value.
+      Note that if an uninitialized `out` array is created via the default
+      ``out=None``, locations within it where the condition is False will
+      remain uninitialized.
+  **kwargs
+      For other keyword-only arguments, see the
+      :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  out : ndarray or scalar
+      Output array, element-wise comparison of `x` and `y`.
+      Typically of type bool, unless ``dtype=object`` is passed.
+      This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.less, x, y)
+  return logic_func_binary(jnp.less, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
 def less_equal(
     x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    y: Union[Quantity, jax.typing.ArrayLike],
+    *args,
+    **kwargs
 ) -> Union[
   bool, Array]:
   """
-  Return (x <= y) element-wise and have the same unit if x and y are Quantity.
+  less_equal(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
-  Args:
-    x: array_like, Quantity
-    y: array_like, Quantity
+  Return the truth value of (x <= y) element-wise.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Input arrays.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or None,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  out : ndarray or scalar
+    Output array, element-wise comparison of `x` and `y`.
+    Typically of type bool, unless ``dtype=object`` is passed.
+    This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.less_equal, x, y)
+  return logic_func_binary(jnp.less_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
 def array_equal(
     x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    y: Union[Quantity, jax.typing.ArrayLike],
+    *args,
+    **kwargs
 ) -> Union[
   bool, Array]:
   """
-  Return True if two arrays have the same shape, elements, and units (if they are Quantity), False otherwise.
+  True if two arrays have the same shape and elements, False otherwise.
 
-  Args:
-    x1: array_like, Quantity
-    x2: array_like, Quantity
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Input arrays.
+  equal_nan : bool
+    Whether to compare NaN's as equal. If the dtype of a1 and a2 is
+    complex, values will be considered equal if either the real or the
+    imaginary component of a given value is ``nan``.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Returns
+  -------
+  b : bool
+    Returns True if the arrays are equal.
   """
-  return logic_func_binary(jnp.array_equal, x, y)
+  return logic_func_binary(jnp.array_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -266,17 +494,32 @@ def isclose(
     equal_nan: bool = False
 ) -> Union[bool, Array]:
   """
-  Returns a boolean array where two arrays are element-wise equal within a tolerance and have the same unit if they are Quantity.
+  Returns a boolean array where two arrays are element-wise equal within a
+  tolerance.
 
-  Args:
-    a: array_like, Quantity
-    b: array_like, Quantity
-    rtol: float, optional
-    atol: float, optional
-    equal_nan: bool, optional
+  The tolerance values are positive, typically very small numbers.  The
+  relative difference (`rtol` * abs(`b`)) and the absolute difference
+  `atol` are added together to compare against the absolute difference
+  between `a` and `b`.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Input arrays to compare.
+  rtol : float
+    The relative tolerance parameter (see Notes).
+  atol : float
+    The absolute tolerance parameter (see Notes).
+  equal_nan : bool
+    Whether to compare NaN's as equal.  If True, NaN's in `a` will be
+    considered equal to NaN's in `b` in the output array.
+
+  Returns
+  -------
+  out : array_like
+    Returns a boolean array of where `a` and `b` are equal within the
+    given tolerance. If both `a` and `b` are scalars, returns a single
+    boolean value.
   """
   return logic_func_binary(jnp.isclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
@@ -290,17 +533,34 @@ def allclose(
     equal_nan: bool = False
 ) -> Union[bool, Array]:
   """
-  Returns True if the two arrays are equal within the given tolerance and have the same unit if they are Quantity; False otherwise.
+  Returns True if two arrays are element-wise equal within a tolerance.
 
-  Args:
-    a: array_like, Quantity
-    b: array_like, Quantity
-    rtol: float, optional
-    atol: float, optional
-    equal_nan: bool, optional
+  The tolerance values are positive, typically very small numbers.  The
+  relative difference (`rtol` * abs(`b`)) and the absolute difference
+  `atol` are added together to compare against the absolute difference
+  between `a` and `b`.
 
-  Returns:
-    bool: boolean result
+  NaNs are treated as equal if they are in the same place and if
+  ``equal_nan=True``.  Infs are treated as equal if they are in the same
+  place and of the same sign in both arrays.
+
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Input arrays to compare.
+  rtol : float
+    The relative tolerance parameter (see Notes).
+  atol : float
+    The absolute tolerance parameter (see Notes).
+  equal_nan : bool
+    Whether to compare NaN's as equal.  If True, NaN's in `a` will be
+    considered equal to NaN's in `b` in the output array.
+
+  Returns
+  -------
+  allclose : bool
+    Returns True if the two arrays are equal within the given
+    tolerance; False otherwise.
   """
   return logic_func_binary(jnp.allclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
@@ -308,58 +568,133 @@ def allclose(
 @set_module_as('brainunit.math')
 def logical_and(
     x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    y: Union[Quantity, jax.typing.ArrayLike],
+    *args,
+    **kwargs
 ) -> Union[
   bool, Array]:
   """
-  Compute the truth value of x AND y element-wise and have the same unit if x and y are Quantity.
+  logical_and(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
-  Args:
-    x: array_like
-    y: array_like
-    out: array, optional
+  Compute the truth value of x AND y element-wise.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Input arrays.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or None,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  out : ndarray or bool
+    Boolean result of the logical AND operation applied to the elements
+    of `x` and `y`; the shape is determined by broadcasting.
+    This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.logical_and, x, y)
+  return logic_func_binary(jnp.logical_and, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
 def logical_or(
     x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    y: Union[Quantity, jax.typing.ArrayLike],
+    *args,
+    **kwargs
 ) -> Union[
   bool, Array]:
   """
-  Compute the truth value of x OR y element-wise and have the same unit if x and y are Quantity.
+  logical_or(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
-  Args:
-    x: array_like
-    y: array_like
-    out: array, optional
+  Compute the truth value of x OR y element-wise.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Logical OR is applied to the elements of `x` and `y`.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or None,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  out : ndarray or bool
+    Boolean result of the logical OR operation applied to the elements
+    of `x` and `y`; the shape is determined by broadcasting.
+    This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.logical_or, x, y)
+  return logic_func_binary(jnp.logical_or, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
 def logical_xor(
     x: Union[Quantity, jax.typing.ArrayLike],
-    y: Union[Quantity, jax.typing.ArrayLike]
+    y: Union[Quantity, jax.typing.ArrayLike],
+    *args,
+    **kwargs
 ) -> Union[
   bool, Array]:
   """
-  Compute the truth value of x XOR y element-wise and have the same unit if x and y are Quantity.
+  logical_xor(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
-  Args:
-    x: array_like
-    y: array_like
-    out: array, optional
+  Compute the truth value of x XOR y, element-wise.
 
-  Returns:
-    Union[bool, jax.Array]: bool or array
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    Logical XOR is applied to the elements of `x` and `y`.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or None,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  out : bool or ndarray of bool
+    Boolean result of the logical XOR operation applied to the elements
+    of `x` and `y`; the shape is determined by broadcasting.
+    This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.logical_xor, x, y)
+  return logic_func_binary(jnp.logical_xor, x, y, *args, **kwargs)
