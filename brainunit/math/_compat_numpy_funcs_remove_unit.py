@@ -187,10 +187,8 @@ def funcs_remove_unit_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity) or isinstance(y, Quantity):
     fail_for_dimension_mismatch(x, y)
     return func(x.value, y.value, *args, **kwargs)
-  elif isinstance(x, jax.typing.ArrayLike) and isinstance(y, jax.typing.ArrayLike):
-    return func(x, y, *args, **kwargs)
   else:
-    raise TypeError(f"Unsupported types: {type(x)}, {type(y)}")
+    return func(x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
