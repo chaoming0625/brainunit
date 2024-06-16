@@ -104,6 +104,7 @@ def _short_str(arr):
   Return a short string representation of an array, suitable for use in
   error messages.
   """
+  arr = arr.value if isinstance(arr, Quantity) else arr
   arr = np.asanyarray(arr)
   old_printoptions = jnp.get_printoptions()
   jnp.set_printoptions(edgeitems=2, threshold=5)
@@ -1054,6 +1055,34 @@ class Quantity(object):
     raise NotImplementedError("Cannot set the dimension of a Quantity object directly,"
                               "Please create a new Quantity object with the value you want.")
 
+  @property
+  def unit(self) -> 'Unit':
+    return Unit(1., self.dim, register=False)
+
+  @unit.setter
+  def unit(self, *args):
+    # Do not support setting the unit directly
+    raise NotImplementedError("Cannot set the unit of a Quantity object directly,"
+                              "Please create a new Quantity object with the unit you want.")
+
+  def to_value(self, unit: 'Unit') -> jax.Array | numbers.Number:
+    """
+    Convert the value of the array to a new unit.
+
+    Examples::
+
+    >>> a = jax.numpy.array([1, 2, 3]) * mV
+    >>> a.to_value(volt)
+    array([0.001, 0.002, 0.003])
+
+    Args:
+      unit: The new unit to convert the value of the array to.
+
+    Returns:
+      The value of the array in the new unit.
+    """
+    return self.value / unit.value
+
   @staticmethod
   def with_units(value, *args, **keywords):
     """
@@ -1506,9 +1535,7 @@ class Quantity(object):
 
   def __iadd__(self, oc):
     # a += b
-    r = self._binary_operation(oc, operator.add, fail_for_mismatch=True, operator_str="+=", inplace=True)
-    self.update_value(r.value)
-    return self
+    return self._binary_operation(oc, operator.add, fail_for_mismatch=True, operator_str="+=", inplace=True)
 
   def __sub__(self, oc):
     return self._binary_operation(oc, operator.sub, fail_for_mismatch=True, operator_str="-")
@@ -1518,9 +1545,7 @@ class Quantity(object):
 
   def __isub__(self, oc):
     # a -= b
-    r = self._binary_operation(oc, operator.sub, fail_for_mismatch=True, operator_str="-=", inplace=True)
-    self.update_value(r.value)
-    return self
+    return self._binary_operation(oc, operator.sub, fail_for_mismatch=True, operator_str="-=", inplace=True)
 
   def __mul__(self, oc):
     r = self._binary_operation(oc, operator.mul, operator.mul)
@@ -2266,13 +2291,40 @@ class Quantity(object):
 
   def __array__(self, dtype: Optional[jax.typing.DTypeLike] = None) -> np.ndarray:
     """Support ``numpy.array()`` and ``numpy.asarray()`` functions."""
-    return np.asarray(self.value, dtype=dtype)
+    if self.dim == DIMENSIONLESS:
+      return np.asarray(self.value, dtype=dtype)
+    else:
+      raise TypeError(
+        f"only dimensionless quantities can be "
+        f"converted to NumPy arrays. But got {self}"
+      )
 
   def __float__(self):
-    return self.value.__float__()
+    if self.dim == DIMENSIONLESS and self.ndim == 0:
+      return self.value.__float__()
+    else:
+      raise TypeError(
+        "only dimensionless scalar quantities can be "
+        f"converted to Python scalars. But got {self}"
+      )
+
+  def __int__(self):
+    if self.dim == DIMENSIONLESS and self.ndim == 0:
+      return self.value.__int__()
+    else:
+      raise TypeError(
+        "only dimensionless scalar quantities can be "
+        f"converted to Python scalars. But got {self}"
+      )
 
   def __index__(self):
-    return operator.index(self.value)
+    if self.dim == DIMENSIONLESS:
+      return operator.index(self.value)
+    else:
+      raise TypeError(
+        "only dimensionless quantities can be "
+        f"converted to a Python index. But got {self}"
+      )
 
   # ----------------------
   # PyTorch compatibility
@@ -2518,6 +2570,7 @@ class Unit(Quantity):
       dispname: str = None,
       iscompound: bool = None,
       dtype: jax.typing.DTypeLike = None,
+      register: bool = True,
   ):
     if dim is None:
       dim = DIMENSIONLESS
@@ -2543,7 +2596,7 @@ class Unit(Quantity):
 
     super().__init__(value, dtype=dtype, dim=dim)
 
-    if _auto_register_unit:
+    if _auto_register_unit and register:
       register_new_unit(self)
 
   @staticmethod
@@ -2783,10 +2836,11 @@ class UnitRegistry:
     if isinstance(u.value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
       self.units_for_dimensions[u.dim][1.] = u
     else:
-      self.units_for_dimensions[u.dim][float(u)] = u
+      self.units_for_dimensions[u.dim][float(u.value)] = u
 
   def __getitem__(self, x):
-    """Returns the best unit for array x
+    """
+    Returns the best unit for array x
 
     The algorithm is to consider the value:
 
