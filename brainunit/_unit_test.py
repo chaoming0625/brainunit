@@ -17,15 +17,15 @@ import itertools
 import warnings
 
 import brainstate as bst
+
+bst.environ.set(precision=64)
+
 import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
 from numpy.testing import assert_equal
-
 import brainunit as bu
-
-bst.environ.set(precision=64)
 
 from brainunit._unit_common import *
 from brainunit._base import (
@@ -72,7 +72,7 @@ def assert_allclose(actual, desired, rtol=4.5e8, atol=0, **kwds):
 
 
 def assert_quantity(q, values, unit):
-  values = jnp.asarray(values)
+  values = values.value if isinstance(values, Quantity) else np.asarray(values)
   if isinstance(q, Quantity):
     assert have_same_unit(q.dim, unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
     if not jnp.allclose(q.value, values):
@@ -481,19 +481,21 @@ def test_format_quantity():
   with bst.environ.context(precision=64):
     q = 0.5 * ms
   assert f"{q}" == f"{q!s}" == str(q)
-  assert f"{q:g}" == f"{float(q)}"
+  print(f"{q:g}")
+  assert f"{q:g}" == f"{float(q / bu.second)}"
 
 
 def test_slicing():
   # Slicing and indexing, setting items
-  Array = np.reshape(np.arange(6), (2, 3)) * mV
-  assert_allclose(Array[:].value, Array.value)
-  assert_allclose(Array[0].value, (np.asarray(Array)[0] * volt).value)
-  assert_allclose(Array[0:1].value, (np.asarray(Array)[0:1] * volt).value)
-  assert_allclose(Array[0, 1].value, (np.asarray(Array)[0, 1] * volt).value)
-  assert_allclose(Array[0:1, 1:].value, (np.asarray(Array)[0:1, 1:] * volt).value)
+  a = np.reshape(np.arange(6), (2, 3))
+  q = a * mV
+  assert_allclose(q[:].value, q.value)
+  assert_allclose(q[0].value, (a[0] * volt).value)
+  assert_allclose(q[0:1].value, (a[0:1] * volt).value)
+  assert_allclose(q[0, 1].value, (a[0, 1] * volt).value)
+  assert_allclose(q[0:1, 1:].value, (a[0:1, 1:] * volt).value)
   bool_matrix = np.array([[True, False, False], [False, False, True]])
-  assert_allclose(Array[bool_matrix].value, (np.asarray(Array)[bool_matrix] * volt).value)
+  assert_allclose(q[bool_matrix].value, (a[bool_matrix] * volt).value)
 
 
 def test_setting():
@@ -526,31 +528,31 @@ def test_multiplication_division():
 
   for q in quantities:
     # Scalars and array scalars
-    assert_quantity(q / 3, np.asarray(q) / 3, volt)
-    assert_quantity(3 / q, 3 / np.asarray(q), 1 / volt)
-    assert_quantity(q * 3, np.asarray(q) * 3, volt)
-    assert_quantity(3 * q, 3 * np.asarray(q), volt)
-    assert_quantity(q / np.float64(3), np.asarray(q) / 3, volt)
-    assert_quantity(np.float64(3) / q, 3 / np.asarray(q), 1 / volt)
-    assert_quantity(q * np.float64(3), np.asarray(q) * 3, volt)
-    assert_quantity(np.float64(3) * q, 3 * np.asarray(q), volt)
-    assert_quantity(q / jnp.array(3), np.asarray(q) / 3, volt)
-    assert_quantity(np.array(3) / q, 3 / np.asarray(q), 1 / volt)
-    assert_quantity(q * jnp.array(3), np.asarray(q) * 3, volt)
-    assert_quantity(np.array(3) * q, 3 * np.asarray(q), volt)
+    assert_quantity(q / 3, q.value / 3, volt)
+    assert_quantity(3 / q, 3 / q.value, 1 / volt)
+    assert_quantity(q * 3, q.value * 3, volt)
+    assert_quantity(3 * q, 3 * q.value, volt)
+    assert_quantity(q / np.float64(3), q.value / 3, volt)
+    assert_quantity(np.float64(3) / q, 3 / q.value, 1 / volt)
+    assert_quantity(q * np.float64(3), q.value * 3, volt)
+    assert_quantity(np.float64(3) * q, 3 * q.value, volt)
+    assert_quantity(q / jnp.array(3), q.value / 3, volt)
+    assert_quantity(np.array(3) / q, 3 / q.value, 1 / volt)
+    assert_quantity(q * jnp.array(3), q.value * 3, volt)
+    assert_quantity(np.array(3) * q, 3 * q.value, volt)
 
     # (unitless) arrays
-    assert_quantity(q / np.array([3]), np.asarray(q) / 3, volt)
-    assert_quantity(np.array([3]) / q, 3 / np.asarray(q), 1 / volt)
-    assert_quantity(q * np.array([3]), np.asarray(q) * 3, volt)
-    assert_quantity(np.array([3]) * q, 3 * np.asarray(q), volt)
+    assert_quantity(q / np.array([3]), q.value / 3, volt)
+    assert_quantity(np.array([3]) / q, 3 / q.value, 1 / volt)
+    assert_quantity(q * np.array([3]), q.value * 3, volt)
+    assert_quantity(np.array([3]) * q, 3 * q.value, volt)
 
     # arrays with units
-    assert_quantity(q / q, np.asarray(q) / np.asarray(q), 1)
-    assert_quantity(q * q, np.asarray(q) ** 2, volt ** 2)
-    assert_quantity(q / q2, np.asarray(q) / np.asarray(q2), volt / second)
-    assert_quantity(q2 / q, np.asarray(q2) / np.asarray(q), second / volt)
-    assert_quantity(q * q2, np.asarray(q) * np.asarray(q2), volt * second)
+    assert_quantity(q / q, q.value / q.value, 1)
+    assert_quantity(q * q, q.value ** 2, volt ** 2)
+    assert_quantity(q / q2, q.value / q2.value, volt / second)
+    assert_quantity(q2 / q, q2.value / q.value, second / volt)
+    assert_quantity(q * q2, q.value * q2.value, volt * second)
 
     # # using unsupported objects should fail
     # with pytest.raises(TypeError):
@@ -569,12 +571,12 @@ def test_addition_subtraction():
 
   for q in quantities:
     # arrays with units
-    assert_quantity(q + q, np.asarray(q) + np.asarray(q), volt)
+    assert_quantity(q + q, q.value + q.value, volt)
     assert_quantity(q - q, 0, volt)
-    assert_quantity(q + q2, np.asarray(q) + np.asarray(q2), volt)
-    assert_quantity(q2 + q, np.asarray(q2) + np.asarray(q), volt)
-    assert_quantity(q - q2, np.asarray(q) - np.asarray(q2), volt)
-    assert_quantity(q2 - q, np.asarray(q2) - np.asarray(q), volt)
+    assert_quantity(q + q2, q.value + q2.value, volt)
+    assert_quantity(q2 + q, q2.value + q.value, volt)
+    assert_quantity(q - q2, q.value - q2.value, volt)
+    assert_quantity(q2 - q, q2.value - q.value, volt)
 
     # mismatching units
     with pytest.raises(DimensionMismatchError):
@@ -623,15 +625,15 @@ def test_addition_subtraction():
       np.array([5], dtype=np.float64) - q
 
     # Check that operations with 0 work
-    assert_quantity(q + 0, np.asarray(q), volt)
-    assert_quantity(0 + q, np.asarray(q), volt)
-    assert_quantity(q - 0, np.asarray(q), volt)
+    assert_quantity(q + 0, q.value, volt)
+    assert_quantity(0 + q, q.value, volt)
+    assert_quantity(q - 0, q.value, volt)
     # Doesn't support 0 - Quantity
-    # assert_quantity(0 - q, -np.asarray(q), volt)
-    assert_quantity(q + np.float64(0), np.asarray(q), volt)
-    assert_quantity(np.float64(0) + q, np.asarray(q), volt)
-    assert_quantity(q - np.float64(0), np.asarray(q), volt)
-    # assert_quantity(np.float64(0) - q, -np.asarray(q), volt)
+    # assert_quantity(0 - q, -q.value, volt)
+    assert_quantity(q + np.float64(0), q.value, volt)
+    assert_quantity(np.float64(0) + q, q.value, volt)
+    assert_quantity(q - np.float64(0), q.value, volt)
+    # assert_quantity(np.float64(0) - q, -q.value, volt)
 
     # # using unsupported objects should fail
     # with pytest.raises(TypeError):
@@ -669,16 +671,16 @@ def test_binary_operations():
 
       # Test equivalent numpy functions
       numpy_funcs = [
-        np.add,
-        np.subtract,
-        np.less,
-        np.less_equal,
-        np.greater,
-        np.greater_equal,
-        np.equal,
-        np.not_equal,
-        np.maximum,
-        np.minimum,
+        bu.math.add,
+        bu.math.subtract,
+        bu.math.less,
+        bu.math.less_equal,
+        bu.math.greater,
+        bu.math.greater_equal,
+        bu.math.equal,
+        bu.math.not_equal,
+        bu.math.maximum,
+        bu.math.minimum,
       ]
       for numpy_func in numpy_funcs:
         numpy_func(a, b)
@@ -784,17 +786,15 @@ def test_power():
   """
   Test raising quantities to a power.
   """
-  values = [2 * kilogram, np.array([2]) * kilogram, np.array([1, 2]) * kilogram]
-  for value in values:
-    assert_quantity(value ** 3, np.asarray(value) ** 3, kilogram ** 3)
+  arrs = [2 * kilogram, np.array([2]) * kilogram, np.array([1, 2]) * kilogram]
+  for a in arrs:
+    assert_quantity(a ** 3, a.value ** 3, kilogram ** 3)
     # Test raising to a dimensionless Array
-    assert_quantity(
-      value ** (3 * volt / volt), np.asarray(value) ** 3, kilogram ** 3
-    )
+    assert_quantity(a ** (3 * volt / volt), a.value ** 3, kilogram ** 3)
     with pytest.raises(DimensionMismatchError):
-      value ** (2 * volt)
+      a ** (2 * volt)
     with pytest.raises(TypeError):
-      value ** np.array([2, 3])
+      a ** np.array([2, 3])
 
 
 def test_inplace_operations():
@@ -889,16 +889,15 @@ def test_unit_discarding_functions():
   """
   Test functions that discard units.
   """
-  from brainunit.math import ones_like, zeros_like
 
   values = [3 * mV, np.array([1, 2]) * mV, np.arange(12).reshape(3, 4) * mV]
-  for value in values:
-    assert_equal(np.sign(value.value), np.sign(np.asarray(value.value)))
-    assert_equal(zeros_like(value), np.zeros_like(np.asarray(value.value)))
-    assert_equal(ones_like(value), np.ones_like(np.asarray(value.value)))
+  for a in values:
+    assert_equal(np.sign(a.value), np.sign(np.asarray(a.value)))
+    assert_equal(bu.math.zeros_like(a).value, np.zeros_like(np.asarray(a.value)))
+    assert_equal(bu.math.ones_like(a).value, np.ones_like(np.asarray(a.value)))
     # Calling non-zero on a 0d array is deprecated, don't test it:
-    if value.ndim > 0:
-      assert_equal(np.nonzero(value.value), np.nonzero(np.asarray(value.value)))
+    if a.ndim > 0:
+      assert_equal(np.nonzero(a.value), np.nonzero(np.asarray(a.value)))
 
 
 def test_unitsafe_functions():
@@ -985,45 +984,58 @@ def test_special_case_numpy_functions():
     assert_allclose(ravel(quadratic_matrix).value, quadratic_matrix.ravel().value)
     # Check that function gives the same result as on unitless arrays
     assert_allclose(
-      np.asarray(ravel(quadratic_matrix).value), ravel(np.asarray(quadratic_matrix))
+      np.asarray(ravel(quadratic_matrix).value),
+      ravel(np.asarray(quadratic_matrix.value))
     )
     # Check that the function gives the same results as the original numpy
     # function
     assert_allclose(
-      np.ravel(np.asarray(quadratic_matrix.value)), ravel(np.asarray(quadratic_matrix.value))
+      np.ravel(np.asarray(quadratic_matrix.value)),
+      ravel(np.asarray(quadratic_matrix.value))
     )
 
   # Do the same checks for diagonal, trace and dot
   assert_allclose(diagonal(quadratic_matrix).value, quadratic_matrix.diagonal().value)
   assert_allclose(
-    np.asarray(diagonal(quadratic_matrix).value), diagonal(np.asarray(quadratic_matrix.value))
+    np.asarray(diagonal(quadratic_matrix).value),
+    diagonal(np.asarray(quadratic_matrix.value))
   )
   assert_allclose(
     np.diagonal(np.asarray(quadratic_matrix.value)),
     diagonal(np.asarray(quadratic_matrix.value)),
   )
 
-  assert_allclose(trace(quadratic_matrix).value, quadratic_matrix.trace().value)
   assert_allclose(
-    np.asarray(trace(quadratic_matrix).value), trace(np.asarray(quadratic_matrix.value))
+    trace(quadratic_matrix).value,
+    quadratic_matrix.trace().value
   )
   assert_allclose(
-    np.trace(np.asarray(quadratic_matrix.value)), trace(np.asarray(quadratic_matrix.value))
+    np.asarray(trace(quadratic_matrix).value),
+    trace(np.asarray(quadratic_matrix.value))
+  )
+  assert_allclose(
+    np.trace(np.asarray(quadratic_matrix.value)),
+    trace(np.asarray(quadratic_matrix.value))
   )
 
   assert_allclose(
-    dot(quadratic_matrix, quadratic_matrix).value, quadratic_matrix.dot(quadratic_matrix).value
+    dot(quadratic_matrix, quadratic_matrix).value,
+    quadratic_matrix.dot(quadratic_matrix).value
   )
   assert_allclose(
     np.asarray(dot(quadratic_matrix, quadratic_matrix).value),
-    dot(np.asarray(quadratic_matrix.value), np.asarray(quadratic_matrix.value)),
+    dot(np.asarray(quadratic_matrix.value),
+        np.asarray(quadratic_matrix.value)),
   )
   assert_allclose(
-    np.dot(np.asarray(quadratic_matrix.value), np.asarray(quadratic_matrix.value)),
-    dot(np.asarray(quadratic_matrix.value), np.asarray(quadratic_matrix.value)),
+    np.dot(np.asarray(quadratic_matrix.value),
+           np.asarray(quadratic_matrix.value)),
+    dot(np.asarray(quadratic_matrix.value),
+        np.asarray(quadratic_matrix.value)),
   )
   assert_allclose(
-    np.asarray(quadratic_matrix.prod().value), np.asarray(quadratic_matrix.value).prod()
+    np.asarray(quadratic_matrix.prod().value),
+    np.asarray(quadratic_matrix.value).prod()
   )
   assert_allclose(
     np.asarray(quadratic_matrix.prod(axis=0).value),
@@ -1035,10 +1047,12 @@ def test_special_case_numpy_functions():
   assert have_same_unit(quadratic_matrix, trace(quadratic_matrix))
   assert have_same_unit(quadratic_matrix, diagonal(quadratic_matrix))
   assert have_same_unit(
-    quadratic_matrix[0] ** 2, dot(quadratic_matrix, quadratic_matrix)
+    quadratic_matrix[0] ** 2,
+    dot(quadratic_matrix, quadratic_matrix)
   )
   assert have_same_unit(
-    quadratic_matrix.prod(axis=0), quadratic_matrix[0] ** quadratic_matrix.shape[0]
+    quadratic_matrix.prod(axis=0),
+    quadratic_matrix[0] ** quadratic_matrix.shape[0]
   )
 
   # check the where function
@@ -1051,15 +1065,16 @@ def test_special_case_numpy_functions():
 
   # dimensionless Array
   assert_allclose(
-    np.where(cond, ar1, ar2), np.asarray(where(cond, ar1 * mV / mV, ar2 * mV / mV))
+    np.where(cond, ar1, ar2),
+    np.asarray(where(cond, ar1 * mV / mV, ar2 * mV / mV))
   )
 
   # Array with dimensions
   ar1 = ar1 * mV
   ar2 = ar2 * mV
   assert_allclose(
-    np.where(cond, np.asarray(ar1), np.asarray(ar2)),
-    np.asarray(where(cond, ar1, ar2)),
+    np.where(cond, ar1.value, ar2.value),
+    np.asarray(where(cond, ar1, ar2).value),
   )
 
   # Check some error cases
@@ -1083,8 +1098,7 @@ def test_special_case_numpy_functions():
   # Check cumprod
   a = np.arange(1, 10) * mV / mV
   assert_allclose(a.cumprod(), np.asarray(a).cumprod())
-  # with pytest.raises(TypeError):
-  #   (np.arange(1, 5) * mV).cumprod()
+  (np.arange(1, 5) * mV).cumprod()
 
 
 # Functions that should not change units
@@ -1160,215 +1174,6 @@ def test_numpy_functions_indices():
             % func.__name__
         ),
       )
-
-
-# Do not support numpy functions
-# def test_numpy_functions_dimensionless():
-#   """
-#   Test that numpy functions that should work on dimensionless quantities only
-#   work dimensionless arrays and return the correct result.
-#   """
-#   unitless_values = [3, np.array([-4, 3, -1, 2]), np.ones((3, 3))]
-#   unit_values = [3 * mV, np.array([-4, 3, -1, 2]) * mV, np.ones((3, 3)) * mV]
-#   with warnings.catch_warnings():
-#     # ignore division by 0 warnings
-#     warnings.simplefilter("ignore", RuntimeWarning)
-#     for value in unitless_values:
-#       for ufunc in ufuncs_dimensionless:
-#         result_unitless = eval(f"np.{ufunc}(value)")
-#         result_array = eval(f"np.{ufunc}(np.array(value))")
-#         assert isinstance(
-#           result_unitless, (np.ndarray, np.number)
-#         ) and not isinstance(result_unitless, Quantity)
-#         assert_equal(result_unitless, result_array)
-#       for ufunc in ufuncs_dimensionless_twoargs:
-#         result_unitless = eval(f"np.{ufunc}(value, value)")
-#         result_array = eval(f"np.{ufunc}(np.array(value), np.array(value))")
-#         assert isinstance(
-#           result_unitless, (np.ndarray, np.number)
-#         ) and not isinstance(result_unitless, Quantity)
-#         assert_equal(result_unitless, result_array)
-#
-#     for value, unitless_value in zip(unit_values, unitless_values):
-#       for ufunc in ufuncs_dimensionless:
-#         with pytest.raises(DimensionMismatchError):
-#           eval(f"np.{ufunc}(value)", globals(), {"value": value})
-#       for ufunc in ufuncs_dimensionless_twoargs:
-#         with pytest.raises(DimensionMismatchError):
-#           eval(
-#             f"np.{ufunc}(value1, value2)",
-#             globals(),
-#             {"value1": value, "value2": unitless_value},
-#           )
-#         with pytest.raises(DimensionMismatchError):
-#           eval(
-#             f"np.{ufunc}(value2, value1)",
-#             globals(),
-#             {"value1": value, "value2": unitless_value},
-#           )
-#         with pytest.raises(DimensionMismatchError):
-#           eval(f"np.{ufunc}(value, value)", globals(), {"value": value})
-
-
-# Do not support numpy functions
-# def test_numpy_functions_change_dimensions():
-#   """
-#   Test some numpy functions that change the dimensions of the Array.
-#   """
-#   unit_values = [np.array([1, 2]) * mV, np.ones((3, 3)) * 2 * mV]
-#   for value in unit_values:
-#     assert_quantity(np.var(value), np.var(np.array(value)), volt ** 2)
-#     assert_quantity(np.square(value), np.square(np.array(value)), volt ** 2)
-#     assert_quantity(np.sqrt(value), np.sqrt(np.array(value)), volt ** 0.5)
-#     assert_quantity(
-#       np.reciprocal(value), np.reciprocal(np.array(value)), 1.0 / volt
-#     )
-
-
-# Do not support numpy functions
-# def test_numpy_functions_matmul():
-#   """
-#   Check support for matmul and the ``@`` operator.
-#   """
-#   no_units_eye = np.eye(3)
-#   with_units_eye = no_units_eye * Mohm
-#   matrix_no_units = np.arange(9).reshape((3, 3))
-#   matrix_units = matrix_no_units * nA
-#
-#   # First operand with units
-#   assert_allclose((no_units_eye @ matrix_units).value, matrix_units.value)
-#   assert have_same_unit(no_units_eye @ matrix_units, matrix_units)
-#   assert_allclose(np.matmul(no_units_eye, matrix_units.value), matrix_units.value)
-#   assert have_same_unit(np.matmul(no_units_eye, matrix_units.value), matrix_units.value)
-#
-#   # Second operand with units
-#   assert_allclose((with_units_eye @ matrix_no_units).value, (matrix_no_units * Mohm).value)
-#   assert have_same_unit(
-#     with_units_eye @ matrix_no_units, matrix_no_units * Mohm
-#   )
-#   assert_allclose(np.matmul(with_units_eye.value, matrix_no_units), (matrix_no_units * Mohm).value)
-#   assert have_same_unit(
-#     np.matmul(with_units_eye, matrix_no_units), matrix_no_units * Mohm
-#   )
-#
-#   # Both operands with units
-#   assert_allclose(
-#     (with_units_eye @ matrix_units).value, (no_units_eye @ matrix_no_units * nA * Mohm).value
-#   )
-#   assert have_same_unit(with_units_eye @ matrix_units, nA * Mohm)
-#   assert_allclose(
-#     np.matmul(with_units_eye.value, matrix_units.value),
-#     (np.matmul(no_units_eye, matrix_no_units) * nA * Mohm).value,
-#   )
-#   assert have_same_unit(np.matmul(with_units_eye, matrix_units), nA * Mohm)
-
-
-# def test_numpy_functions_typeerror():
-#   """
-#   Assures that certain numpy functions raise a TypeError when called on
-#   quantities.
-#   """
-#   unitless_values = [
-#     3 * mV / mV,
-#     np.array([1, 2]) * mV / mV,
-#     np.ones((3, 3)) * mV / mV,
-#   ]
-#   unit_values = [3 * mV, np.array([1, 2]) * mV, np.ones((3, 3)) * mV]
-#   for value in unitless_values + unit_values:
-#     for ufunc in ufuncs_integers:
-#       if ufunc == "invert":
-#         # only takes one argument
-#         with pytest.raises(TypeError):
-#           eval(f"np.{ufunc}(value)", globals(), {"value": value})
-#       else:
-#         with pytest.raises(TypeError):
-#           eval(f"np.{ufunc}(value, value)", globals(), {"value": value})
-
-
-# Doesn't support logical functions
-# 
-# def test_numpy_functions_logical():
-#   """
-#   Assure that logical numpy functions work on all quantities and return
-#   unitless boolean arrays.
-#   """
-#   unit_values1 = [3 * mV, np.array([1, 2]) * mV, np.ones((3, 3)) * mV]
-#   unit_values2 = [3 * second, np.array([1, 2]) * second, np.ones((3, 3)) * second]
-#   for ufunc in ufuncs_logical:
-#     for value1, value2 in zip(unit_values1, unit_values2):
-#       try:
-#         # one argument
-#         result_units = eval(f"np.{ufunc}(value1)")
-#         result_array = eval(f"np.{ufunc}(np.array(value1))")
-#       except (ValueError, TypeError):
-#         # two arguments
-#         result_units = eval(f"np.{ufunc}(value1, value2)")
-#         result_array = eval(f"np.{ufunc}(np.array(value1), np.array(value2))")
-#         # assert that comparing to a string results in "NotImplemented" or an error
-#         try:
-#           result = eval(f'np.{ufunc}(value1, "a string")')
-#           assert result == NotImplemented
-#         except (ValueError, TypeError):
-#           pass  # raised on numpy >= 0.10
-#         try:
-#           result = eval(f'np.{ufunc}("a string", value1)')
-#           assert result == NotImplemented
-#         except (ValueError, TypeError):
-#           pass  # raised on numpy >= 0.10
-#       assert not isinstance(result_units, Quantity)
-#       assert_equal(result_units, result_array)
-
-
-# 
-# def test_arange_linspace():
-#     # For dimensionless values, the unit-safe functions should give the same results
-#     assert_equal(brian2.arange(5), np.arange(5))
-#     assert_equal(brian2.arange(1, 5), np.arange(1, 5))
-#     assert_equal(brian2.arange(10, step=2), np.arange(10, step=2))
-#     assert_equal(brian2.arange(0, 5, 0.5), np.arange(0, 5, 0.5))
-#     assert_equal(brian2.linspace(0, 1), np.linspace(0, 1))
-#     assert_equal(brian2.linspace(0, 1, 10), np.linspace(0, 1, 10))
-#
-#     # Make sure units are checked
-#     with pytest.raises(DimensionMismatchError):
-#         brian2.arange(1 * mV, 5)
-#     with pytest.raises(DimensionMismatchError):
-#         brian2.arange(1 * mV, 5 * mV)
-#     with pytest.raises(DimensionMismatchError):
-#         brian2.arange(1, 5 * mV)
-#     with pytest.raises(DimensionMismatchError):
-#         brian2.arange(1 * mV, 5 * ms)
-#     with pytest.raises(DimensionMismatchError):
-#         brian2.arange(1 * mV, 5 * mV, step=1 * ms)
-#     with pytest.raises(DimensionMismatchError):
-#         brian2.arange(1 * ms, 5 * mV)
-#
-#     # Check correct functioning with units
-#     assert_quantity(
-#         brian2.arange(5 * mV, step=1 * mV), float(mV) * np.arange(5, step=1), mV
-#     )
-#     assert_quantity(
-#         brian2.arange(1 * mV, 5 * mV, 1 * mV), float(mV) * np.arange(1, 5, 1), mV
-#     )
-#     assert_quantity(brian2.linspace(1 * mV, 2 * mV), float(mV) * np.linspace(1, 2), mV)
-#
-#     # Check errors for arange with incorrect numbers of arguments/duplicate arguments
-#     with pytest.raises(TypeError):
-#         brian2.arange()
-#     with pytest.raises(TypeError):
-#         brian2.arange(0, 5, 1, 0)
-#     with pytest.raises(TypeError):
-#         brian2.arange(0, stop=1)
-#     with pytest.raises(TypeError):
-#         brian2.arange(0, 5, stop=1)
-#     with pytest.raises(TypeError):
-#         brian2.arange(0, 5, start=1)
-#     with pytest.raises(TypeError):
-#         brian2.arange(0, 5, 1, start=1)
-#     with pytest.raises(TypeError):
-#         brian2.arange(0, 5, 1, stop=2)
-#     with pytest.raises(TypeError):
-#         brian2.arange(0, 5, 1, step=2)
 
 
 def test_list():
@@ -1462,7 +1267,7 @@ def test_get_basic_unit():
     unit = get_basic_unit(unit)
     assert isinstance(unit, Unit)
     assert unit == expected_unit
-    assert float(unit) == 1.0
+    assert float(unit.value) == 1.0
 
 
 def test_get_best_unit():
@@ -1495,7 +1300,7 @@ def test_switching_off_unit_checks():
 
   with turn_off_unit_checking():
     # Now it should work
-    assert np.asarray(x + y) == np.array(8)
+    assert (x + y).value == np.array(8)
     assert have_same_unit(x, y)
     assert x.has_same_unit(y)
 
@@ -1534,39 +1339,6 @@ def test_deepcopy():
   d_copy["x"] += 1 * second
   assert d_copy["x"] == 2 * second
   assert d["x"] == 1 * second
-
-
-# Doesn't support copy
-# 
-# def test_inplace_on_scalars():
-#   # We want "copy semantics" for in-place operations on scalar quantities
-#   # in the same way as for Python scalars
-#   for scalar in [3 * mV, 3 * mV / mV]:
-#     scalar_reference = scalar
-#     scalar_copy = Quantity(scalar, copy=True)
-#     scalar += scalar_copy
-#     assert_equal(scalar_copy, scalar_reference)
-#     scalar *= 1.5
-#     assert_equal(scalar_copy, scalar_reference)
-#     scalar /= 2
-#     assert_equal(scalar_copy, scalar_reference)
-#
-#     # also check that it worked correctly for the scalar itself
-#     assert_allclose(scalar, (scalar_copy + scalar_copy) * 1.5 / 2)
-#
-#   # For arrays, it should use reference semantics
-#   for vector in [[3] * mV, [3] * mV / mV]:
-#     vector_reference = vector
-#     vector_copy = Quantity(vector, copy=True)
-#     vector += vector_copy
-#     assert_equal(vector, vector_reference)
-#     vector *= 1.5
-#     assert_equal(vector, vector_reference)
-#     vector /= 2
-#     assert_equal(vector, vector_reference)
-#
-#     # also check that it worked correctly for the vector itself
-#     assert_allclose(vector, (vector_copy + vector_copy) * 1.5 / 2)
 
 
 def test_units_vs_quantities():
