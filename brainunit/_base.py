@@ -113,7 +113,7 @@ def _short_str(arr):
   return arr_string
 
 
-def get_unit_for_display(d):
+def get_dim_for_display(d):
   """
   Return a string representation of an appropriate unscaled unit or ``'1'``
   for a dimensionless array.
@@ -182,6 +182,13 @@ _di = {
   "cd": 6,
 }
 
+# Length (meter)
+# Mass (kilogram)
+# Time (second)
+# Current (ampere)
+# Temperature (Kelvin)
+# Amount of substance (mole)
+# Luminous intensity (candela)
 _ilabel = ["m", "kg", "s", "A", "K", "mol", "cd"]
 
 # The same labels with the names used for constructing them in Python code
@@ -454,6 +461,8 @@ def get_or_create_dimension(*args, **kwds):
 
 '''The dimensionless unit, used for quantities without a unit.'''
 DIMENSIONLESS = Dimension((0, 0, 0, 0, 0, 0, 0))
+
+'''The dictionary of all existing Dimension objects.'''
 _dimensions = {(0, 0, 0, 0, 0, 0, 0): DIMENSIONLESS}
 
 
@@ -493,16 +502,16 @@ class DimensionMismatchError(Exception):
     if len(self.dims) == 0:
       pass
     elif len(self.dims) == 1:
-      s += f" (unit is {get_unit_for_display(self.dims[0])}"
+      s += f" (unit is {get_dim_for_display(self.dims[0])}"
     elif len(self.dims) == 2:
       d1, d2 = self.dims
       s += (
-        f" (units are {get_unit_for_display(d1)} and {get_unit_for_display(d2)}"
+        f" (units are {get_dim_for_display(d1)} and {get_dim_for_display(d2)}"
       )
     else:
       s += (
         " (units are"
-        f" {' '.join([f'({get_unit_for_display(d)})' for d in self.dims])}"
+        f" {' '.join([f'({get_dim_for_display(d)})' for d in self.dims])}"
       )
     if len(self.dims):
       s += ")."
@@ -511,7 +520,7 @@ class DimensionMismatchError(Exception):
 
 def get_dim(obj) -> Dimension:
   """
-  Return the unit of any object that has them.
+  Return the dimension of any object that has them.
 
   Slightly more general than `Array.dimensions` because it will
   return `DIMENSIONLESS` if the object is of number type but not a `Array`
@@ -742,9 +751,9 @@ def in_best_unit(x, precision=None):
   return x.repr_in_unit(u, precision=precision)
 
 
-def array_with_unit(
+def array_with_dim(
     floatval,
-    unit: Dimension,
+    dim: Dimension,
     dtype: jax.typing.DTypeLike = None
 ) -> 'Quantity':
   """
@@ -758,8 +767,8 @@ def array_with_unit(
   ----------
   floatval : `float`
       The floating point value of the array.
-  unit: Dimension
-      The unit dimensions of the array.
+  dim: Dimension
+      The dim dimensions of the array.
   dtype: `dtype`, optional
       The data type of the array.
 
@@ -771,10 +780,10 @@ def array_with_unit(
   Examples
   --------
   >>> from brainunit import *
-  >>> array_with_unit(0.001, volt.dim)
+  >>> array_with_dim(0.001, volt.dim)
   1. * mvolt
   """
-  return Quantity(floatval, dim=get_or_create_dimension(unit._dims), dtype=dtype)
+  return Quantity(floatval, dim=get_or_create_dimension(dim._dims), dtype=dtype)
 
 
 def is_unitless(obj) -> bool:
@@ -1756,7 +1765,7 @@ class Quantity(object):
     return Quantity(self.value.__round__(ndigits), dim=self.dim)
 
   def __reduce__(self):
-    return array_with_unit, (self.value, self.dim, None)
+    return array_with_dim, (self.value, self.dim, None)
 
   # ----------------------- #
   #      NumPy methods      #
@@ -3078,9 +3087,7 @@ def check_units(**au):
             v = Quantity(v)
           except TypeError:
             if have_same_unit(au[n], 1):
-              raise TypeError(
-                f"Argument {n} is not a unitless value/array."
-              )
+              raise TypeError(f"Argument {n} is not a unitless value/array.")
             else:
               raise TypeError(
                 f"Argument '{n}' is not a array, "
@@ -3126,9 +3133,9 @@ def check_units(**au):
                 f"the argument '{k}' to have the same "
                 f"units as argument '{au[k]}', but "
                 f"argument '{k}' has "
-                f"unit {get_unit_for_display(d1)}, "
+                f"unit {get_dim_for_display(d1)}, "
                 f"while argument '{au[k]}' "
-                f"has unit {get_unit_for_display(d2)}."
+                f"has unit {get_dim_for_display(d2)}."
               )
               raise DimensionMismatchError(error_message)
           elif not have_same_unit(newkeyset[k], au[k]):
@@ -3160,7 +3167,7 @@ def check_units(**au):
             )
             raise TypeError(error_message)
         elif not have_same_unit(result, expected_result):
-          unit = get_unit_for_display(expected_result)
+          unit = get_dim_for_display(expected_result)
           error_message = (
             "The return value of function "
             f"'{f.__name__}' was expected to have "
