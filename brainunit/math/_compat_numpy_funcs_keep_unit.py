@@ -967,19 +967,22 @@ def modf(
 
 def funcs_keep_unit_binary(
     func,
-    x1, x2,
+    x1,
+    x2,
     *args,
-    check_same_dim=True,
     **kwargs
 ):
   if isinstance(x1, Quantity) and isinstance(x2, Quantity):
-    if check_same_dim:
-      fail_for_dimension_mismatch(x1, x2, func.__name__)
+    fail_for_dimension_mismatch(x1, x2, func.__name__)
     return Quantity(func(x1.value, x2.value, *args, **kwargs), dim=x1.dim)
-  elif isinstance(x1, (jax.Array, np.ndarray)) and isinstance(x2, (jax.Array, np.ndarray)):
-    return func(x1, x2, *args, **kwargs)
+  elif isinstance(x1, Quantity):
+    assert x1.is_unitless, f'Expected unitless array when x2 is not Quantity, while got {x1}'
+    return func(x1.value, x2, *args, **kwargs)
+  elif isinstance(x2, Quantity):
+    assert x2.is_unitless, f'Expected unitless array when x1 is not Quantity, while got {x2}'
+    return func(x1, x2.value, *args, **kwargs)
   else:
-    raise ValueError(f'Unsupported type: {type(x1)} and {type(x2)} for {func.__name__}')
+    return func(x1, x2, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
