@@ -40,7 +40,7 @@ from brainunit._base import (
   get_basic_unit,
   have_same_unit,
   in_unit,
-  is_scalar_type,
+  is_scalar_type, in_best_unit,
 )
 # from braincore.math import ufuncs_integers
 from brainunit._unit_shortcuts import Hz, cm, kHz, ms, mV, nS
@@ -1455,6 +1455,26 @@ def test_jit_array():
   val = np.random.rand(3) * bu.siemens / bu.cm ** 2
   r = f2(val)
   bu.math.allclose(val + 1 * bu.siemens / bu.cm ** 2, r)
+
+  @jax.jit
+  def f3(a):
+    b = a * bu.siemens / bu.cm ** 2
+    print(in_unit(b, bu.siemens / bu.meter ** 2))
+    return b
+
+  val = np.random.rand(3)
+  r = f3(val)
+  bu.math.allclose(val * bu.siemens / bu.cm ** 2, r)
+
+  @jax.jit
+  def f4(a):
+    b = a * bu.siemens / bu.cm ** 2
+    print(in_best_unit(b))
+    return b
+
+  val = np.random.rand(3)
+  r = f4(val)
+  bu.math.allclose(val * bu.siemens / bu.cm ** 2, r)
 
 
 def test_jit_array2():
