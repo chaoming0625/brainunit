@@ -59,6 +59,7 @@ See also the BDP ecosystem
    :hidden:
    :maxdepth: 2
 
-   tutorials.rst
+   physical_units
+   mathematical_functions
    api.rst
 
