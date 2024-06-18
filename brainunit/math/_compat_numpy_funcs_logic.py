@@ -175,10 +175,8 @@ def logic_func_binary(func, x, y, *args, **kwargs):
   elif isinstance(y, Quantity):
     assert y.is_unitless, f'Expected unitless array when x is not Quantity, while got {y}'
     return func(x, y.value, *args, **kwargs)
-  elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
-    return func(x, y, *args, **kwargs)
   else:
-    raise ValueError(f'Unsupported types {type(x)} and {type(y)} for {func.__name__}')
+    return func(x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
