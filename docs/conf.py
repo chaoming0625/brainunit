@@ -104,7 +104,7 @@ html_logo = "_static/brainunit.jpg"
 html_title = "brainunit"
 html_copy_source = True
 html_sourcelink_suffix = ""
-html_favicon = "_static/brainunit.jpg"
+html_favicon = "_static/brainunit.png"
 html_last_updated_fmt = ""
 
 # Add any paths that contain custom static files (such as style sheets) here,
