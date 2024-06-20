@@ -182,7 +182,7 @@ def einsum(
   operands, contractions = contract_path(*operands, einsum_call=True, use_blas=True, optimize=optimize)
 
   unit = None
-  for i in range(len(contractions) - 1):
+  for i in range(len(contractions)):
     if contractions[i][4] == 'False':
       fail_for_dimension_mismatch(
         Quantity([], dim=unit), operands[i + 1], 'einsum'
