@@ -36,6 +36,72 @@ Installation
           pip install -U brainunit[tpu] -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
 
 
+
+
+----
+
+Learn more
+^^^^^^^^^^
+
+.. grid::
+
+   .. grid-item::
+      :columns: 6 6 6 4
+
+      .. card:: :material-regular:`rocket_launch;2em` Installation
+         :class-card: sd-text-black sd-bg-light
+         :link: quickstart/installation.html
+
+   .. grid-item::
+      :columns: 6 6 6 4
+
+      .. card:: :material-regular:`library_books;2em` Core Concepts
+         :class-card: sd-text-black sd-bg-light
+         :link: core_concepts.html
+
+   .. grid-item::
+      :columns: 6 6 6 4
+
+      .. card:: :material-regular:`science;2em` BDP Tutorials
+         :class-card: sd-text-black sd-bg-light
+         :link: tutorials.html
+
+   .. grid-item::
+      :columns: 6 6 6 4
+
+      .. card:: :material-regular:`token;2em` Advanced Tutorials
+         :class-card: sd-text-black sd-bg-light
+         :link: advanced_tutorials.html
+
+   .. grid-item::
+      :columns: 6 6 6 4
+
+      .. card:: :material-regular:`settings;2em` BDP Toolboxes
+         :class-card: sd-text-black sd-bg-light
+         :link: toolboxes.html
+
+   .. grid-item::
+      :columns: 6 6 6 4
+
+      .. card:: :material-regular:`rocket_launch;2em` FAQ
+         :class-card: sd-text-black sd-bg-light
+         :link: FAQ.html
+
+   .. grid-item::
+      :columns: 6 6 6 4
+
+      .. card:: :material-regular:`data_exploration;2em` API documentation
+         :class-card: sd-text-black sd-bg-light
+         :link: api.html
+
+   .. grid-item::
+      :columns: 6 6 6 4
+
+      .. card:: :material-regular:`settings;2em` Examples
+         :class-card: sd-text-black sd-bg-light
+         :link: https://brainpy-examples.readthedocs.io/en/latest/index.html
+
+
 ----
 
 
@@ -57,9 +123,34 @@ See also the BDP ecosystem
 
 .. toctree::
    :hidden:
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Physical Units
 
-   physical_units
-   mathematical_functions
+   physical_units/quantity.ipynb
+   physical_units/standard_units.ipynb
+   physical_units/constants.ipynb
+   physical_units/conversion.ipynb
+   physical_units/combining_defining_displaying.ipynb
+   physical_units/mechanism.ipynb
+
+
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+   :caption: Unit-aware Math Functions
+
+   mathematical_functions/numpy_functions.ipynb
+   mathematical_functions/customize_functions.ipynb
+
+
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+   :caption: API Documentation
+
    api.rst
+
+
 
