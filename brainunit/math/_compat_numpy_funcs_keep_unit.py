@@ -18,7 +18,6 @@ from typing import (Union, Sequence, Tuple, Optional)
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 
 from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS
 from .._misc import set_module_as
@@ -47,10 +46,8 @@ __all__ = [
 def funcs_keep_unit_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
     return Quantity(func(x.value, *args, **kwargs), dim=x.dim)
-  elif isinstance(x, (jax.Array, np.ndarray)):
-    return func(x, *args, **kwargs)
   else:
-    raise ValueError(f'Unsupported type: {type(x)} for {func.__name__}')
+    return func(x, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -965,13 +962,7 @@ def modf(
 # math funcs keep unit (binary)
 # -----------------------------
 
-def funcs_keep_unit_binary(
-    func,
-    x1,
-    x2,
-    *args,
-    **kwargs
-):
+def funcs_keep_unit_binary(func, x1, x2, *args, **kwargs):
   if isinstance(x1, Quantity) and isinstance(x2, Quantity):
     fail_for_dimension_mismatch(x1, x2, func.__name__)
     return Quantity(func(x1.value, x2.value, *args, **kwargs), dim=x1.dim)

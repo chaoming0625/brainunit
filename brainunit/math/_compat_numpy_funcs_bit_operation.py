@@ -39,10 +39,7 @@ __all__ = [
 def elementwise_bit_operation_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
     raise ValueError(f'Expected arrays, got {x}')
-  elif isinstance(x, (jax.Array, np.ndarray)):
-    return func(x, *args, **kwargs)
-  else:
-    raise ValueError(f'Unsupported types {type(x)} for {func.__name__}')
+  return func(x, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')

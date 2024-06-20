@@ -45,11 +45,9 @@ __all__ = [
 
 def funcs_change_unit_unary(func, change_unit_func, x, *args, **kwargs):
   if isinstance(x, Quantity):
-    return _return_check_unitless(Quantity(func(x.value, *args, **kwargs), dim=change_unit_func(x.dim)))
-  elif isinstance(x, (jnp.ndarray, np.ndarray)):
-    return func(x, *args, **kwargs)
-  else:
-    raise ValueError(f'Unsupported type: {type(x)} for {func.__name__}')
+    r = Quantity(func(x.value, *args, **kwargs), dim=change_unit_func(x.dim))
+    return _return_check_unitless(r)
+  return func(x, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -512,16 +510,16 @@ def funcs_change_unit_binary(func, change_unit_func, x, y, *args, **kwargs):
     return _return_check_unitless(
       Quantity(func(x.value, y.value, *args, **kwargs), dim=change_unit_func(x.dim, y.dim))
     )
-  elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
-    return func(x, y, *args, **kwargs)
   elif isinstance(x, Quantity):
     return _return_check_unitless(
-      Quantity(func(x.value, y, *args, **kwargs), dim=change_unit_func(x.dim, DIMENSIONLESS)))
+      Quantity(func(x.value, y, *args, **kwargs), dim=change_unit_func(x.dim, DIMENSIONLESS))
+    )
   elif isinstance(y, Quantity):
     return _return_check_unitless(
-      Quantity(func(x, y.value, *args, **kwargs), dim=change_unit_func(DIMENSIONLESS, y.dim)))
+      Quantity(func(x, y.value, *args, **kwargs), dim=change_unit_func(DIMENSIONLESS, y.dim))
+    )
   else:
-    raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {func.__name__}')
+    return func(x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
