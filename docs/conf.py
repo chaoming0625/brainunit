@@ -28,10 +28,21 @@
 
 import os
 import sys
+import shutil
 
 sys.path.insert(0, os.path.abspath('../'))
 
 import brainunit
+
+os.makedirs('apis/', exist_ok=True)
+
+changelogs = [
+  ('../changelog.md', 'apis/changelog.md'),
+]
+for source, dest in changelogs:
+  if os.path.exists(dest):
+    os.remove(dest)
+  shutil.copyfile(source, dest)
 
 
 # -- Project information -----------------------------------------------------
@@ -100,7 +111,7 @@ myst_enable_extensions = [
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = "sphinx_book_theme"
-html_logo = "_static/brainunit.jpg"
+html_logo = "_static/brainunit.png"
 html_title = "brainunit"
 html_copy_source = True
 html_sourcelink_suffix = ""

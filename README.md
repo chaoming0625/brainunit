@@ -1,6 +1,6 @@
 
 
-# The Unit System for Brain Dynamics Programming
+# Physical units and unit-aware mathematical system in JAX
 
 <p align="center">
   	<img alt="Header image of brainunit." src="https://github.com/brainpy/brainunit/blob/main/docs/_static/brainunit.png" width=50%>
@@ -19,7 +19,7 @@
 </p>
 
 
-[``brainunit``](https://github.com/brainpy/brainunit) provides a unit-aware mathematical system for brain dynamics programming (BDP). 
+[``brainunit``](https://github.com/brainpy/brainunit) provides physical units and unit-aware mathematical system in JAX for brain dynamics and AI4Science
 
 
 ## Installation
@@ -40,7 +40,7 @@ The official documentation is hosted on Read the Docs: [https://brainunit.readth
 
 - [``brainstate``](https://github.com/brainpy/brainstate): A ``State``-based transformation system for brain dynamics programming.
 
-- [``brainunit``](https://github.com/brainpy/brainunit): The unit system for brain dynamics programming.
+- [``brainunit``](https://github.com/brainpy/brainunit): Physical units and unit-aware mathematical system in JAX for brain dynamics and AI4Science.
 
 - [``braintaichi``](https://github.com/brainpy/braintaichi): Leveraging Taichi Lang to customize brain dynamics operators.
 
