@@ -136,6 +136,17 @@ Functions Accepting Unitless
    arctan2
    logaddexp
    logaddexp2
+   round
+   around
+   round_
+   rint
+   floor
+   ceil
+   trunc
+   fix
+   corrcoef
+   correlate
+   cov
 
 
 Functions with Bitwise Operations
@@ -220,14 +231,6 @@ Functions Keeping Unit
    negative
    positive
    abs
-   round
-   around
-   round_
-   rint
-   floor
-   ceil
-   trunc
-   fix
    sum
    nancumsum
    nansum
@@ -259,6 +262,7 @@ Functions Keeping Unit
    gcd
    interp
    clip
+   histogram
 
 
 Logical Functions
@@ -311,11 +315,7 @@ Functions Removing Unit
 
    signbit
    sign
-   histogram
    bincount
-   corrcoef
-   correlate
-   cov
    digitize
 
 
