@@ -238,7 +238,7 @@ def test_numpy_methods():
   assert q.argmin() == 0
   assert q.argsort(axis=None).tolist() == [0, 1, 2, 3]
   assert_quantity(q.var(), 1.25, second ** 2)
-  assert_quantity(q.round(), [[1, 2], [3, 4]], second)
+  assert_quantity(q.round(unit=second), [[1, 2], [3, 4]], second)
   assert_quantity(q.std(), 1.11803398875, second)
   assert_quantity(q.sum(), 10, second)
   assert_quantity(q.trace(), 5, second)
@@ -332,7 +332,7 @@ def test_misc_methods():
   assert_quantity(q.repeat(2), [5, 5, 10, 10, 15, 15], volt)
 
   # Test clamp (same as clip, but using min and max values directly)
-  assert_quantity(q.clamp(6 * volt, 14 * volt), [6, 10, 14], volt)
+  assert_quantity(q.clip(6 * volt, 14 * volt), [6, 10, 14], volt)
 
   # Test sort
   q = [15, 5, 10] * volt
