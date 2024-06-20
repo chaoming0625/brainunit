@@ -21,7 +21,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from ._compat_numpy_funcs_accept_unitless import funcs_only_accept_unitless_unary
+from ._numpy_accept_unitless import funcs_only_accept_unitless_unary
 from .._base import Quantity, Unit
 from .._misc import set_module_as
 

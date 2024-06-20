@@ -21,7 +21,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from ._compat_numpy_get_attribute import isscalar
+from ._numpy_get_attribute import isscalar
 from .._base import (DIMENSIONLESS, Quantity, )
 from .._base import _return_check_unitless
 from .._misc import set_module_as
@@ -852,14 +852,14 @@ def floor_divide(x: Union[Quantity, jax.typing.ArrayLike],
   """
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y.value), dim=x.dim / y.dim))
-  elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray)):
-    return jnp.floor_divide(x, y)
   elif isinstance(x, Quantity):
+    assert x.is_unitless, f''
     return _return_check_unitless(Quantity(jnp.floor_divide(x.value, y), dim=x.dim / y))
   elif isinstance(y, Quantity):
+    assert y.is_unitless
     return _return_check_unitless(Quantity(jnp.floor_divide(x, y.value), dim=x / y.dim))
   else:
-    raise ValueError(f'Unsupported types : {type(x)} abd {type(y)} for {jnp.floor_divide.__name__}')
+    return jnp.floor_divide(x, y)
 
 
 @set_module_as('brainunit.math')

@@ -613,7 +613,6 @@ def percentile(
     a: Union[Array, Quantity],
     q: Union[Array, Quantity],
     axis: Optional[Union[int, Tuple[int]]] = None,
-    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     overwrite_input: Optional[bool] = None,
     method: str = 'linear',
     keepdims: Optional[bool] = False,
@@ -665,8 +664,10 @@ def percentile(
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(jnp.percentile, a, q, axis=axis, out=out, overwrite_input=overwrite_input,
-                                           method=method, keepdims=keepdims)
+  return funcs_only_accept_unitless_binary(
+    jnp.percentile, a, q, axis=axis, overwrite_input=overwrite_input,
+    method=method, keepdims=keepdims
+  )
 
 
 @set_module_as('brainunit.math')
@@ -674,7 +675,6 @@ def nanpercentile(
     a: Union[Array, Quantity],
     q: Union[Array, Quantity],
     axis: Optional[Union[int, Tuple[int]]] = None,
-    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     overwrite_input: Optional[bool] = None,
     method: str = 'linear',
     keepdims: Optional[bool] = False,
@@ -726,8 +726,11 @@ def nanpercentile(
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(jnp.nanpercentile, a, q, axis=axis, out=out, overwrite_input=overwrite_input,
-                                           method=method, keepdims=keepdims)
+  return funcs_only_accept_unitless_binary(
+    jnp.nanpercentile, a, q,
+    axis=axis, ooverwrite_input=overwrite_input,
+    method=method, keepdims=keepdims
+  )
 
 
 @set_module_as('brainunit.math')
@@ -735,7 +738,6 @@ def quantile(
     a: Union[Array, Quantity],
     q: Union[Array, Quantity],
     axis: Optional[Union[int, Tuple[int]]] = None,
-    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     overwrite_input: Optional[bool] = None,
     method: str = 'linear',
     keepdims: Optional[bool] = False,
@@ -751,9 +753,6 @@ def quantile(
     Input array or Quantity.
   q : array_like, Quantity
     Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
-  out : array_like, Quantity, optional
-    Alternative output array in which to place the result.
-    It must have the same shape and buffer length as the expected output but the type will be cast if necessary.
   overwrite_input : bool, optional
     If True, then allow the input array a to be modified by intermediate calculations, to save memory.
   method : str, optional
@@ -787,8 +786,11 @@ def quantile(
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(jnp.quantile, a, q, axis=axis, out=out, overwrite_input=overwrite_input,
-                                           method=method, keepdims=keepdims)
+  return funcs_only_accept_unitless_binary(
+    jnp.quantile, a, q,
+    axis=axis, overwrite_input=overwrite_input,
+    method=method, keepdims=keepdims
+  )
 
 
 @set_module_as('brainunit.math')
@@ -796,7 +798,6 @@ def nanquantile(
     a: Union[Array, Quantity],
     q: Union[Array, Quantity],
     axis: Optional[Union[int, Tuple[int]]] = None,
-    out: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
     overwrite_input: Optional[bool] = None,
     method: str = 'linear',
     keepdims: Optional[bool] = False,
@@ -812,9 +813,6 @@ def nanquantile(
     Input array or Quantity.
   q : array_like, Quantity
     Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
-  out : array_like, Quantity, optional
-    Alternative output array in which to place the result.
-    It must have the same shape and buffer length as the expected output but the type will be cast if necessary.
   overwrite_input : bool, optional
     If True, then allow the input array a to be modified by intermediate calculations, to save memory.
   method : str, optional
@@ -848,9 +846,11 @@ def nanquantile(
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(jnp.nanquantile, a, q,
-                                           axis=axis, out=out, overwrite_input=overwrite_input,
-                                           method=method, keepdims=keepdims)
+  return funcs_only_accept_unitless_binary(
+    jnp.nanquantile, a, q,
+                                           axis=axis, overwrite_input=overwrite_input,
+                                           method=method, keepdims=keepdims
+  )
 
 
 @set_module_as('brainunit.math')
