@@ -3,7 +3,7 @@
 # The Unit System for Brain Dynamics Programming
 
 <p align="center">
-  	<img alt="Header image of brainunit." src="https://github.com/brainpy/brainunit/blob/main/docs/_static/brainunit.jpg" width=50%>
+  	<img alt="Header image of brainunit." src="https://github.com/brainpy/brainunit/blob/main/docs/_static/brainunit.png" width=50%>
 </p> 
 
 
