@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import (Union, Optional, Any)
+from typing import (Union, Optional, Any, List)
 
 import jax
 import jax.numpy as jnp
@@ -26,6 +26,7 @@ from .._base import (
   DIMENSIONLESS,
   Quantity,
   Unit,
+  DimensionMismatchError,
   fail_for_dimension_mismatch,
   is_unitless,
 )
@@ -305,10 +306,12 @@ def full_like(
       return Quantity(jnp.full_like(a.value, fill_value.value, dtype=dtype, shape=shape),
                       dim=a.dim)
     else:
+      assert fill_value.is_unitless, 'fill_value must be unitless when a is not a Quantity.'
       return Quantity(jnp.full_like(a, fill_value.value, dtype=dtype, shape=shape),
                       dim=fill_value.dim)
   else:
     if isinstance(a, Quantity):
+      assert a.is_unitless, 'a must be unitless when fill_value is not a Quantity.'
       return jnp.full_like(a.value, fill_value, dtype=dtype, shape=shape)
     else:
       return jnp.full_like(a, fill_value, dtype=dtype, shape=shape)
@@ -344,14 +347,12 @@ def diag(
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
       fail_for_dimension_mismatch(v, unit, error_message="a and unit have to have the same units.")
     return Quantity(jnp.diag(v.value, k=k), dim=v.dim)
-  elif isinstance(v, (jax.Array, np.ndarray)):
+  else:
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
       return jnp.diag(v, k=k) * unit
     else:
       return jnp.diag(v, k=k)
-  else:
-    return jnp.diag(v, k=k)
 
 
 @set_module_as('brainunit.math')
@@ -385,14 +386,12 @@ def tril(
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
       fail_for_dimension_mismatch(m, unit, error_message="a and unit have to have the same units.")
     return Quantity(jnp.tril(m.value, k=k), dim=m.dim)
-  elif isinstance(m, (jax.Array, np.ndarray)):
+  else:
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
       return jnp.tril(m, k=k) * unit
     else:
       return jnp.tril(m, k=k)
-  else:
-    return jnp.tril(m, k=k)
 
 
 @set_module_as('brainunit.math')
@@ -419,14 +418,12 @@ def triu(
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
       fail_for_dimension_mismatch(m, unit, error_message="a and unit have to have the same units.")
     return Quantity(jnp.triu(m.value, k=k), dim=m.dim)
-  elif isinstance(m, (jax.Array, np.ndarray)):
+  else:
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
       return jnp.triu(m, k=k) * unit
     else:
       return jnp.triu(m, k=k)
-  else:
-    return jnp.triu(m, k=k)
 
 
 @set_module_as('brainunit.math')
@@ -457,17 +454,15 @@ def empty_like(
   """
   if isinstance(prototype, Quantity):
     if unit is not None:
-      assert isinstance(unit, Unit)
+      assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
       fail_for_dimension_mismatch(prototype, unit, error_message="a and unit have to have the same units.")
     return Quantity(jnp.empty_like(prototype.value, dtype=dtype), dim=prototype.dim)
-  elif isinstance(prototype, (jax.Array, np.ndarray)):
+  else:
     if unit is not None:
-      assert isinstance(unit, Unit)
+      assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
       return jnp.empty_like(prototype, dtype=dtype, shape=shape) * unit
     else:
       return jnp.empty_like(prototype, dtype=dtype, shape=shape)
-  else:
-    return jnp.empty_like(prototype, dtype=dtype, shape=shape)
 
 
 @set_module_as('brainunit.math')
@@ -498,17 +493,15 @@ def ones_like(
   """
   if isinstance(a, Quantity):
     if unit is not None:
-      assert isinstance(unit, Unit)
+      assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
       fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
     return Quantity(jnp.ones_like(a.value, dtype=dtype, shape=shape), dim=a.dim)
-  elif isinstance(a, (jax.Array, np.ndarray)):
+  else:
     if unit is not None:
-      assert isinstance(unit, Unit)
+      assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
       return jnp.ones_like(a, dtype=dtype, shape=shape) * unit
     else:
       return jnp.ones_like(a, dtype=dtype, shape=shape)
-  else:
-    return jnp.ones_like(a, dtype=dtype, shape=shape)
 
 
 @set_module_as('brainunit.math')
@@ -539,17 +532,15 @@ def zeros_like(
   """
   if isinstance(a, Quantity):
     if unit is not None:
-      assert isinstance(unit, Unit)
+      assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
       fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
     return Quantity(jnp.zeros_like(a.value, dtype=dtype, shape=shape), dim=a.dim)
-  elif isinstance(a, (jax.Array, np.ndarray)):
+  else:
     if unit is not None:
-      assert isinstance(unit, Unit)
+      assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
       return jnp.zeros_like(a, dtype=dtype, shape=shape) * unit
     else:
       return jnp.zeros_like(a, dtype=dtype, shape=shape)
-  else:
-    return jnp.zeros_like(a, dtype=dtype, shape=shape)
 
 
 @set_module_as('brainunit.math')
@@ -767,12 +758,14 @@ def linspace(
 
 
 @set_module_as('brainunit.math')
-def logspace(start: Union[Quantity, jax.typing.ArrayLike],
-             stop: Union[Quantity, jax.typing.ArrayLike],
-             num: Optional[int] = 50,
-             endpoint: Optional[bool] = True,
-             base: Optional[float] = 10.0,
-             dtype: Optional[jax.typing.DTypeLike] = None):
+def logspace(
+    start: Union[Quantity, jax.typing.ArrayLike],
+    stop: Union[Quantity, jax.typing.ArrayLike],
+    num: Optional[int] = 50,
+    endpoint: Optional[bool] = True,
+    base: Optional[float] = 10.0,
+    dtype: Optional[jax.typing.DTypeLike] = None
+):
   """
   Return numbers spaced evenly on a log scale.
 
@@ -814,10 +807,12 @@ def logspace(start: Union[Quantity, jax.typing.ArrayLike],
 
 
 @set_module_as('brainunit.math')
-def fill_diagonal(a: Union[Quantity, jax.typing.ArrayLike],
-                  val: Union[Quantity, jax.typing.ArrayLike],
-                  wrap: Optional[bool] = False,
-                  inplace: Optional[bool] = False) -> Union[Quantity, jax.Array]:
+def fill_diagonal(
+    a: Union[Quantity, jax.typing.ArrayLike],
+    val: Union[Quantity, jax.typing.ArrayLike],
+    wrap: Optional[bool] = False,
+    inplace: Optional[bool] = False
+) -> Union[Quantity, jax.Array]:
   """
   Fill the main diagonal of the given array of any dimensionality.
 
@@ -881,10 +876,8 @@ def array_split(
   """
   if isinstance(ary, Quantity):
     return [Quantity(x, dim=ary.dim) for x in jnp.array_split(ary.value, indices_or_sections, axis)]
-  elif isinstance(ary, (jax.Array, np.ndarray)):
-    return jnp.array_split(ary, indices_or_sections, axis)
   else:
-    raise ValueError(f'Unsupported type: {type(ary)} for array_split')
+    return jnp.array_split(ary, indices_or_sections, axis)
 
 
 @set_module_as('brainunit.math')
@@ -893,7 +886,7 @@ def meshgrid(
     copy: Optional[bool] = True,
     sparse: Optional[bool] = False,
     indexing: Optional[str] = 'xy'
-) -> Union[list[Quantity], list[Array]]:
+) -> List[Union[Quantity, jax.Array]]:
   """
   Return coordinate matrices from coordinate vectors.
 
@@ -918,15 +911,15 @@ def meshgrid(
     or (N2, N1, N3,..., Nn) shaped arrays if indexing='xy' with the elements of xi repeated to fill the matrix along
     the first dimension for x1, the second for x2 and so on.
   """
-  from builtins import all as origin_all
-  if origin_all(isinstance(x, Quantity) for x in xi):
+  unit_instances = [isinstance(x, Quantity) for x in xi]
+  if all(unit_instances):
     fail_for_dimension_mismatch(*xi)
-    return [Quantity(x, dim=xi[0].dim) for x in
-            jnp.meshgrid(*[x.value for x in xi], copy=copy, sparse=sparse, indexing=indexing)]
-  elif origin_all(isinstance(x, (jax.Array, np.ndarray)) for x in xi):
-    return jnp.meshgrid(*xi, copy=copy, sparse=sparse, indexing=indexing)
+    return [Quantity(x, dim=xi[0].dim)
+            for x in jnp.meshgrid(*[x.value for x in xi], copy=copy, sparse=sparse, indexing=indexing)]
+  elif any(unit_instances):
+    raise DimensionMismatchError(f"All input arrays must have the same units. But got {[x.dim for x in xi]}")
   else:
-    raise ValueError(f'Unsupported types : {type(xi)} for meshgrid')
+    return jnp.meshgrid(*xi, copy=copy, sparse=sparse, indexing=indexing)
 
 
 @set_module_as('brainunit.math')
@@ -958,7 +951,5 @@ def vander(
   """
   if isinstance(x, Quantity):
     return Quantity(jnp.vander(x.value, N=N, increasing=increasing), dim=x.dim)
-  elif isinstance(x, (jax.Array, np.ndarray)):
-    return jnp.vander(x, N=N, increasing=increasing)
   else:
-    raise ValueError(f'Unsupported type: {type(x)} for vander')
+    return jnp.vander(x, N=N, increasing=increasing)
