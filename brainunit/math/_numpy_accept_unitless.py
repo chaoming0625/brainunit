@@ -20,7 +20,7 @@ import jax
 import jax.numpy as jnp
 from jax import Array
 
-from .._base import (Quantity, fail_for_dimension_mismatch, )
+from .._base import (Quantity, Unit, fail_for_dimension_mismatch)
 from .._misc import set_module_as
 
 __all__ = [
@@ -848,8 +848,8 @@ def nanquantile(
   """
   return funcs_only_accept_unitless_binary(
     jnp.nanquantile, a, q,
-                                           axis=axis, overwrite_input=overwrite_input,
-                                           method=method, keepdims=keepdims
+    axis=axis, overwrite_input=overwrite_input,
+    method=method, keepdims=keepdims
   )
 
 
@@ -902,7 +902,8 @@ def around(
 def round(
     x: Union[Quantity, jax.typing.ArrayLike],
     decimals: int = 0,
-) -> jax.Array:
+    unit: Optional[Unit] = None,
+) -> jax.Array | Quantity:
   """
   Round an array to the nearest integer.
 
@@ -912,19 +913,31 @@ def round(
     Input array.
   decimals : int, optional
     Number of decimal places to round to (default is 0).
+  unit : Unit, optional
+    The unit to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
   """
   if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "round".'
-    x = x.value
-  return jnp.round(x, decimals=decimals)
+    if unit is None:
+      assert x.is_unitless, 'Input should be unitless for the function "round".'
+      x = x.value
+      return jnp.round(x, decimals=decimals)
+    else:
+      fail_for_dimension_mismatch(x, unit, error_message="Unit mismatch: {value} != {unit}", value=x, unit=unit)
+      return Quantity(jnp.round(x / unit, decimals=decimals), unit=unit)
+  else:
+    assert unit is None, 'Unit should be None for the function "round" when "x" is not a Quantity.'
+    return jnp.round(x, decimals=decimals)
 
 
 @set_module_as('brainunit.math')
-def rint(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
+def rint(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit: Optional[Unit] = None,
+) -> Union[Quantity, jax.Array]:
   """
   Round an array to the nearest integer.
 
@@ -932,19 +945,31 @@ def rint(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   ----------
   x : array_like, Quantity
     Input array.
+  unit : Unit, optional
+    The unit to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
   """
   if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "rint".'
-    x = x.value
-  return jnp.rint(x)
+    if unit is None:
+      assert x.is_unitless, 'Input should be unitless for the function "rint".'
+      x = x.value
+      return jnp.rint(x)
+    else:
+      fail_for_dimension_mismatch(x, unit, error_message="Unit mismatch: {value} != {unit}", value=x, unit=unit)
+      return Quantity(jnp.rint(x / unit), unit=unit)
+  else:
+    assert unit is None, 'Unit should be None for the function "rint" when "x" is not a Quantity.'
+    return jnp.rint(x)
 
 
 @set_module_as('brainunit.math')
-def floor(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+def floor(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit: Optional[Unit] = None,
+) -> jax.Array:
   """
   Return the floor of the argument.
 
@@ -952,6 +977,8 @@ def floor(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
   ----------
   x : array_like, Quantity
     Input array.
+  unit : Unit, optional
+    The unit to scale the ``x``.
 
   Returns
   -------
