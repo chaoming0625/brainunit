@@ -922,7 +922,7 @@ def round(
   """
   if isinstance(x, Quantity):
     if unit is None:
-      assert x.is_unitless, 'Input should be unitless for the function "round".'
+      assert x.is_unitless, 'Input should be unitless for the function "round" when scaling "unit" is not provided.'
       x = x.value
       return jnp.round(x, decimals=decimals)
     else:
@@ -954,7 +954,7 @@ def rint(
   """
   if isinstance(x, Quantity):
     if unit is None:
-      assert x.is_unitless, 'Input should be unitless for the function "rint".'
+      assert x.is_unitless, 'Input should be unitless for the function "rint" when scaling "unit" is not provided.'
       x = x.value
       return jnp.rint(x)
     else:
