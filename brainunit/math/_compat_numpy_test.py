@@ -22,20 +22,22 @@ import pytest
 
 import brainunit as bu
 from brainunit import DimensionMismatchError
-from brainunit._base import Quantity
+from brainunit._base import Quantity, get_dim, have_same_unit
 from brainunit._unit_common import second
 from brainunit._unit_shortcuts import ms, mV
 
 bst.environ.set(precision=64)
 
 
-def assert_quantity(q, values, unit):
+def assert_quantity(q, values, unit=None):
   values = jnp.asarray(values)
-  if isinstance(q, Quantity):
-    assert q.dim == unit.dim or q.dim == unit, f"Unit mismatch: {q.dim} != {unit}"
-    assert jnp.allclose(q.value, values), f"Values do not match: {q.value} != {values}"
+  if unit == None:
+    assert jnp.allclose(q, values), f"Values do not match: {q.value} != {values}"
+    return
   else:
-    assert jnp.allclose(q, values), f"Values do not match: {q} != {values}"
+    assert have_same_unit(q.dim, unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
+    if not jnp.allclose(q.value, values):
+      raise AssertionError(f"Values do not match: {q.value} != {values}")
 
 
 class TestArrayCreation(unittest.TestCase):
@@ -375,7 +377,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     q = bu.Quantity([1.123, 2.567, 3.891], bu.second)
     result_q = bu.math.round(q)
     expected_q = jnp.round(jnp.array([1.123, 2.567, 3.891])) * bu.second
-    assert_quantity(result_q, expected_q.value, bu.second)
+    assert_quantity(result_q, expected_q.value)
 
   def test_rint(self):
     array = jnp.array([1.5, 2.3, 3.8])
@@ -385,7 +387,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     q = bu.Quantity([1.5, 2.3, 3.8], bu.second)
     result_q = bu.math.rint(q)
     expected_q = jnp.rint(jnp.array([1.5, 2.3, 3.8])) * bu.second
-    assert_quantity(result_q, expected_q.value, bu.second)
+    assert_quantity(result_q, expected_q.value)
 
   def test_floor(self):
     array = jnp.array([1.5, 2.3, 3.8])
@@ -395,7 +397,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     q = bu.Quantity([1.5, 2.3, 3.8], bu.second)
     result_q = bu.math.floor(q)
     expected_q = jnp.floor(jnp.array([1.5, 2.3, 3.8]))
-    assert_quantity(result_q, expected_q, bu.second)
+    assert_quantity(result_q, expected_q)
 
   def test_ceil(self):
     array = jnp.array([1.5, 2.3, 3.8])
@@ -405,7 +407,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     q = bu.Quantity([1.5, 2.3, 3.8])
     result_q = bu.math.ceil(q)
     expected_q = jnp.ceil(jnp.array([1.5, 2.3, 3.8]))
-    assert_quantity(result_q, expected_q, bu.second)
+    jnp.allclose(result_q, expected_q)
 
   def test_trunc(self):
     array = jnp.array([1.5, 2.3, 3.8])
@@ -415,7 +417,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     q = bu.Quantity([1.5, 2.3, 3.8])
     result_q = bu.math.trunc(q)
     expected_q = jnp.trunc(jnp.array([1.5, 2.3, 3.8]))
-    assert_quantity(result_q, expected_q, bu.second)
+    assert_quantity(result_q, expected_q)
 
   def test_fix(self):
     array = jnp.array([1.5, 2.3, 3.8])
@@ -425,7 +427,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     q = bu.Quantity([1.5, 2.3, 3.8])
     result_q = bu.math.fix(q)
     expected_q = jnp.fix(jnp.array([1.5, 2.3, 3.8]))
-    assert_quantity(result_q, expected_q, bu.second)
+    assert_quantity(result_q, expected_q)
 
   def test_sum(self):
     array = jnp.array([1, 2, 3])
@@ -2279,7 +2281,7 @@ class TestMore(unittest.TestCase):
     q2 = [1, 2, 3] * bu.second
     result_q = bu.math.einsum('i,i->i', q1, q2)
     expected_q = jnp.einsum('i,i->i', jnp.array([1, 2, 3]), jnp.array([1, 2, 3]))
-    assert_quantity(result_q, expected_q, bu.second)
+    assert_quantity(result_q, expected_q, bu.second2)
 
     q1 = [1, 2, 3] * bu.second
     q2 = [1, 2, 3] * bu.volt
