@@ -1,7 +1,10 @@
 ``brainunit`` documentation
 ===========================
 
-`brainunit <https://github.com/brainpy/brainunit>`_ provides a unit-aware system for brain dynamics programming (BDP).
+`brainunit <https://github.com/brainpy/brainunit>`_ provides physical units and unit-aware mathematical system in JAX for brain dynamics and AI4Science.
+
+
+
 
 ----
 
@@ -17,12 +20,6 @@ Installation
 
           pip install -U brainunit[cpu]
 
-    .. tab-item:: GPU (CUDA 11.0)
-
-       .. code-block:: bash
-
-          pip install -U brainunit[cuda11]
-
     .. tab-item:: GPU (CUDA 12.0)
 
        .. code-block:: bash
@@ -34,6 +31,8 @@ Installation
        .. code-block:: bash
 
           pip install -U brainunit[tpu] -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
+
+
 
 
 ----
@@ -57,9 +56,36 @@ See also the BDP ecosystem
 
 .. toctree::
    :hidden:
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Physical Units
 
-   physical_units
-   mathematical_functions
-   api.rst
+   physical_units/quantity.ipynb
+   physical_units/standard_units.ipynb
+   physical_units/constants.ipynb
+   physical_units/conversion.ipynb
+   physical_units/combining_defining_displaying.ipynb
+   physical_units/mechanism.ipynb
+
+
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+   :caption: Unit-aware Math Functions
+
+   mathematical_functions/numpy_functions.ipynb
+   mathematical_functions/customize_functions.ipynb
+
+
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+   :caption: API Documentation
+
+   apis/changelog.md
+   apis/brainunit.rst
+   apis/brainunit.math.rst
+
+
 
