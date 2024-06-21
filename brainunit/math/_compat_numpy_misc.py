@@ -27,10 +27,10 @@ from jax import Array, core, jit, lax
 from jax._src import config, dtypes, api_util
 from jax._src.lax import lax as lax_internal
 from jax._src.lax.lax import DotDimensionNumbers, PrecisionLike, dot_general_p, canonicalize_precision
-from jax._src.numpy.lax_numpy import _einsum, asarray, bool_, _removechars, zeros_like, shape
+from jax._src.numpy.lax_numpy import _einsum, asarray, bool_, _removechars, shape
 from jax._src.util import partition_list, unzip2
 
-from brainunit.math import squeeze
+from brainunit.math import squeeze, transpose, select, zeros_like
 from ._compat_numpy_array_manipulation import func_array_manipulation
 from ._compat_numpy_funcs_change_unit import funcs_change_unit_binary
 from ._compat_numpy_funcs_keep_unit import funcs_keep_unit_unary
@@ -210,8 +210,12 @@ def _einsum(
   def sum(x, axes):
     if dtypes.result_type(x, preferred_element_type) != x.dtype:
       x = x.astype(preferred_element_type)
-    return lax.reduce(x, np.array(0, x.dtype),
-                      lax.add if x.dtype != bool_ else lax.bitwise_or, axes)
+    dim = None
+    if isinstance(x, Quantity):
+      dim = x.dim
+      x = x.value
+    x = lax.reduce(x, np.array(0, x.dtype), lax.add if x.dtype != bool_ else lax.bitwise_or, axes)
+    return Quantity(x, dim=dim) if dim is not None else x
 
   def sum_uniques(operand, names, uniques):
     if uniques:
@@ -225,7 +229,7 @@ def _einsum(
       if count > 1:
         axes = [i for i, n in enumerate(names) if n == name]
         eye = lax_internal._delta(np.dtype('bool'), operand.shape, axes)
-        operand = lax.select(eye, operand, zeros_like(operand))
+        operand = select(eye, operand, zeros_like(operand).value if isinstance(operand, Quantity) else zeros_like(operand))
         if name not in keep_names:
           operand = sum(operand, axes)
           names = names.replace(name, '')
@@ -337,11 +341,12 @@ def _einsum(
     assert set(names) == set(result_names)
     if names != result_names:
       perm = tuple(names.index(name) for name in result_names)
-      operand = lax.transpose(operand, perm)
+      operand = transpose(operand, perm)
     operands.append(operand)  # used in next iteration
 
   if isinstance(operands[0], Quantity):
-    return Quantity(lax_internal._convert_element_type(operands[0].value, preferred_element_type, output_weak_type), dim=operands[0].dim)
+    return Quantity(lax_internal._convert_element_type(operands[0].value, preferred_element_type, output_weak_type),
+                    dim=operands[0].dim)
   else:
     return lax_internal._convert_element_type(operands[0], preferred_element_type, output_weak_type)
 

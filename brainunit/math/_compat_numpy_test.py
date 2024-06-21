@@ -18,6 +18,7 @@ import unittest
 
 import brainstate as bst
 import jax.numpy as jnp
+import numpy as np
 import pytest
 
 import brainunit as bu
@@ -2289,6 +2290,65 @@ class TestMore(unittest.TestCase):
     result_q = bu.math.einsum('i,i,i->i', q1, q2, q3)
     expected_q = jnp.einsum('i,i,i->i', jnp.array([1, 2, 3]), jnp.array([1, 2, 3]), jnp.array([1, 2, 3]))
     assert_quantity(result_q, expected_q, bu.second * bu.volt * bu.ampere)
+
+    # Case 'a,ab,abc->abc'
+    a = [1] * bu.meter
+    ab = [[1, 2]] * bu.meter2
+    abc = [[[1, 2, 3], [4, 5, 6]]] * bu.meter3
+    result = bu.math.einsum('a,ab,abc->abc', a, ab, abc)
+    expected = jnp.einsum('a,ab,abc->abc', jnp.array([1]), jnp.array([[1, 2]]), jnp.array([[[1, 2, 3], [4, 5, 6]]]))
+    assert_quantity(result, expected, bu.meter3 ** 2)
+
+    # Case 'ea,fb,gc,hd,abcd->efgh'
+    ea = [[1, 2]] * bu.meter
+    fb = [[3, 4]] * bu.meter
+    gc = [[5, 6]] * bu.meter
+    hd = [[7, 8]] * bu.meter
+    abcd = [[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]] * (bu.meter ** 4)
+    result = bu.math.einsum('ea,fb,gc,hd,abcd->efgh', ea, fb, gc, hd, abcd)
+    expected = jnp.einsum('ea,fb,gc,hd,abcd->efgh', jnp.array([[1, 2]]), jnp.array([[3, 4]]), jnp.array([[5, 6]]),
+                          jnp.array([[7, 8]]), jnp.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]))
+    assert_quantity(result, expected, bu.meter ** 8)
+
+    # Case 'ab,ab,c->'
+    q1 = np.random.rand(2, 3) * bu.meter
+    q2 = np.random.rand(2, 3) * bu.second
+    q3 = np.random.rand(5) * bu.kilogram
+    result = bu.math.einsum('ab,ab,c->', q1, q2, q3)
+    expected = jnp.einsum('ab,ab,c->', q1.value, q2.value, q3.value)
+    assert_quantity(result, expected, bu.meter * bu.second * bu.kilogram)
+
+    # Case 'ab,cd,ef->abcdef'
+    q1 = np.random.rand(2, 3) * bu.meter
+    q2 = np.random.rand(4, 5) * bu.second
+    q3 = np.random.rand(6, 7) * bu.kilogram
+    result = bu.math.einsum('ab,cd,ef->abcdef', q1, q2, q3)
+    expected = jnp.einsum('ab,cd,ef->abcdef', q1.value, q2.value, q3.value)
+    assert_quantity(result, expected, bu.meter * bu.second * bu.kilogram)
+
+    # Case 'eb,cb,fb->cef'
+    q1 = np.random.rand(8, 2) * bu.meter
+    q2 = np.random.rand(6, 2) * bu.second
+    q3 = np.random.rand(5, 2) * bu.kilogram
+    result = bu.math.einsum('eb,cb,fb->cef', q1, q2, q3)
+    expected = jnp.einsum('eb,cb,fb->cef', q1.value, q2.value, q3.value)
+    assert_quantity(result, expected, bu.meter * bu.second * bu.kilogram)
+
+    # Case 'ab,ab'
+    q1 = np.random.rand(2, 3) * bu.meter
+    q2 = np.random.rand(2, 3) * bu.second
+    result = bu.math.einsum('ab,ab', q1, q2)
+    expected = jnp.einsum('ab,ab', q1.value, q2.value)
+    assert_quantity(result, expected, bu.meter * bu.second)
+
+    # Case 'aab,fa,df,ecc->bde'
+    q1 = np.random.rand(2, 2, 3) * bu.meter
+    q2 = np.random.rand(5, 2) * bu.second
+    q3 = np.random.rand(4, 5) * bu.kilogram
+    q4 = np.random.rand(2, 3, 3) * bu.ampere
+    result = bu.math.einsum('aab,fa,df,ecc->bde', q1, q2, q3, q4)
+    expected = jnp.einsum('aab,fa,df,ecc->bde', q1.value, q2.value, q3.value, q4.value)
+    assert_quantity(result, expected, bu.meter * bu.second * bu.kilogram * bu.ampere)
 
   def test_gradient(self):
     f = jnp.array([1, 2, 4, 7, 11, 16], dtype=float)
