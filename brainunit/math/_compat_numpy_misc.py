@@ -26,11 +26,11 @@ import opt_einsum
 from jax import Array, core, jit, lax
 from jax._src import config, dtypes, api_util
 from jax._src.lax import lax as lax_internal
-from jax._src.lax.lax import DotDimensionNumbers, PrecisionLike, dot_general_p, canonicalize_precision
+from jax._src.lax.lax import DotDimensionNumbers, PrecisionLike, dot_general_p, canonicalize_precision, select_n_p
 from jax._src.numpy.lax_numpy import _einsum, asarray, bool_, _removechars, shape
 from jax._src.util import partition_list, unzip2
 
-from brainunit.math import squeeze, transpose, select, zeros_like
+from brainunit.math import squeeze, transpose, zeros_like
 from ._compat_numpy_array_manipulation import func_array_manipulation
 from ._compat_numpy_funcs_change_unit import funcs_change_unit_binary
 from ._compat_numpy_funcs_keep_unit import funcs_keep_unit_unary
@@ -186,6 +186,18 @@ def _quantity_dot_general(
                               preferred_element_type=preferred_element_type)
 
 
+def _select(
+    pred: jax.ArrayLike,
+    on_true: jax.ArrayLike | Quantity,
+    on_false: jax.ArrayLike | Quantity
+) -> Array | Quantity:
+  if isinstance(on_true, Quantity) and isinstance(on_false, Quantity):
+    fail_for_dimension_mismatch(on_true, on_false, 'select')
+    return Quantity(select_n_p.bind(pred, on_true.value, on_false.value), dim=on_true.dim)
+  else:
+    return select_n_p.bind(pred, on_false, on_true)
+
+
 def _einsum(
     operands: Sequence[Quantity | Array],
     contractions: Sequence[tuple[tuple[int, ...], frozenset[str], str]],
@@ -229,7 +241,9 @@ def _einsum(
       if count > 1:
         axes = [i for i, n in enumerate(names) if n == name]
         eye = lax_internal._delta(np.dtype('bool'), operand.shape, axes)
-        operand = select(eye, operand, zeros_like(operand).value if isinstance(operand, Quantity) else zeros_like(operand))
+        operand = _select(eye,
+                          operand,
+                          zeros_like(operand))
         if name not in keep_names:
           operand = sum(operand, axes)
           names = names.replace(name, '')
