@@ -73,6 +73,7 @@ See also the BDP ecosystem
    :maxdepth: 1
    :caption: Unit-aware Math Functions
 
+   mathematical_functions/array_creation.ipynb
    mathematical_functions/numpy_functions.ipynb
    mathematical_functions/customize_functions.ipynb
 
