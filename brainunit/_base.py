@@ -18,6 +18,7 @@ from __future__ import annotations
 import collections
 import itertools
 import numbers
+from functools import wraps
 import operator
 from contextlib import contextmanager
 from typing import Union, Optional, Sequence, Callable, Tuple, Any, List
@@ -2968,7 +2969,8 @@ def get_basic_unit(d):
 
 
 def check_units(**au):
-  """Decorator to check units of arguments passed to a function
+  """
+  Decorator to check units of arguments passed to a function
 
   Examples
   --------
@@ -2990,11 +2992,6 @@ def check_units(**au):
   fails, but
 
   >>> getvoltage(1*amp, 1*ohm, wibble=1*metre)
-  1. * volt
-
-  passes. String arguments or ``None`` are not checked
-
-  >>> getvoltage(1*amp, 1*ohm, wibble='hello')
   1. * volt
 
   By using the special name ``result``, you can check the return value of the
@@ -3073,6 +3070,7 @@ def check_units(**au):
   """
 
   def do_check_units(f):
+    @wraps(f)
     def new_f(*args, **kwds):
       newkeyset = kwds.copy()
       arg_names = f.__code__.co_varnames[0: f.__code__.co_argcount]
@@ -3178,8 +3176,6 @@ def check_units(**au):
       return result
 
     new_f._orig_func = f
-    new_f.__doc__ = f.__doc__
-    new_f.__name__ = f.__name__
     # store the information in the function, necessary when using the
     # function in expressions or equations
     if hasattr(f, "_orig_arg_names"):
@@ -3213,3 +3209,4 @@ def check_units(**au):
     return new_f
 
   return do_check_units
+
