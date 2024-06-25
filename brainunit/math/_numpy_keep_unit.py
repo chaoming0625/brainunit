@@ -43,7 +43,7 @@ __all__ = [
 # ----------------------------
 
 
-def funcs_keep_unit_unary(func, x, *args, **kwargs):
+def _fun_keep_unit_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
     return Quantity(func(x.value, *args, **kwargs), dim=x.dim)
   else:
@@ -65,7 +65,7 @@ def real(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.real, x)
+  return _fun_keep_unit_unary(jnp.real, x)
 
 
 @set_module_as('brainunit.math')
@@ -83,7 +83,7 @@ def imag(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.imag, x)
+  return _fun_keep_unit_unary(jnp.imag, x)
 
 
 @set_module_as('brainunit.math')
@@ -101,7 +101,7 @@ def conj(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.conj, x)
+  return _fun_keep_unit_unary(jnp.conj, x)
 
 
 @set_module_as('brainunit.math')
@@ -119,7 +119,7 @@ def conjugate(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.A
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.conjugate, x)
+  return _fun_keep_unit_unary(jnp.conjugate, x)
 
 
 @set_module_as('brainunit.math')
@@ -137,7 +137,7 @@ def negative(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Ar
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.negative, x)
+  return _fun_keep_unit_unary(jnp.negative, x)
 
 
 @set_module_as('brainunit.math')
@@ -155,7 +155,7 @@ def positive(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Ar
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.positive, x)
+  return _fun_keep_unit_unary(jnp.positive, x)
 
 
 @set_module_as('brainunit.math')
@@ -173,7 +173,7 @@ def abs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]:
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.abs, x)
+  return _fun_keep_unit_unary(jnp.abs, x)
 
 
 @set_module_as('brainunit.math')
@@ -233,14 +233,14 @@ def sum(
   if isinstance(initial, Quantity):
     fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
     initial = initial.value
-  return funcs_keep_unit_unary(jnp.sum,
-                               x,
-                               axis=axis,
-                               dtype=dtype,
-                               keepdims=keepdims,
-                               initial=initial,
-                               where=where,
-                               promote_integers=promote_integers)
+  return _fun_keep_unit_unary(jnp.sum,
+                              x,
+                              axis=axis,
+                              dtype=dtype,
+                              keepdims=keepdims,
+                              initial=initial,
+                              where=where,
+                              promote_integers=promote_integers)
 
 
 @set_module_as('brainunit.math')
@@ -271,7 +271,7 @@ def nancumsum(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nancumsum, x, axis=axis, dtype=dtype)
+  return _fun_keep_unit_unary(jnp.nancumsum, x, axis=axis, dtype=dtype)
 
 
 @set_module_as('brainunit.math')
@@ -322,13 +322,13 @@ def nansum(
   if isinstance(initial, Quantity):
     fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
     initial = initial.value
-  return funcs_keep_unit_unary(jnp.nansum,
-                               x,
-                               axis=axis,
-                               dtype=dtype,
-                               keepdims=keepdims,
-                               initial=initial,
-                               where=where)
+  return _fun_keep_unit_unary(jnp.nansum,
+                              x,
+                              axis=axis,
+                              dtype=dtype,
+                              keepdims=keepdims,
+                              initial=initial,
+                              where=where)
 
 
 @set_module_as('brainunit.math')
@@ -359,7 +359,7 @@ def cumsum(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.cumsum, x, axis=axis, dtype=dtype)
+  return _fun_keep_unit_unary(jnp.cumsum, x, axis=axis, dtype=dtype)
 
 
 @set_module_as('brainunit.math')
@@ -391,7 +391,7 @@ def ediff1d(
   if isinstance(to_begin, Quantity):
     fail_for_dimension_mismatch(x, to_begin, 'to_begin and x should have the same dimension.')
     to_begin = to_begin.value
-  return funcs_keep_unit_unary(jnp.ediff1d, x, to_end=to_end, to_begin=to_begin)
+  return _fun_keep_unit_unary(jnp.ediff1d, x, to_end=to_end, to_begin=to_begin)
 
 
 @set_module_as('brainunit.math')
@@ -409,7 +409,7 @@ def absolute(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Ar
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.absolute, x)
+  return _fun_keep_unit_unary(jnp.absolute, x)
 
 
 @set_module_as('brainunit.math')
@@ -427,7 +427,7 @@ def fabs(x: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, jax.Array]
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.fabs, x)
+  return _fun_keep_unit_unary(jnp.fabs, x)
 
 
 @set_module_as('brainunit.math')
@@ -466,7 +466,7 @@ def median(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.median, x, axis=axis, overwrite_input=overwrite_input, keepdims=keepdims)
+  return _fun_keep_unit_unary(jnp.median, x, axis=axis, overwrite_input=overwrite_input, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
@@ -511,7 +511,7 @@ def nanmin(
   if isinstance(initial, Quantity):
     fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
     initial = initial.value
-  return funcs_keep_unit_unary(jnp.nanmin, x, axis=axis, keepdims=keepdims, initial=initial, where=where)
+  return _fun_keep_unit_unary(jnp.nanmin, x, axis=axis, keepdims=keepdims, initial=initial, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -556,7 +556,7 @@ def nanmax(
   if isinstance(initial, Quantity):
     fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
     initial = initial.value
-  return funcs_keep_unit_unary(jnp.nanmax, x, axis=axis, keepdims=keepdims, initial=initial, where=where)
+  return _fun_keep_unit_unary(jnp.nanmax, x, axis=axis, keepdims=keepdims, initial=initial, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -595,7 +595,7 @@ def ptp(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.ptp, x, axis=axis, keepdims=keepdims)
+  return _fun_keep_unit_unary(jnp.ptp, x, axis=axis, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
@@ -649,7 +649,7 @@ def average(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.average, x, axis=axis, weights=weights, returned=returned, keepdims=keepdims)
+  return _fun_keep_unit_unary(jnp.average, x, axis=axis, weights=weights, returned=returned, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
@@ -695,7 +695,7 @@ def mean(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.mean, x, axis=axis, dtype=dtype, keepdims=keepdims, where=where)
+  return _fun_keep_unit_unary(jnp.mean, x, axis=axis, dtype=dtype, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -747,7 +747,7 @@ def std(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.std, x, axis=axis, dtype=dtype, ddof=ddof, keepdims=keepdims, where=where)
+  return _fun_keep_unit_unary(jnp.std, x, axis=axis, dtype=dtype, ddof=ddof, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -792,7 +792,7 @@ def nanmedian(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanmedian, x, axis=axis, overwrite_input=overwrite_input, keepdims=keepdims)
+  return _fun_keep_unit_unary(jnp.nanmedian, x, axis=axis, overwrite_input=overwrite_input, keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
@@ -838,7 +838,7 @@ def nanmean(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanmean, x, axis=axis, dtype=dtype, keepdims=keepdims, where=where)
+  return _fun_keep_unit_unary(jnp.nanmean, x, axis=axis, dtype=dtype, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -890,8 +890,8 @@ def nanstd(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.nanstd, x, axis=axis, dtype=dtype, ddof=ddof, keepdims=keepdims,
-                               where=where)
+  return _fun_keep_unit_unary(jnp.nanstd, x, axis=axis, dtype=dtype, ddof=ddof, keepdims=keepdims,
+                              where=where)
 
 
 @set_module_as('brainunit.math')
@@ -934,7 +934,7 @@ def diff(
     fail_for_dimension_mismatch(x, append, 'diff requires the same dimension.')
     append = append.value
 
-  return funcs_keep_unit_unary(jnp.diff, x, n=n, axis=axis, prepend=prepend, append=append)
+  return _fun_keep_unit_unary(jnp.diff, x, n=n, axis=axis, prepend=prepend, append=append)
 
 
 @set_module_as('brainunit.math')
@@ -1038,7 +1038,7 @@ def copysign(x1: Union[Quantity, jax.Array],
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   x2 = x2.value if isinstance(x2, Quantity) else x2
-  return funcs_keep_unit_unary(jnp.copysign, x1, x2)
+  return _fun_keep_unit_unary(jnp.copysign, x1, x2)
 
 
 @set_module_as('brainunit.math')
@@ -1229,7 +1229,7 @@ def interp(
   if isinstance(period, Quantity):
     fail_for_dimension_mismatch(x, period)
     period = period.value
-  return funcs_keep_unit_unary(jnp.interp, x, xp=xp, fp=fp, left=left, right=right, period=period)
+  return _fun_keep_unit_unary(jnp.interp, x, xp=xp, fp=fp, left=left, right=right, period=period)
 
 
 @set_module_as('brainunit.math')
@@ -1255,7 +1255,7 @@ def clip(
   if isinstance(a_max, Quantity):
     fail_for_dimension_mismatch(a, a_max, 'a and a_max should have the same dimension.')
     a_max = a_max.value
-  return funcs_keep_unit_unary(jnp.clip, a, a_min=a_min, a_max=a_max)
+  return _fun_keep_unit_unary(jnp.clip, a, a_min=a_min, a_max=a_max)
 
 
 @set_module_as('brainunit.math')

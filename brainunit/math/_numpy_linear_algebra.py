@@ -21,7 +21,7 @@ import jax.numpy as jnp
 from jax import Array
 
 from ._numpy_change_unit import funcs_change_unit_binary
-from ._numpy_keep_unit import funcs_keep_unit_unary
+from ._numpy_keep_unit import _fun_keep_unit_unary
 from .._base import Quantity
 from .._misc import set_module_as
 
@@ -300,4 +300,4 @@ def trace(
 
     This is a Quantity if `a` is a Quantity, else an array.
   """
-  return funcs_keep_unit_unary(jnp.trace, a, offset=offset, axis1=axis1, axis2=axis2, dtype=dtype)
+  return _fun_keep_unit_unary(jnp.trace, a, offset=offset, axis1=axis1, axis2=axis2, dtype=dtype)

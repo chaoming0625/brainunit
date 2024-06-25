@@ -24,11 +24,10 @@ import jax.numpy as jnp
 import numpy as np
 import opt_einsum
 from jax import Array
-from jax._src.numpy.lax_numpy import _einsum
 
-from ._numpy_array_manipulation import func_array_manipulation
+from ._numpy_array_manipulation import _func_array_manipulation
 from ._numpy_change_unit import funcs_change_unit_binary
-from ._numpy_keep_unit import funcs_keep_unit_unary
+from ._numpy_keep_unit import _fun_keep_unit_unary
 from .._base import (DIMENSIONLESS,
                      Quantity,
                      fail_for_dimension_mismatch,
@@ -449,7 +448,7 @@ def rot90(
 
     This is a quantity if `m` is a quantity.
   """
-  return funcs_keep_unit_unary(jnp.rot90, m, k=k, axes=axes)
+  return _fun_keep_unit_unary(jnp.rot90, m, k=k, axes=axes)
 
 
 @set_module_as('brainunit.math')
@@ -536,11 +535,11 @@ def nanargmax(
   index_array : ndarray
     An array of indices or a single index value.
   """
-  return func_array_manipulation(jnp.nanargmax,
-                                 a,
-                                 return_quantity=False,
-                                 axis=axis,
-                                 keepdims=keepdims)
+  return _func_array_manipulation(jnp.nanargmax,
+                                  a,
+                                  return_quantity=False,
+                                  axis=axis,
+                                  keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
@@ -570,11 +569,11 @@ def nanargmin(
   index_array : ndarray
     An array of indices or a single index value.
   """
-  return func_array_manipulation(jnp.nanargmin,
-                                 a,
-                                 return_quantity=False,
-                                 axis=axis,
-                                 keepdims=keepdims)
+  return _func_array_manipulation(jnp.nanargmin,
+                                  a,
+                                  return_quantity=False,
+                                  axis=axis,
+                                  keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')

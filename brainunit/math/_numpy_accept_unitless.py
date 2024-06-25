@@ -30,33 +30,50 @@ __all__ = [
   'arctanh', 'cos', 'cosh', 'sin', 'sinc', 'sinh', 'tan',
   'tanh', 'deg2rad', 'rad2deg', 'degrees', 'radians', 'angle',
   'percentile', 'nanpercentile', 'quantile', 'nanquantile',
-
-  # math funcs only accept unitless (binary)
-  'hypot', 'arctan2', 'logaddexp', 'logaddexp2',
-
   'round', 'around', 'round_', 'rint',
   'floor', 'ceil', 'trunc', 'fix',
   'corrcoef', 'correlate', 'cov',
+
+  # math funcs only accept unitless (binary)
+  'hypot', 'arctan2', 'logaddexp', 'logaddexp2',
 ]
 
 
 # math funcs only accept unitless (unary)
 # ---------------------------------------
 
-def funcs_only_accept_unitless_unary(func, x, *args, **kwargs):
+def _func_accept_unitless_unary(
+    func: Callable,
+    x: jax.typing.ArrayLike | Quantity,
+    *args,
+    unit_to_scale: Optional[Unit] = None,
+    **kwargs
+):
   if isinstance(x, Quantity):
-    fail_for_dimension_mismatch(
-      x,
-      error_message="%s expects a dimensionless argument but got {value}" % func.__name__,
-      value=x,
-    )
-    return func(jnp.array(x.value), *args, **kwargs)
+    if unit_to_scale is None:
+      assert x.is_unitless, (f'Input should be unitless for the function "{func}" '
+                             f'when scaling "unit_to_scale" is not provided.')
+      x = x.value
+      return func(x, *args, **kwargs)
+    else:
+      fail_for_dimension_mismatch(
+        x,
+        unit_to_scale,
+        error_message="Unit mismatch: {value} != {unit_to_scale}",
+        value=x,
+        unit_to_scale=unit_to_scale
+      )
+      return Quantity(func(x / unit_to_scale, *args, **kwargs), unit=unit_to_scale)
   else:
+    assert unit_to_scale is None, f'Unit should be None for the function "{func}" when "x" is not a Quantity.'
     return func(x, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
-def exp(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
+def exp(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Calculate the exponential of all elements in the input quantity or array.
 
@@ -64,17 +81,22 @@ def exp(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.exp, x)
+  return _func_accept_unitless_unary(jnp.exp, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def exp2(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
+def exp2(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Calculate 2**p for all p in the input quantity or array.
 
@@ -82,17 +104,22 @@ def exp2(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.exp2, x)
+  return _func_accept_unitless_unary(jnp.exp2, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def expm1(x: Union[Array, Quantity]) -> Array:
+def expm1(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Calculate the exponential of the input elements minus 1.
 
@@ -100,17 +127,22 @@ def expm1(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.expm1, x)
+  return _func_accept_unitless_unary(jnp.expm1, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def log(x: Union[Array, Quantity]) -> Array:
+def log(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Natural logarithm, element-wise.
 
@@ -118,17 +150,22 @@ def log(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.log, x)
+  return _func_accept_unitless_unary(jnp.log, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def log10(x: Union[Array, Quantity]) -> Array:
+def log10(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Base-10 logarithm of the input elements.
 
@@ -136,17 +173,22 @@ def log10(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.log10, x)
+  return _func_accept_unitless_unary(jnp.log10, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def log1p(x: Union[Array, Quantity]) -> Array:
+def log1p(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Natural logarithm of 1 + the input elements.
 
@@ -154,17 +196,22 @@ def log1p(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.log1p, x)
+  return _func_accept_unitless_unary(jnp.log1p, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def log2(x: Union[Array, Quantity]) -> Array:
+def log2(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Base-2 logarithm of the input elements.
 
@@ -172,17 +219,22 @@ def log2(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.log2, x)
+  return _func_accept_unitless_unary(jnp.log2, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def arccos(x: Union[Array, Quantity]) -> Array:
+def arccos(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the arccosine of the input elements.
 
@@ -190,17 +242,22 @@ def arccos(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.arccos, x)
+  return _func_accept_unitless_unary(jnp.arccos, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def arccosh(x: Union[Array, Quantity]) -> Array:
+def arccosh(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the hyperbolic arccosine of the input elements.
 
@@ -208,17 +265,22 @@ def arccosh(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.arccosh, x)
+  return _func_accept_unitless_unary(jnp.arccosh, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def arcsin(x: Union[Array, Quantity]) -> Array:
+def arcsin(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the arcsine of the input elements.
 
@@ -226,17 +288,22 @@ def arcsin(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.arcsin, x)
+  return _func_accept_unitless_unary(jnp.arcsin, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def arcsinh(x: Union[Array, Quantity]) -> Array:
+def arcsinh(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the hyperbolic arcsine of the input elements.
 
@@ -244,17 +311,22 @@ def arcsinh(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.arcsinh, x)
+  return _func_accept_unitless_unary(jnp.arcsinh, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def arctan(x: Union[Array, Quantity]) -> Array:
+def arctan(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the arctangent of the input elements.
 
@@ -262,17 +334,22 @@ def arctan(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.arctan, x)
+  return _func_accept_unitless_unary(jnp.arctan, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def arctanh(x: Union[Array, Quantity]) -> Array:
+def arctanh(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the hyperbolic arctangent of the input elements.
 
@@ -280,17 +357,22 @@ def arctanh(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.arctanh, x)
+  return _func_accept_unitless_unary(jnp.arctanh, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def cos(x: Union[Array, Quantity]) -> Array:
+def cos(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the cosine of the input elements.
 
@@ -298,17 +380,22 @@ def cos(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.cos, x)
+  return _func_accept_unitless_unary(jnp.cos, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def cosh(x: Union[Array, Quantity]) -> Array:
+def cosh(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the hyperbolic cosine of the input elements.
 
@@ -316,17 +403,22 @@ def cosh(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.cosh, x)
+  return _func_accept_unitless_unary(jnp.cosh, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def sin(x: Union[Array, Quantity]) -> Array:
+def sin(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the sine of the input elements.
 
@@ -334,17 +426,22 @@ def sin(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.sin, x)
+  return _func_accept_unitless_unary(jnp.sin, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def sinc(x: Union[Array, Quantity]) -> Array:
+def sinc(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the sinc function of the input elements.
 
@@ -352,17 +449,22 @@ def sinc(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.sinc, x)
+  return _func_accept_unitless_unary(jnp.sinc, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def sinh(x: Union[Array, Quantity]) -> Array:
+def sinh(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the hyperbolic sine of the input elements.
 
@@ -370,17 +472,22 @@ def sinh(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.sinh, x)
+  return _func_accept_unitless_unary(jnp.sinh, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def tan(x: Union[Array, Quantity]) -> Array:
+def tan(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the tangent of the input elements.
 
@@ -388,17 +495,22 @@ def tan(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.tan, x)
+  return _func_accept_unitless_unary(jnp.tan, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def tanh(x: Union[Array, Quantity]) -> Array:
+def tanh(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Compute the hyperbolic tangent of the input elements.
 
@@ -406,17 +518,22 @@ def tanh(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.tanh, x)
+  return _func_accept_unitless_unary(jnp.tanh, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def deg2rad(x: Union[Array, Quantity]) -> Array:
+def deg2rad(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Convert angles from degrees to radians.
 
@@ -424,17 +541,22 @@ def deg2rad(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.deg2rad, x)
+  return _func_accept_unitless_unary(jnp.deg2rad, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def rad2deg(x: Union[Array, Quantity]) -> Array:
+def rad2deg(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Convert angles from radians to degrees.
 
@@ -442,17 +564,22 @@ def rad2deg(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.rad2deg, x)
+  return _func_accept_unitless_unary(jnp.rad2deg, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def degrees(x: Union[Array, Quantity]) -> Array:
+def degrees(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Convert angles from radians to degrees.
 
@@ -460,17 +587,22 @@ def degrees(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.degrees, x)
+  return _func_accept_unitless_unary(jnp.degrees, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def radians(x: Union[Array, Quantity]) -> Array:
+def radians(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Convert angles from degrees to radians.
 
@@ -478,17 +610,22 @@ def radians(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.radians, x)
+  return _func_accept_unitless_unary(jnp.radians, x, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
-def angle(x: Union[Array, Quantity]) -> Array:
+def angle(
+    x: Union[Array, Quantity],
+    unit_to_scale: Optional[Unit] = None,
+) -> Array | Quantity:
   """
   Return the angle of the complex argument.
 
@@ -496,25 +633,210 @@ def angle(x: Union[Array, Quantity]) -> Array:
   ----------
   x : array_like, Quantity
     Input array or Quantity.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
 
   Returns
   -------
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_unary(jnp.angle, x)
+  return _func_accept_unitless_unary(jnp.angle, x, unit_to_scale=unit_to_scale)
+
+
+@set_module_as('brainunit.math')
+def round_(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _func_accept_unitless_unary(jnp.round_, x, unit_to_scale=unit_to_scale)
+
+
+@set_module_as('brainunit.math')
+def around(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    decimals: int = 0,
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  decimals : int, optional
+    Number of decimal places to round to (default is 0).
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _func_accept_unitless_unary(jnp.around, x, unit_to_scale=unit_to_scale, decimals=decimals)
+
+
+@set_module_as('brainunit.math')
+def round(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    decimals: int = 0,
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array | Quantity:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  decimals : int, optional
+    Number of decimal places to round to (default is 0).
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _func_accept_unitless_unary(jnp.round, x, unit_to_scale=unit_to_scale, decimals=decimals)
+
+
+@set_module_as('brainunit.math')
+def rint(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> Union[Quantity, jax.Array]:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _func_accept_unitless_unary(jnp.rint, x, unit_to_scale=unit_to_scale)
+
+
+@set_module_as('brainunit.math')
+def floor(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
+  """
+  Return the floor of the argument.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _func_accept_unitless_unary(jnp.floor, x, unit_to_scale=unit_to_scale)
+
+
+@set_module_as('brainunit.math')
+def ceil(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
+  """
+  Return the ceiling of the argument.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _func_accept_unitless_unary(jnp.ceil, x, unit_to_scale=unit_to_scale)
+
+
+@set_module_as('brainunit.math')
+def trunc(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
+  """
+  Return the truncated value of the argument.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _func_accept_unitless_unary(jnp.trunc, x, unit_to_scale=unit_to_scale)
+
+
+@set_module_as('brainunit.math')
+def fix(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
+  """
+  Return the nearest integer towards zero.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _func_accept_unitless_unary(jnp.fix, x, unit_to_scale=unit_to_scale)
 
 
 # math funcs only accept unitless (binary)
 # ----------------------------------------
 
 
-def funcs_only_accept_unitless_binary(func, x, y, *args, **kwargs):
+def _fun_accept_unitless_binary(func, x, y, *args, **kwargs):
   x_value = x.value if isinstance(x, Quantity) else x
   y_value = y.value if isinstance(y, Quantity) else y
   if isinstance(x, Quantity) or isinstance(y, Quantity):
     fail_for_dimension_mismatch(
       x,
+      y,
       error_message="%s expects a dimensionless argument but got {value}" % func.__name__,
       value=x,
     )
@@ -529,7 +851,10 @@ def funcs_only_accept_unitless_binary(func, x, y, *args, **kwargs):
 
 
 @set_module_as('brainunit.math')
-def hypot(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
+def hypot(
+    x: Union[Array, Quantity],
+    y: Union[Array, Quantity],
+) -> Array | Quantity:
   """
   Given the “legs” of a right triangle, return its hypotenuse.
 
@@ -545,11 +870,14 @@ def hypot(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(jnp.hypot, x, y)
+  return _fun_accept_unitless_binary(jnp.hypot, x, y)
 
 
 @set_module_as('brainunit.math')
-def arctan2(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
+def arctan2(
+    x: Union[Array, Quantity],
+    y: Union[Array, Quantity],
+) -> Array | Quantity:
   """
   Element-wise arc tangent of `x1/x2` choosing the quadrant correctly.
 
@@ -565,11 +893,14 @@ def arctan2(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(jnp.arctan2, x, y)
+  return _fun_accept_unitless_binary(jnp.arctan2, x, y)
 
 
 @set_module_as('brainunit.math')
-def logaddexp(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
+def logaddexp(
+    x: Union[Array, Quantity],
+    y: Union[Array, Quantity],
+) -> Array | Quantity:
   """
   Logarithm of the sum of exponentiations of the inputs.
 
@@ -585,11 +916,11 @@ def logaddexp(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(jnp.logaddexp, x, y)
+  return _fun_accept_unitless_binary(jnp.logaddexp, x, y)
 
 
 @set_module_as('brainunit.math')
-def logaddexp2(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
+def logaddexp2(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array | Quantity:
   """
   Logarithm of the sum of exponentiations of the inputs in base-2.
 
@@ -605,7 +936,7 @@ def logaddexp2(x: Union[Array, Quantity], y: Union[Array, Quantity]) -> Array:
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(jnp.logaddexp2, x, y)
+  return _fun_accept_unitless_binary(jnp.logaddexp2, x, y)
 
 
 @set_module_as('brainunit.math')
@@ -664,7 +995,7 @@ def percentile(
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(
+  return _fun_accept_unitless_binary(
     jnp.percentile, a, q, axis=axis, overwrite_input=overwrite_input,
     method=method, keepdims=keepdims
   )
@@ -726,7 +1057,7 @@ def nanpercentile(
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(
+  return _fun_accept_unitless_binary(
     jnp.nanpercentile, a, q,
     axis=axis, ooverwrite_input=overwrite_input,
     method=method, keepdims=keepdims
@@ -786,7 +1117,7 @@ def quantile(
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(
+  return _fun_accept_unitless_binary(
     jnp.quantile, a, q,
     axis=axis, overwrite_input=overwrite_input,
     method=method, keepdims=keepdims
@@ -846,7 +1177,7 @@ def nanquantile(
   out : jax.Array
     Output array.
   """
-  return funcs_only_accept_unitless_binary(
+  return _fun_accept_unitless_binary(
     jnp.nanquantile, a, q,
     axis=axis, overwrite_input=overwrite_input,
     method=method, keepdims=keepdims
@@ -854,209 +1185,11 @@ def nanquantile(
 
 
 @set_module_as('brainunit.math')
-def round_(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "round_".'
-    x = x.value
-  return jnp.round_(x)
-
-
-@set_module_as('brainunit.math')
-def around(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    decimals: int = 0,
-) -> jax.Array:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-  decimals : int, optional
-    Number of decimal places to round to (default is 0).
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "around".'
-    x = x.value
-  return jnp.around(x, decimals=decimals)
-
-
-@set_module_as('brainunit.math')
-def round(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    decimals: int = 0,
-    unit: Optional[Unit] = None,
-) -> jax.Array | Quantity:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-  decimals : int, optional
-    Number of decimal places to round to (default is 0).
-  unit : Unit, optional
-    The unit to scale the ``x``.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    if unit is None:
-      assert x.is_unitless, 'Input should be unitless for the function "round" when scaling "unit" is not provided.'
-      x = x.value
-      return jnp.round(x, decimals=decimals)
-    else:
-      fail_for_dimension_mismatch(x, unit, error_message="Unit mismatch: {value} != {unit}", value=x, unit=unit)
-      return Quantity(jnp.round(x / unit, decimals=decimals), unit=unit)
-  else:
-    assert unit is None, 'Unit should be None for the function "round" when "x" is not a Quantity.'
-    return jnp.round(x, decimals=decimals)
-
-
-@set_module_as('brainunit.math')
-def rint(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    unit: Optional[Unit] = None,
-) -> Union[Quantity, jax.Array]:
-  """
-  Round an array to the nearest integer.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-  unit : Unit, optional
-    The unit to scale the ``x``.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    if unit is None:
-      assert x.is_unitless, 'Input should be unitless for the function "rint" when scaling "unit" is not provided.'
-      x = x.value
-      return jnp.rint(x)
-    else:
-      fail_for_dimension_mismatch(x, unit, error_message="Unit mismatch: {value} != {unit}", value=x, unit=unit)
-      return Quantity(jnp.rint(x / unit), unit=unit)
-  else:
-    assert unit is None, 'Unit should be None for the function "rint" when "x" is not a Quantity.'
-    return jnp.rint(x)
-
-
-@set_module_as('brainunit.math')
-def floor(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    unit: Optional[Unit] = None,
-) -> jax.Array:
-  """
-  Return the floor of the argument.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-  unit : Unit, optional
-    The unit to scale the ``x``.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "floor".'
-    x = x.value
-  return jnp.floor(x)
-
-
-@set_module_as('brainunit.math')
-def ceil(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
-  """
-  Return the ceiling of the argument.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "ceil".'
-    x = x.value
-  return jnp.ceil(x)
-
-
-@set_module_as('brainunit.math')
-def trunc(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
-  """
-  Return the truncated value of the argument.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "trunc".'
-    x = x.value
-  return jnp.trunc(x)
-
-
-@set_module_as('brainunit.math')
-def fix(
-    x: Union[Quantity, jax.typing.ArrayLike],
-) -> jax.Array:
-  """
-  Return the nearest integer towards zero.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "fix".'
-    x = x.value
-  return jnp.fix(x)
-
-
-@set_module_as('brainunit.math')
 def corrcoef(
     x: Union[Array, Quantity],
     y: Union[Array, Quantity],
-    rowvar: bool = True
+    rowvar: bool = True,
+    unit_to_scale: Optional[Unit] = None,
 ) -> Array:
   """
   Return Pearson product-moment correlation coefficients.
@@ -1105,7 +1238,8 @@ def correlate(
     mode: str = 'valid',
     *,
     precision: Any = None,
-    preferred_element_type: Optional[jax.typing.DTypeLike] = None
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None,
+    unit_to_scale: Optional[Unit] = None,
 ) -> Array:
   """
   Cross-correlation of two 1-dimensional sequences.
@@ -1159,7 +1293,8 @@ def cov(
     bias: bool = False,
     ddof: Optional[int] = None,
     fweights: Optional[jax.typing.ArrayLike] = None,
-    aweights: Optional[jax.typing.ArrayLike] = None
+    aweights: Optional[jax.typing.ArrayLike] = None,
+    unit_to_scale: Optional[Unit] = None,
 ) -> Array:
   """
   Estimate a covariance matrix, given data and weights.
