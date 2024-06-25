@@ -21,7 +21,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from ._numpy_accept_unitless import funcs_only_accept_unitless_unary
+from ._numpy_accept_unitless import _func_accept_unitless_unary
+from ._numpy_keep_unit import _fun_keep_unit_unary
 from .._base import Quantity, Unit
 from .._misc import set_module_as
 
@@ -84,14 +85,14 @@ def _exprel_v2(x, *, level: int = 2):
 
   assert level in [0, 1, 2, 3], 'The approximation level should be 0, 1, 2, or 3.'
   if level == 0:
-    return jax.lax.select(jnp.abs(x) <= threshold, 1., (jnp.exp(x) - 1) / x)
+    return jax.numpy.where(jnp.abs(x) <= threshold, 1., jnp.expm1(x) / x)
   elif level == 1:
-    return jax.lax.select(jnp.abs(x) <= threshold, 1. + x / 2, (jnp.exp(x) - 1) / x)
+    return jax.numpy.where(jnp.abs(x) <= threshold, 1. + x / 2., jnp.expm1(x) / x)
   elif level == 2:
-    return jax.lax.select(jnp.abs(x) <= threshold, 1. + x / 2 + x * x / 6, (jnp.exp(x) - 1) / x)
+    return jax.numpy.where(jnp.abs(x) <= threshold, 1. + x / 2. + x * x / 6., jnp.expm1(x) / x)
   elif level == 3:
     x2 = x * x
-    return jax.lax.select(jnp.abs(x) <= threshold, 1. + x / 2 + x2 / 6 + x2 * x / 24, (jnp.exp(x) - 1) / x)
+    return jax.numpy.where(jnp.abs(x) <= threshold, 1. + x / 2. + x2 / 6. + x2 * x / 24., jnp.expm1(x) / x)
   else:
     raise ValueError(f'Unsupported approximation level {level}.')
 
@@ -112,7 +113,7 @@ def exprel(x, *, level: int = 2):
   Returns:
     ``(exp(x) - 1)/x``, computed element-wise.
   """
-  return funcs_only_accept_unitless_unary(_exprel_v2, x, level=level)
+  return _func_accept_unitless_unary(_exprel_v2, x, level=level)
 
 
 @set_module_as('brainunit.math')
@@ -142,10 +143,6 @@ def flatten(
   -------
   out: Array, Quantity
   """
-  dim = None
-  if isinstance(x, Quantity):
-    x = x.value
-    dim = x.ndim
   shape = x.shape
   ndim = x.ndim
   if ndim == 0:
@@ -164,10 +161,7 @@ def flatten(
   if end_axis < 0 or end_axis > ndim:
     raise ValueError(f'end_axis {end_axis} is out of size.')
   new_shape = shape[:start_axis] + (np.prod(shape[start_axis: end_axis], dtype=int),) + shape[end_axis:]
-  x = jnp.reshape(x, new_shape)
-  if dim is not None:
-    return Quantity(x, dim=dim)
-  return x
+  return _fun_keep_unit_unary(jnp.reshape, x, shape=new_shape)
 
 
 @set_module_as('brainunit.math')
@@ -191,20 +185,12 @@ def unflatten(
     The returned tensor has one more dimension than the input tensor.
     The returned tensor shares the same underlying data with this tensor.
   """
-  dim = None
-  if isinstance(x, Quantity):
-    x = x.value
-    dim = x.dim
-
   assert x.ndim > axis, ('The dimension to be unflattened should '
                          'be less than the tensor dimension. '
                          f'Got {axis} and {x.ndim}.')
   shape = x.shape
   new_shape = shape[:axis] + tuple(sizes) + shape[axis + 1:]
-  x = jnp.reshape(x, new_shape)
-  if dim is not None:
-    return Quantity(x, dim=dim)
-  return x
+  return _fun_keep_unit_unary(jnp.reshape, x, shape=new_shape)
 
 
 @set_module_as('brainunit.math')
