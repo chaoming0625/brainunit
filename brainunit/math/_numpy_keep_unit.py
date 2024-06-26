@@ -28,10 +28,10 @@ __all__ = [
   'abs', 'sum', 'nancumsum', 'nansum',
   'cumsum', 'ediff1d', 'absolute', 'fabs', 'median',
   'nanmin', 'nanmax', 'ptp', 'average', 'mean', 'std',
-  'nanmedian', 'nanmean', 'nanstd', 'diff',
+  'nanmedian', 'nanmean', 'nanstd', 'diff', 'rot90', 'intersect1d', 'nan_to_num',
 
   # math funcs keep unit (binary)
-  'fmod', 'mod', 'copysign', 'heaviside',
+  'fmod', 'mod', 'copysign',
   'maximum', 'minimum', 'fmax', 'fmin', 'lcm', 'gcd',
 
   # math funcs keep unit (n-ary)
@@ -934,6 +934,168 @@ def diff(
     fail_for_dimension_mismatch(x, append, 'diff requires the same dimension.')
     append = append.value
   return _fun_keep_unit_unary(jnp.diff, x, n=n, axis=axis, prepend=prepend, append=append)
+
+
+@set_module_as('brainunit.math')
+def rot90(
+    m: Union[jax.typing.ArrayLike, Quantity],
+    k: int = 1,
+    axes: Tuple[int, int] = (0, 1)
+) -> Union[
+  jax.Array, Quantity]:
+  """
+  Rotate an array by 90 degrees in the plane specified by axes.
+
+  Rotation direction is from the first towards the second axis.
+
+  Parameters
+  ----------
+  m : array_like, Quantity
+    Array of two or more dimensions.
+  k : integer
+    Number of times the array is rotated by 90 degrees.
+  axes : (2,) array_like
+    The array is rotated in the plane defined by the axes.
+    Axes must be different.
+
+  Returns
+  -------
+  y : ndarray, Quantity
+    A rotated view of `m`.
+
+    This is a quantity if `m` is a quantity.
+  """
+  return _fun_keep_unit_unary(jnp.rot90, m, k=k, axes=axes)
+
+
+@set_module_as('brainunit.math')
+def intersect1d(
+    ar1: Union[jax.typing.ArrayLike, Quantity],
+    ar2: Union[jax.typing.ArrayLike, Quantity],
+    assume_unique: bool = False,
+    return_indices: bool = False
+) -> Union[jax.Array, Quantity, tuple[Union[jax.Array, Quantity], jax.Array, jax.Array]]:
+  """
+  Find the intersection of two arrays.
+
+  Return the sorted, unique values that are in both of the input arrays.
+
+  Parameters
+  ----------
+  ar1, ar2 : array_like, Quantity
+    Input arrays. Will be flattened if not already 1D.
+  assume_unique : bool
+    If True, the input arrays are both assumed to be unique, which
+    can speed up the calculation.  If True but ``ar1`` or ``ar2`` are not
+    unique, incorrect results and out-of-bounds indices could result.
+    Default is False.
+  return_indices : bool
+    If True, the indices which correspond to the intersection of the two
+    arrays are returned. The first instance of a value is used if there are
+    multiple. Default is False.
+
+  Returns
+  -------
+  intersect1d : ndarray, Quantity
+    Sorted 1D array of common and unique elements.
+  comm1 : ndarray
+    The indices of the first occurrences of the common values in `ar1`.
+    Only provided if `return_indices` is True.
+  comm2 : ndarray
+    The indices of the first occurrences of the common values in `ar2`.
+    Only provided if `return_indices` is True.
+  """
+  fail_for_dimension_mismatch(ar1, ar2, 'intersect1d')
+  unit = None
+  if isinstance(ar1, Quantity):
+    unit = ar1.dim
+  ar1 = ar1.value if isinstance(ar1, Quantity) else ar1
+  ar2 = ar2.value if isinstance(ar2, Quantity) else ar2
+  result = jnp.intersect1d(ar1, ar2, assume_unique=assume_unique, return_indices=return_indices)
+  if return_indices:
+    if unit is not None:
+      return Quantity(result[0], dim=unit), result[1], result[2]
+    else:
+      return result
+  else:
+    if unit is not None:
+      return Quantity(result, dim=unit)
+    else:
+      return result
+
+
+@set_module_as('brainunit.math')
+def nan_to_num(
+    x: Union[jax.typing.ArrayLike, Quantity],
+    nan: float | Quantity = None,
+    posinf: float | Quantity = None,
+    neginf: float | Quantity = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Replace NaN with zero and infinity with large finite numbers (default
+  behaviour) or with the numbers defined by the user using the `nan`,
+  `posinf` and/or `neginf` keywords.
+
+  If `x` is inexact, NaN is replaced by zero or by the user defined value in
+  `nan` keyword, infinity is replaced by the largest finite floating point
+  values representable by ``x.dtype`` or by the user defined value in
+  `posinf` keyword and -infinity is replaced by the most negative finite
+  floating point values representable by ``x.dtype`` or by the user defined
+  value in `neginf` keyword.
+
+  For complex dtypes, the above is applied to each of the real and
+  imaginary components of `x` separately.
+
+  If `x` is not inexact, then no replacements are made.
+
+  Parameters
+  ----------
+  x : scalar, array_like or Quantity
+    Input data.
+  nan : int, float, optional
+    Value to be used to fill NaN values. If no value is passed
+    then NaN values will be replaced with 0.0.
+  posinf : int, float, optional
+    Value to be used to fill positive infinity values. If no value is
+    passed then positive infinity values will be replaced with a very
+    large number.
+  neginf : int, float, optional
+    Value to be used to fill negative infinity values. If no value is
+    passed then negative infinity values will be replaced with a very
+    small (or negative) number.
+
+  Returns
+  -------
+  out : ndarray, Quantity
+    `x`, with the non-finite values replaced. If `copy` is False, this may
+    be `x` itself.
+  """
+  if isinstance(x, Quantity):
+    if nan is not None:
+      fail_for_dimension_mismatch(x, nan,
+                                  'nan_to_num required "x" and "nan" the same dimension. But got {x} != {nan}',
+                                  x=x, nan=nan)
+      nan = nan.value if isinstance(nan, Quantity) else nan
+    else:
+      nan = 0.0
+    if posinf is not None:
+      fail_for_dimension_mismatch(
+        x, posinf,
+        'nan_to_num required "x" and "posinf" the same dimension. But got {x} != {posinf}',
+        x=x, posinf=posinf
+      )
+      posinf = posinf.value if isinstance(posinf, Quantity) else posinf
+    if neginf is not None:
+      fail_for_dimension_mismatch(
+        x, neginf,
+        'nan_to_num required "x" and "neginf" the same dimension. But got {x} != {neginf}',
+        x=x, neginf=neginf
+      )
+      neginf = neginf.value if isinstance(neginf, Quantity) else neginf
+    return Quantity(jnp.nan_to_num(x.value, nan=nan, posinf=posinf, neginf=neginf), dim=x.dim)
+  else:
+    nan = 0.0 if nan is None else nan
+    return jnp.nan_to_num(x, nan=nan, posinf=posinf, neginf=neginf)
 
 
 # math funcs keep unit (binary)

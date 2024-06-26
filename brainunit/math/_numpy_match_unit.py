@@ -33,7 +33,7 @@ __all__ = [
 # ------------------------------
 
 
-def funcs_match_unit_binary(func, x, y, *args, **kwargs):
+def _fun_match_unit_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     fail_for_dimension_mismatch(x, y, func.__name__)
     return Quantity(func(x.value, y.value, *args, **kwargs), dim=x.dim)
@@ -80,7 +80,7 @@ def add(
     The sum of `x` and `y`, element-wise.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return funcs_match_unit_binary(jnp.add, x, y, *args, **kwargs)
+  return _fun_match_unit_binary(jnp.add, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -119,7 +119,7 @@ def subtract(
     The difference of `x` and `y`, element-wise.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return funcs_match_unit_binary(jnp.subtract, x, y, *args, **kwargs)
+  return _fun_match_unit_binary(jnp.subtract, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -160,4 +160,4 @@ def nextafter(
     The next representable values of `x` in the direction of `y`.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return funcs_match_unit_binary(jnp.nextafter, x, y, *args, **kwargs)
+  return _fun_match_unit_binary(jnp.nextafter, x, y, *args, **kwargs)

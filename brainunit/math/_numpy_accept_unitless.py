@@ -31,7 +31,7 @@ __all__ = [
   'tanh', 'deg2rad', 'rad2deg', 'degrees', 'radians', 'angle',
   'percentile', 'nanpercentile', 'quantile', 'nanquantile',
   'round', 'around', 'round_', 'rint',
-  'floor', 'ceil', 'trunc', 'fix', 'modf',
+  'floor', 'ceil', 'trunc', 'fix', 'modf', 'frexp',
   'corrcoef', 'correlate', 'cov',
 
   # math funcs only accept unitless (binary)
@@ -846,6 +846,37 @@ def modf(
   The fractional and integral parts of the input, both with the same dimension.
   """
   return _func_accept_unitless_unary(jnp.modf, x, unit_to_scale=unit_to_scale)
+
+
+@set_module_as('brainunit.math')
+def frexp(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> Tuple[jax.Array, jax.Array]:
+  """
+  Decompose the elements of x into mantissa and twos exponent.
+
+  Returns (`mantissa`, `exponent`), where ``x = mantissa * 2**exponent``.
+  The mantissa lies in the open interval(-1, 1), while the twos
+  exponent is a signed integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Array of numbers to be decomposed.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
+
+  Returns
+  -------
+  mantissa : ndarray
+    Floating values between -1 and 1.
+    This is a scalar if `x` is a scalar.
+  exponent : ndarray
+    Integer exponents of 2.
+    This is a scalar if `x` is a scalar.
+  """
+  return _func_accept_unitless_unary(jnp.frexp, x, unit_to_scale=unit_to_scale)
 
 
 # math funcs only accept unitless (binary)

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import functools
 from collections.abc import Sequence
-from typing import (Union, Optional, Tuple, List, Any)
+from typing import (Union, Optional, Tuple, List)
 
 import jax
 import jax.numpy as jnp
@@ -24,7 +24,7 @@ from jax import Array
 
 from ._numpy_keep_unit import _fun_keep_unit_unary
 from ._numpy_remove_unit import _fun_remove_unit_unary
-from .._base import Quantity, Unit, fail_for_dimension_mismatch
+from .._base import Quantity, fail_for_dimension_mismatch
 from .._misc import set_module_as
 
 __all__ = [
@@ -34,6 +34,7 @@ __all__ = [
   'split', 'dsplit', 'hsplit', 'vsplit', 'tile', 'repeat', 'unique',
   'append', 'flip', 'fliplr', 'flipud', 'roll', 'atleast_1d', 'atleast_2d',
   'atleast_3d', 'expand_dims', 'squeeze', 'sort', 'argsort', 'argmax', 'argmin',
+  'nanargmax', 'nanargmin',
   'argwhere', 'nonzero', 'flatnonzero', 'searchsorted', 'extract',
   'count_nonzero', 'max', 'min', 'amax', 'amin', 'block', 'compress',
   'diagflat', 'diagonal', 'choose', 'ravel',
@@ -1243,6 +1244,75 @@ def argmin(
     Array of indices into the array. It has the same shape as `a.shape` with the dimension along `axis` removed.
   """
   return _fun_remove_unit_unary(jnp.argmin, a, axis=axis, keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def nanargmax(
+    a: Union[jax.typing.ArrayLike, Quantity],
+    axis: int = None,
+    keepdims: bool = False
+) -> jax.Array:
+  """
+  Return the indices of the maximum values in the specified axis ignoring
+  NaNs. For all-NaN slices ``ValueError`` is raised. Warning: the
+  results cannot be trusted if a slice contains only NaNs and -Infs.
+
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    Axis along which to operate.  By default flattened input is used.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the array.
+
+  Returns
+  -------
+  index_array : ndarray
+    An array of indices or a single index value.
+  """
+  return _fun_remove_unit_unary(jnp.nanargmax,
+                                a,
+                                return_quantity=False,
+                                axis=axis,
+                                keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def nanargmin(
+    a: Union[jax.typing.ArrayLike, Quantity],
+    axis: int = None,
+    keepdims: bool = False
+) -> jax.Array:
+  """
+  Return the indices of the minimum values in the specified axis ignoring
+  NaNs. For all-NaN slices ``ValueError`` is raised. Warning: the results
+  cannot be trusted if a slice contains only NaNs and Infs.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    Axis along which to operate.  By default flattened input is used.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the array.
+
+  Returns
+  -------
+  index_array : ndarray
+    An array of indices or a single index value.
+  """
+  return _fun_remove_unit_unary(jnp.nanargmin,
+                                a,
+                                return_quantity=False,
+                                axis=axis,
+                                keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
