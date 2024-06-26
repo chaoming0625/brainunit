@@ -970,12 +970,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.exp(Quantity(jnp.array([1.0, 2.0])))
     self.assertTrue(jnp.all(result == jnp.exp(jnp.array([1.0, 2.0]))))
 
+    q = [1.0, 2.0] * bu.meter
+    result = bu.math.exp(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.exp(jnp.array([1.0, 2.0]) / bu.dametre.value)))
+
   def test_exp2(self):
     result = bu.math.exp2(jnp.array([1.0, 2.0]))
     self.assertTrue(jnp.all(result == jnp.exp2(jnp.array([1.0, 2.0]))))
 
     result = bu.math.exp2(Quantity(jnp.array([1.0, 2.0])))
     self.assertTrue(jnp.all(result == jnp.exp2(jnp.array([1.0, 2.0]))))
+
+    q = [1.0, 2.0] * bu.meter
+    result = bu.math.exp2(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.exp2(jnp.array([1.0, 2.0]) / bu.dametre.value)))
 
   def test_expm1(self):
     result = bu.math.expm1(jnp.array([1.0, 2.0]))
@@ -984,12 +992,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.expm1(Quantity(jnp.array([1.0, 2.0])))
     self.assertTrue(jnp.all(result == jnp.expm1(jnp.array([1.0, 2.0]))))
 
+    q = [1.0, 2.0] * bu.meter
+    result = bu.math.expm1(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.expm1(jnp.array([1.0, 2.0]) / bu.dametre.value)))
+
   def test_log(self):
     result = bu.math.log(jnp.array([1.0, 2.0]))
     self.assertTrue(jnp.all(result == jnp.log(jnp.array([1.0, 2.0]))))
 
     result = bu.math.log(Quantity(jnp.array([1.0, 2.0])))
     self.assertTrue(jnp.all(result == jnp.log(jnp.array([1.0, 2.0]))))
+
+    q = [1.0, 2.0] * bu.meter
+    result = bu.math.log(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.log(jnp.array([1.0, 2.0]) / bu.dametre.value)))
 
   def test_log10(self):
     result = bu.math.log10(jnp.array([1.0, 2.0]))
@@ -998,12 +1014,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.log10(Quantity(jnp.array([1.0, 2.0])))
     self.assertTrue(jnp.all(result == jnp.log10(jnp.array([1.0, 2.0]))))
 
+    q = [1.0, 2.0] * bu.meter
+    result = bu.math.log10(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.log10(jnp.array([1.0, 2.0]) / bu.dametre.value)))
+
   def test_log1p(self):
     result = bu.math.log1p(jnp.array([1.0, 2.0]))
     self.assertTrue(jnp.all(result == jnp.log1p(jnp.array([1.0, 2.0]))))
 
     result = bu.math.log1p(Quantity(jnp.array([1.0, 2.0])))
     self.assertTrue(jnp.all(result == jnp.log1p(jnp.array([1.0, 2.0]))))
+
+    q = [1.0, 2.0] * bu.meter
+    result = bu.math.log1p(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.log1p(jnp.array([1.0, 2.0]) / bu.dametre.value)))
 
   def test_log2(self):
     result = bu.math.log2(jnp.array([1.0, 2.0]))
@@ -1012,12 +1036,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.log2(Quantity(jnp.array([1.0, 2.0])))
     self.assertTrue(jnp.all(result == jnp.log2(jnp.array([1.0, 2.0]))))
 
+    q = [1.0, 2.0] * bu.meter
+    result = bu.math.log2(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.log2(jnp.array([1.0, 2.0]) / bu.dametre.value)))
+
   def test_arccos(self):
     result = bu.math.arccos(jnp.array([0.5, 1.0]))
     self.assertTrue(jnp.all(result == jnp.arccos(jnp.array([0.5, 1.0]))))
 
     result = bu.math.arccos(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.arccos(jnp.array([0.5, 1.0]))))
+
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.arccos(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.arccos(jnp.array([0.5, 1.0]) / bu.dametre.value)))
 
   def test_arccosh(self):
     result = bu.math.arccosh(jnp.array([1.0, 2.0]))
@@ -1026,12 +1058,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.arccosh(Quantity(jnp.array([1.0, 2.0])))
     self.assertTrue(jnp.all(result == jnp.arccosh(jnp.array([1.0, 2.0]))))
 
+    q = [10., 20.] * bu.meter
+    result = bu.math.arccosh(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.arccosh(jnp.array([10., 20.]) / bu.dametre.value)))
+
   def test_arcsin(self):
     result = bu.math.arcsin(jnp.array([0.5, 1.0]))
     self.assertTrue(jnp.all(result == jnp.arcsin(jnp.array([0.5, 1.0]))))
 
     result = bu.math.arcsin(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.arcsin(jnp.array([0.5, 1.0]))))
+
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.arcsin(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.arcsin(jnp.array([0.5, 1.0]) / bu.dametre.value)))
 
   def test_arcsinh(self):
     result = bu.math.arcsinh(jnp.array([0.5, 1.0]))
@@ -1040,12 +1080,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.arcsinh(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.arcsinh(jnp.array([0.5, 1.0]))))
 
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.arcsinh(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.arcsinh(jnp.array([0.5, 1.0]) / bu.dametre.value)))
+
   def test_arctan(self):
     result = bu.math.arctan(jnp.array([0.5, 1.0]))
     self.assertTrue(jnp.all(result == jnp.arctan(jnp.array([0.5, 1.0]))))
 
     result = bu.math.arctan(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.arctan(jnp.array([0.5, 1.0]))))
+
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.arctan(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.arctan(jnp.array([0.5, 1.0]) / bu.dametre.value)))
 
   def test_arctanh(self):
     result = bu.math.arctanh(jnp.array([0.5, 1.0]))
@@ -1054,12 +1102,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.arctanh(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.arctanh(jnp.array([0.5, 1.0]))))
 
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.arctanh(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.arctanh(jnp.array([0.5, 1.0]) / bu.dametre.value)))
+
   def test_cos(self):
     result = bu.math.cos(jnp.array([0.5, 1.0]))
     self.assertTrue(jnp.all(result == jnp.cos(jnp.array([0.5, 1.0]))))
 
     result = bu.math.cos(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.cos(jnp.array([0.5, 1.0]))))
+
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.cos(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.cos(jnp.array([0.5, 1.0]) / bu.dametre.value)))
 
   def test_cosh(self):
     result = bu.math.cosh(jnp.array([0.5, 1.0]))
@@ -1068,12 +1124,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.cosh(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.cosh(jnp.array([0.5, 1.0]))))
 
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.cosh(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.cosh(jnp.array([0.5, 1.0]) / bu.dametre.value)))
+
   def test_sin(self):
     result = bu.math.sin(jnp.array([0.5, 1.0]))
     self.assertTrue(jnp.all(result == jnp.sin(jnp.array([0.5, 1.0]))))
 
     result = bu.math.sin(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.sin(jnp.array([0.5, 1.0]))))
+
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.sin(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.sin(jnp.array([0.5, 1.0]) / bu.dametre.value)))
 
   def test_sinc(self):
     result = bu.math.sinc(jnp.array([0.5, 1.0]))
@@ -1082,12 +1146,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.sinc(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.sinc(jnp.array([0.5, 1.0]))))
 
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.sinc(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.sinc(jnp.array([0.5, 1.0]) / bu.dametre.value)))
+
   def test_sinh(self):
     result = bu.math.sinh(jnp.array([0.5, 1.0]))
     self.assertTrue(jnp.all(result == jnp.sinh(jnp.array([0.5, 1.0]))))
 
     result = bu.math.sinh(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.sinh(jnp.array([0.5, 1.0]))))
+
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.sinh(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.sinh(jnp.array([0.5, 1.0]) / bu.dametre.value)))
 
   def test_tan(self):
     result = bu.math.tan(jnp.array([0.5, 1.0]))
@@ -1096,12 +1168,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.tan(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.tan(jnp.array([0.5, 1.0]))))
 
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.tan(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.tan(jnp.array([0.5, 1.0]) / bu.dametre.value)))
+
   def test_tanh(self):
     result = bu.math.tanh(jnp.array([0.5, 1.0]))
     self.assertTrue(jnp.all(result == jnp.tanh(jnp.array([0.5, 1.0]))))
 
     result = bu.math.tanh(Quantity(jnp.array([0.5, 1.0])))
     self.assertTrue(jnp.all(result == jnp.tanh(jnp.array([0.5, 1.0]))))
+
+    q = [0.5, 1.0] * bu.meter
+    result = bu.math.tanh(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.tanh(jnp.array([0.5, 1.0]) / bu.dametre.value)))
 
   def test_deg2rad(self):
     result = bu.math.deg2rad(jnp.array([90.0, 180.0]))
@@ -1110,12 +1190,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.deg2rad(Quantity(jnp.array([90.0, 180.0])))
     self.assertTrue(jnp.all(result == jnp.deg2rad(jnp.array([90.0, 180.0]))))
 
+    q = [90.0, 180.0] * bu.meter
+    result = bu.math.deg2rad(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.deg2rad(jnp.array([90.0, 180.0]) / bu.dametre.value)))
+
   def test_rad2deg(self):
     result = bu.math.rad2deg(jnp.array([jnp.pi / 2, jnp.pi]))
     self.assertTrue(jnp.all(result == jnp.rad2deg(jnp.array([jnp.pi / 2, jnp.pi]))))
 
     result = bu.math.rad2deg(Quantity(jnp.array([jnp.pi / 2, jnp.pi])))
     self.assertTrue(jnp.all(result == jnp.rad2deg(jnp.array([jnp.pi / 2, jnp.pi]))))
+
+    q = [jnp.pi / 2, jnp.pi] * bu.meter
+    result = bu.math.rad2deg(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.rad2deg(jnp.array([jnp.pi / 2, jnp.pi]) / bu.dametre.value)))
 
   def test_degrees(self):
     result = bu.math.degrees(jnp.array([jnp.pi / 2, jnp.pi]))
@@ -1124,12 +1212,20 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.degrees(Quantity(jnp.array([jnp.pi / 2, jnp.pi])))
     self.assertTrue(jnp.all(result == jnp.degrees(jnp.array([jnp.pi / 2, jnp.pi]))))
 
+    q = [jnp.pi / 2, jnp.pi] * bu.meter
+    result = bu.math.degrees(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.degrees(jnp.array([jnp.pi / 2, jnp.pi]) / bu.dametre.value)))
+
   def test_radians(self):
     result = bu.math.radians(jnp.array([90.0, 180.0]))
     self.assertTrue(jnp.all(result == jnp.radians(jnp.array([90.0, 180.0]))))
 
     result = bu.math.radians(Quantity(jnp.array([90.0, 180.0])))
     self.assertTrue(jnp.all(result == jnp.radians(jnp.array([90.0, 180.0]))))
+
+    q = [90.0, 180.0] * bu.meter
+    result = bu.math.radians(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.radians(jnp.array([90.0, 180.0]) / bu.dametre.value)))
 
   def test_angle(self):
     result = bu.math.angle(jnp.array([1.0 + 1.0j, 1.0 - 1.0j]))
@@ -1138,25 +1234,51 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     result = bu.math.angle(Quantity(jnp.array([1.0 + 1.0j, 1.0 - 1.0j])))
     self.assertTrue(jnp.all(result == jnp.angle(jnp.array([1.0 + 1.0j, 1.0 - 1.0j]))))
 
+    q = [1.0 + 1.0j, 1.0 - 1.0j] * bu.meter
+    result = bu.math.angle(q, unit_to_scale=bu.dametre)
+    self.assertTrue(jnp.all(result == jnp.angle(jnp.array([1.0 + 1.0j, 1.0 - 1.0j]) / bu.dametre.value)))
+
   def test_percentile(self):
     array = jnp.array([1, 2, 3, 4])
     result = bu.math.percentile(array, 50)
     self.assertTrue(result == jnp.percentile(array, 50))
+
+    quantity = jnp.array([1, 2, 3, 4]) * bu.meter
+    result = bu.math.percentile(quantity, 50 * bu.meter, unit_to_scale=bu.dametre)
+    self.assertTrue(result == jnp.percentile(array / bu.dametre.value, 50 / bu.dametre.value))
 
   def test_nanpercentile(self):
     array = jnp.array([1, jnp.nan, 3, 4])
     result = bu.math.nanpercentile(array, 50)
     self.assertTrue(result == jnp.nanpercentile(array, 50))
 
+    quantity = jnp.array([1, 2, jnp.nan, 4]) * bu.meter
+    result = bu.math.percentile(quantity, 50 * bu.meter, unit_to_scale=bu.dametre)
+    if jnp.isnan(result) and jnp.isnan(jnp.percentile(array / bu.dametre.value, 50 / bu.dametre.value)):
+      self.assertTrue(True)
+    else:
+      self.assertTrue(result == jnp.percentile(array / bu.dametre.value, 50 / bu.dametre.value))
+
   def test_quantile(self):
     array = jnp.array([1, 2, 3, 4])
     result = bu.math.quantile(array, 0.5)
     self.assertTrue(result == jnp.quantile(array, 0.5))
 
+    quantity = jnp.array([1, 2, 3, 4]) * bu.meter
+    result = bu.math.percentile(quantity, 0.5 * bu.meter, unit_to_scale=bu.dametre)
+    self.assertTrue(result == jnp.percentile(array / bu.dametre.value, 0.5 / bu.dametre.value))
+
   def test_nanquantile(self):
     array = jnp.array([1, jnp.nan, 3, 4])
     result = bu.math.nanquantile(array, 0.5)
     self.assertTrue(result == jnp.nanquantile(array, 0.5))
+
+    quantity = jnp.array([1, 2, jnp.nan, 4]) * bu.meter
+    result = bu.math.percentile(quantity, 0.5 * bu.meter, unit_to_scale=bu.dametre)
+    if jnp.isnan(result) and jnp.isnan(jnp.percentile(array / bu.dametre.value, 50 / bu.dametre.value)):
+      self.assertTrue(True)
+    else:
+      self.assertTrue(result == jnp.percentile(array / bu.dametre.value, 0.5 / bu.dametre.value))
 
 
 class TestMathFuncsOnlyAcceptUnitlessBinary(unittest.TestCase):
