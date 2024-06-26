@@ -18,7 +18,6 @@ from typing import (Union, Optional)
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 from jax import Array
 
 from .._base import (Quantity, DIMENSIONLESS, fail_for_dimension_mismatch)

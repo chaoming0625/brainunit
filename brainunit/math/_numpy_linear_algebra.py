@@ -310,6 +310,7 @@ def tensordot(
                                  precision=precision,
                                  preferred_element_type=preferred_element_type)
 
+
 @set_module_as('brainunit.math')
 def trace(
     a: Union[Array, Quantity],

@@ -15,52 +15,17 @@
 from __future__ import annotations
 
 import jax.numpy as jnp
-from jax import Array
-
-from .._misc import set_module_as
 
 __all__ = [
   # window funcs
   'bartlett', 'blackman', 'hamming', 'hanning', 'kaiser',
 ]
 
-
 # window funcs
 # ------------
 
-
-def window_funcs(func, *args, **kwargs):
-  return func(*args, **kwargs)
-
-
-@set_module_as('brainunit.math')
-def bartlett(M: int) -> Array:
-  return window_funcs(jnp.bartlett, M)
-
-
-@set_module_as('brainunit.math')
-def blackman(M: int) -> Array:
-  return window_funcs(jnp.blackman, M)
-
-
-@set_module_as('brainunit.math')
-def hamming(M: int) -> Array:
-  return window_funcs(jnp.hamming, M)
-
-
-@set_module_as('brainunit.math')
-def hanning(M: int) -> Array:
-  return window_funcs(jnp.hanning, M)
-
-
-@set_module_as('brainunit.math')
-def kaiser(M: int, beta: float) -> Array:
-  return window_funcs(jnp.kaiser, M, beta)
-
-
-# docs for functions above
-bartlett.__doc__ = jnp.bartlett.__doc__
-blackman.__doc__ = jnp.blackman.__doc__
-hamming.__doc__ = jnp.hamming.__doc__
-hanning.__doc__ = jnp.hanning.__doc__
-kaiser.__doc__ = jnp.kaiser.__doc__
+bartlett = jnp.bartlett
+blackman = jnp.blackman
+hamming = jnp.hamming
+hanning = jnp.hanning
+kaiser = jnp.kaiser

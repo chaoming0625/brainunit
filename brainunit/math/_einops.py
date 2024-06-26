@@ -23,9 +23,9 @@ from typing import Set, Tuple, List, Dict, Union, Callable, Optional, Sequence
 import jax
 import jax.numpy as jnp
 
+from ._einops_parsing import ParsedExpression, _ellipsis, AnonymousAxis, EinopsError
 from ._numpy_array_creation import asarray
 from ._numpy_array_manipulation import reshape, transpose, expand_dims, tile
-from ._einops_parsing import ParsedExpression, _ellipsis, AnonymousAxis, EinopsError
 from .._base import Quantity
 from .._misc import set_module_as
 
