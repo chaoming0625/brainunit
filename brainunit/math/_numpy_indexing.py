@@ -14,13 +14,15 @@
 # ==============================================================================
 from __future__ import annotations
 
+import functools
 from typing import (Union, Optional)
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 
-from .._base import (Quantity, fail_for_dimension_mismatch, is_unitless, )
+from ._numpy_array_manipulation import _fun_keep_unit_sequence
+from ._numpy_keep_unit import _fun_keep_unit_binary
+from .._base import Quantity
 from .._misc import set_module_as
 
 __all__ = [
@@ -33,14 +35,8 @@ __all__ = [
 # indexing funcs
 # --------------
 @set_module_as('brainunit.math')
-def where(
-    condition: Union[bool, jax.typing.ArrayLike],
-    *args: Union[Quantity, jax.typing.ArrayLike],
-    **kwds
-) -> Union[Quantity, jax.Array]:
+def where(condition, x=None, y=None, /, *, size=None, fill_value=None):
   """
-  where(condition, [x, y], /)
-
   Return elements chosen from `x` or `y` depending on `condition`.
 
   .. note::
@@ -69,61 +65,20 @@ def where(
   choose
   nonzero : The function that is called when x and y are omitted
   """
-  condition = jnp.asarray(condition)
-  if len(args) == 0:
-    # nothing to do
-    return jnp.where(condition, *args, **kwds)
-  elif len(args) == 2:
-    # check that x and y have the same dimensions
-    fail_for_dimension_mismatch(
-      args[0], args[1], "x and y need to have the same dimensions"
-    )
-    new_args = []
-    for arg in args:
-      if isinstance(arg, Quantity):
-        new_args.append(arg.value)
-    if is_unitless(args[0]):
-      if len(new_args) == 2:
-        return jnp.where(condition, *new_args, **kwds)
-      else:
-        return jnp.where(condition, *args, **kwds)
-    else:
-      # as both arguments have the same unit, just use the first one's
-      dimensionless_args = [jnp.asarray(arg.value) if isinstance(arg, Quantity) else jnp.asarray(arg) for arg in args]
-      return Quantity.with_units(
-        jnp.where(condition, *dimensionless_args), args[0].dim
-      )
-  else:
-    # illegal number of arguments
-    if len(args) == 1:
-      raise ValueError("where() takes 2 or 3 positional arguments but 1 was given")
-    elif len(args) > 2:
-      raise TypeError("where() takes 2 or 3 positional arguments but {} were given".format(len(args)))
+  assert not isinstance(condition, Quantity), "condition should not be a Quantity."
+  if x is None and y is None:
+    return jnp.where(condition, size=size, fill_value=fill_value)
+  return _fun_keep_unit_binary(functools.partial(jnp.where, condition, size=size, fill_value=fill_value), x, y)
 
 
 tril_indices = jnp.tril_indices
-tril_indices.__doc__ = """
-  Return the indices for the lower-triangle of an (n, m) array.
-
-  Parameters
-  ----------
-  n : int
-    The row dimension of the arrays for which the returned indices will be valid.
-  m : int
-    The column dimension of the arrays for which the returned indices will be valid.
-  k : int, optional
-    Diagonal above which to zero elements. k = 0 is the main diagonal, k < 0 subdiagonal and k > 0 superdiagonal.
-    
-  Returns
-  -------
-  out : tuple[jax.Array]
-    tuple of arrays  
-"""
 
 
 @set_module_as('brainunit.math')
-def tril_indices_from(arr: Union[Quantity, jax.typing.ArrayLike],
-                      k: Optional[int] = 0) -> tuple[jax.Array, jax.Array]:
+def tril_indices_from(
+    arr: Union[Quantity, jax.typing.ArrayLike],
+    k: Optional[int] = 0
+) -> tuple[jax.Array, jax.Array]:
   """
   Return the indices for the lower-triangle of an (n, m) array.
 
@@ -146,28 +101,13 @@ def tril_indices_from(arr: Union[Quantity, jax.typing.ArrayLike],
 
 
 triu_indices = jnp.triu_indices
-triu_indices.__doc__ = """
-  Return the indices for the upper-triangle of an (n, m) array.
-
-  Parameters
-  ----------
-  n : int
-    The row dimension of the arrays for which the returned indices will be valid.
-  m : int
-    The column dimension of the arrays for which the returned indices will be valid.
-  k : int, optional
-    Diagonal above which to zero elements. k = 0 is the main diagonal, k < 0 subdiagonal and k > 0 superdiagonal.
-    
-  Returns
-  -------
-  out : tuple[jax.Array]
-    tuple of arrays
-"""
 
 
 @set_module_as('brainunit.math')
-def triu_indices_from(arr: Union[Quantity, jax.typing.ArrayLike],
-                      k: Optional[int] = 0) -> tuple[jax.Array, jax.Array]:
+def triu_indices_from(
+    arr: Union[Quantity, jax.typing.ArrayLike],
+    k: Optional[int] = 0
+) -> tuple[jax.Array, jax.Array]:
   """
   Return the indices for the upper-triangle of an (n, m) array.
 
@@ -199,7 +139,7 @@ def take(
     indices_are_sorted: bool = False,
     fill_value: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Take elements from an array along an axis.
 
   When axis is not None, this function does the same thing as "fancy"
@@ -249,7 +189,7 @@ def take(
   -------
   out : ndarray (Ni..., Nj..., Nk...)
     The returned array has the same type as `a`.
-  '''
+  """
   if isinstance(a, Quantity):
     return a.take(indices, axis=axis, mode=mode, unique_indices=unique_indices,
                   indices_are_sorted=indices_are_sorted, fill_value=fill_value)
@@ -264,7 +204,7 @@ def select(
     choicelist: Union[Quantity, jax.typing.ArrayLike],
     default: int = 0
 ) -> Union[Quantity, jax.Array]:
-  '''
+  """
   Return an array drawn from elements in choicelist, depending on conditions.
 
   Parameters
@@ -285,14 +225,7 @@ def select(
     The output at position m is the m-th element of the array in
     `choicelist` where the m-th element of the corresponding array in
     `condlist` is True.
-  '''
-  if all(isinstance(choice, Quantity) for choice in choicelist):
-    if any(choice.dim != choicelist[0].dim for choice in choicelist):
-      raise ValueError("All choices must have the same unit")
-    else:
-      return Quantity(jnp.select(condlist, [choice.value for choice in choicelist], default=default),
-                      dim=choicelist[0].dim)
-  elif all(isinstance(choice, (jax.Array, np.ndarray)) for choice in choicelist):
-    return jnp.select(condlist, choicelist, default=default)
-  else:
-    raise ValueError(f"Unsupported types : {type(condlist)} and {type(choicelist)} for select")
+  """
+  for cond in condlist:
+    assert not isinstance(cond, Quantity), "condlist should not contain Quantity."
+  return _fun_keep_unit_sequence(functools.partial(jnp.select, condlist), choicelist, default)

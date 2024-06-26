@@ -962,7 +962,7 @@ def modf(
 # math funcs keep unit (binary)
 # -----------------------------
 
-def funcs_keep_unit_binary(func, x1, x2, *args, **kwargs):
+def _fun_keep_unit_binary(func, x1, x2, *args, **kwargs):
   if isinstance(x1, Quantity) and isinstance(x2, Quantity):
     fail_for_dimension_mismatch(x1, x2, func.__name__)
     return Quantity(func(x1.value, x2.value, *args, **kwargs), dim=x1.dim)
@@ -995,7 +995,7 @@ def fmod(x1: Union[Quantity, jax.Array],
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   # TODO: Consider different unit of x1 and x2
-  return funcs_keep_unit_binary(jnp.fmod, x1, x2)
+  return _fun_keep_unit_binary(jnp.fmod, x1, x2)
 
 
 @set_module_as('brainunit.math')
@@ -1016,7 +1016,7 @@ def mod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
   # TODO: Consider different unit of x1 and x2
-  return funcs_keep_unit_binary(jnp.mod, x1, x2)
+  return _fun_keep_unit_binary(jnp.mod, x1, x2)
 
 
 @set_module_as('brainunit.math')
@@ -1081,7 +1081,7 @@ def maximum(x1: Union[Quantity, jax.Array],
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  return funcs_keep_unit_binary(jnp.maximum, x1, x2)
+  return _fun_keep_unit_binary(jnp.maximum, x1, x2)
 
 
 @set_module_as('brainunit.math')
@@ -1102,7 +1102,7 @@ def minimum(x1: Union[Quantity, jax.Array],
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  return funcs_keep_unit_binary(jnp.minimum, x1, x2)
+  return _fun_keep_unit_binary(jnp.minimum, x1, x2)
 
 
 @set_module_as('brainunit.math')
@@ -1123,7 +1123,7 @@ def fmax(x1: Union[Quantity, jax.Array],
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  return funcs_keep_unit_binary(jnp.fmax, x1, x2)
+  return _fun_keep_unit_binary(jnp.fmax, x1, x2)
 
 
 @set_module_as('brainunit.math')
@@ -1144,7 +1144,7 @@ def fmin(x1: Union[Quantity, jax.Array],
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  return funcs_keep_unit_binary(jnp.fmin, x1, x2)
+  return _fun_keep_unit_binary(jnp.fmin, x1, x2)
 
 
 @set_module_as('brainunit.math')
@@ -1165,7 +1165,7 @@ def lcm(x1: Union[Quantity, jax.Array],
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  return funcs_keep_unit_binary(jnp.lcm, x1, x2)
+  return _fun_keep_unit_binary(jnp.lcm, x1, x2)
 
 
 @set_module_as('brainunit.math')
@@ -1186,7 +1186,7 @@ def gcd(x1: Union[Quantity, jax.Array],
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  return funcs_keep_unit_binary(jnp.gcd, x1, x2)
+  return _fun_keep_unit_binary(jnp.gcd, x1, x2)
 
 
 # math funcs keep unit (n-ary)
