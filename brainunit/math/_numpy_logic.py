@@ -39,9 +39,9 @@ __all__ = [
 # -------------------
 
 
-def logic_func_unary(func, x, *args, **kwargs):
+def _fun_logic_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
-    raise ValueError(f'Expected arrays, got {x}')
+    assert x.is_unitless, f'Expected unitless array for {func.__name__}, while got {x}'
   return func(x, *args, **kwargs)
 
 
@@ -86,7 +86,7 @@ def all(
     A new boolean or array is returned unless `out` is specified,
     in which case a reference to `out` is returned.
   """
-  return logic_func_unary(jnp.all, x, axis=axis, keepdims=keepdims, where=where)
+  return _fun_logic_unary(jnp.all, x, axis=axis, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -130,7 +130,7 @@ def any(
     A new boolean or array is returned unless `out` is specified,
     in which case a reference to `out` is returned.
   """
-  return logic_func_unary(jnp.any, x, axis=axis, keepdims=keepdims, where=where)
+  return _fun_logic_unary(jnp.any, x, axis=axis, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -151,7 +151,7 @@ def logical_not(
     A new boolean or array is returned unless `out` is specified,
     in which case a reference to `out` is returned.
   """
-  return logic_func_unary(jnp.logical_not, x)
+  return _fun_logic_unary(jnp.logical_not, x)
 
 
 alltrue = all
@@ -162,7 +162,7 @@ sometrue = any
 # --------------------
 
 
-def logic_func_binary(func, x, y, *args, **kwargs):
+def _fun_logic_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     fail_for_dimension_mismatch(x, y)
     return func(x.value, y.value, *args, **kwargs)
@@ -217,7 +217,7 @@ def equal(
     Typically of type bool, unless ``dtype=object`` is passed.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.equal, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -262,7 +262,7 @@ def not_equal(
     Typically of type bool, unless ``dtype=object`` is passed.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.not_equal, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.not_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -307,7 +307,7 @@ def greater(
     Typically of type bool, unless ``dtype=object`` is passed.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.greater, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.greater, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -352,7 +352,7 @@ def greater_equal(
     Typically of type bool, unless ``dtype=object`` is passed.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.greater_equal, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.greater_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -397,7 +397,7 @@ def less(
       Typically of type bool, unless ``dtype=object`` is passed.
       This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.less, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.less, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -442,7 +442,7 @@ def less_equal(
     Typically of type bool, unless ``dtype=object`` is passed.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.less_equal, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.less_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -470,7 +470,7 @@ def array_equal(
   b : bool
     Returns True if the arrays are equal.
   """
-  return logic_func_binary(jnp.array_equal, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.array_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -521,7 +521,7 @@ def isclose(
     fail_for_dimension_mismatch(rtol, Quantity(0., dim=dim), 'rtol should be a Quantity with {dim}.', dim=dim)
   if isinstance(atol, Quantity):
     fail_for_dimension_mismatch(atol, Quantity(0., dim=dim), 'atol should be a Quantity with {dim}.', dim=dim)
-  return logic_func_binary(jnp.isclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
+  return _fun_logic_binary(jnp.isclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @set_module_as('brainunit.math')
@@ -574,7 +574,7 @@ def allclose(
     fail_for_dimension_mismatch(rtol, Quantity(0., dim=dim), 'rtol should be a Quantity with {dim}.', dim=dim)
   if isinstance(atol, Quantity):
     fail_for_dimension_mismatch(atol, Quantity(0., dim=dim), 'atol should be a Quantity with {dim}.', dim=dim)
-  return logic_func_binary(jnp.allclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
+  return _fun_logic_binary(jnp.allclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @set_module_as('brainunit.math')
@@ -618,7 +618,7 @@ def logical_and(
     of `x` and `y`; the shape is determined by broadcasting.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.logical_and, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.logical_and, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -662,7 +662,7 @@ def logical_or(
     of `x` and `y`; the shape is determined by broadcasting.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.logical_or, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.logical_or, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -706,4 +706,4 @@ def logical_xor(
     of `x` and `y`; the shape is determined by broadcasting.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.logical_xor, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.logical_xor, x, y, *args, **kwargs)
