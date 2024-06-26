@@ -20,7 +20,7 @@ import jax
 import jax.numpy as jnp
 from jax import Array
 
-from ._numpy_change_unit import funcs_change_unit_binary
+from ._numpy_change_unit import _fun_change_unit_binary
 from ._numpy_keep_unit import _fun_keep_unit_unary
 from .._base import Quantity
 from .._misc import set_module_as
@@ -68,11 +68,11 @@ def dot(
 
     This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
   """
-  return funcs_change_unit_binary(jnp.dot,
-                                  lambda x, y: x * y,
-                                  a, b,
-                                  precision=precision,
-                                  preferred_element_type=preferred_element_type)
+  return _fun_change_unit_binary(jnp.dot,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 precision=precision,
+                                 preferred_element_type=preferred_element_type)
 
 
 @set_module_as('brainunit.math')
@@ -108,11 +108,11 @@ def vdot(
 
     This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
   """
-  return funcs_change_unit_binary(jnp.vdot,
-                                  lambda x, y: x * y,
-                                  a, b,
-                                  precision=precision,
-                                  preferred_element_type=preferred_element_type)
+  return _fun_change_unit_binary(jnp.vdot,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 precision=precision,
+                                 preferred_element_type=preferred_element_type)
 
 
 @set_module_as('brainunit.math')
@@ -148,11 +148,11 @@ def inner(
 
     This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
   """
-  return funcs_change_unit_binary(jnp.inner,
-                                  lambda x, y: x * y,
-                                  a, b,
-                                  precision=precision,
-                                  preferred_element_type=preferred_element_type)
+  return _fun_change_unit_binary(jnp.inner,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 precision=precision,
+                                 preferred_element_type=preferred_element_type)
 
 
 @set_module_as('brainunit.math')
@@ -182,10 +182,10 @@ def outer(
 
     This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
   """
-  return funcs_change_unit_binary(jnp.outer,
-                                  lambda x, y: x * y,
-                                  a, b,
-                                  out=out)
+  return _fun_change_unit_binary(jnp.outer,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 out=out)
 
 
 @set_module_as('brainunit.math')
@@ -210,9 +210,9 @@ def kron(
 
     This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
   """
-  return funcs_change_unit_binary(jnp.kron,
-                                  lambda x, y: x * y,
-                                  a, b)
+  return _fun_change_unit_binary(jnp.kron,
+                                 lambda x, y: x * y,
+                                 a, b)
 
 
 @set_module_as('brainunit.math')
@@ -248,11 +248,11 @@ def matmul(
 
     This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
   """
-  return funcs_change_unit_binary(jnp.matmul,
-                                  lambda x, y: x * y,
-                                  a, b,
-                                  precision=precision,
-                                  preferred_element_type=preferred_element_type)
+  return _fun_change_unit_binary(jnp.matmul,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 precision=precision,
+                                 preferred_element_type=preferred_element_type)
 
 
 @set_module_as('brainunit.math')
