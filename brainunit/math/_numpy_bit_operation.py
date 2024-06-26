@@ -18,7 +18,6 @@ from typing import (Union)
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 from jax import Array
 
 from .._base import Quantity
@@ -36,9 +35,10 @@ __all__ = [
 # Elementwise bit operations (unary)
 # ----------------------------------
 
-def elementwise_bit_operation_unary(func, x, *args, **kwargs):
+def _fun_unitless_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
-    raise ValueError(f'Expected arrays, got {x}')
+    assert x.is_unitless, f'Expected unitless array, got {x}'
+    x = x.value
   return func(x, *args, **kwargs)
 
 
@@ -57,7 +57,7 @@ def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   out : jax.Array
     Output array.
   """
-  return elementwise_bit_operation_unary(jnp.bitwise_not, x)
+  return _fun_unitless_unary(jnp.bitwise_not, x)
 
 
 @set_module_as('brainunit.math')
@@ -75,20 +75,21 @@ def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   out : jax.Array
     Output array.
   """
-  return elementwise_bit_operation_unary(jnp.invert, x)
+  return _fun_unitless_unary(jnp.invert, x)
 
 
 # Elementwise bit operations (binary)
 # -----------------------------------
 
 
-def elementwise_bit_operation_binary(func, x, y, *args, **kwargs):
-  if isinstance(x, Quantity) or isinstance(y, Quantity):
-    raise ValueError(f'Expected array, got {x} and {y}')
-  elif isinstance(x, (jax.Array, np.ndarray)) and isinstance(y, (jax.Array, np.ndarray, int, float)):
-    return func(x, y, *args, **kwargs)
-  else:
-    raise ValueError(f'Unsupported types {type(x)} and {type(y)} for {func.__name__}')
+def _fun_unitless_binary(func, x, y, *args, **kwargs):
+  if isinstance(x, Quantity):
+    assert x.is_unitless, f'Expected unitless array, got {x}'
+    x = x.value
+  if isinstance(y, Quantity):
+    assert y.is_unitless, f'Expected unitless array, got {y}'
+    y = y.value
+  return func(x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -111,7 +112,7 @@ def bitwise_and(
   out : jax.Array
     Output array.
   """
-  return elementwise_bit_operation_binary(jnp.bitwise_and, x, y)
+  return _fun_unitless_binary(jnp.bitwise_and, x, y)
 
 
 @set_module_as('brainunit.math')
@@ -134,7 +135,7 @@ def bitwise_or(
   out : jax.Array
     Output array.
   """
-  return elementwise_bit_operation_binary(jnp.bitwise_or, x, y)
+  return _fun_unitless_binary(jnp.bitwise_or, x, y)
 
 
 @set_module_as('brainunit.math')
@@ -157,7 +158,7 @@ def bitwise_xor(
   out : jax.Array
     Output array.
   """
-  return elementwise_bit_operation_binary(jnp.bitwise_xor, x, y)
+  return _fun_unitless_binary(jnp.bitwise_xor, x, y)
 
 
 @set_module_as('brainunit.math')
@@ -180,7 +181,7 @@ def left_shift(
   out : jax.Array
     Output array.
   """
-  return elementwise_bit_operation_binary(jnp.left_shift, x, y)
+  return _fun_unitless_binary(jnp.left_shift, x, y)
 
 
 @set_module_as('brainunit.math')
@@ -203,4 +204,4 @@ def right_shift(
   out : jax.Array
     Output array.
   """
-  return elementwise_bit_operation_binary(jnp.right_shift, x, y)
+  return _fun_unitless_binary(jnp.right_shift, x, y)
