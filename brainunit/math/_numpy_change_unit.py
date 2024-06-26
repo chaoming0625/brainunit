@@ -20,8 +20,7 @@ from typing import (Union, Optional, Tuple, Any)
 import jax
 import jax.numpy as jnp
 
-from .._base import (DIMENSIONLESS, Quantity, )
-from .._base import _return_check_unitless
+from .._base import (DIMENSIONLESS, Quantity, _return_check_unitless)
 from .._misc import set_module_as
 
 __all__ = [
