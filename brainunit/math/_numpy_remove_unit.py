@@ -31,7 +31,7 @@ __all__ = [
 # math funcs remove unit (unary)
 # ------------------------------
 
-def funcs_remove_unit_unary(func, x, *args, **kwargs):
+def _fun_remove_unit_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
     return func(x.value, *args, **kwargs)
   else:
@@ -54,7 +54,7 @@ def signbit(x: Union[Array, Quantity]) -> Array:
       Output array, or reference to `out` if that was supplied.
       This is a scalar if `x` is a scalar.
   """
-  return funcs_remove_unit_unary(jnp.signbit, x)
+  return _fun_remove_unit_unary(jnp.signbit, x)
 
 
 @set_module_as('brainunit.math')
@@ -73,7 +73,7 @@ def sign(x: Union[Array, Quantity]) -> Array:
     The sign of `x`.
     This is a scalar if `x` is a scalar.
   """
-  return funcs_remove_unit_unary(jnp.sign, x)
+  return _fun_remove_unit_unary(jnp.sign, x)
 
 
 @set_module_as('brainunit.math')
@@ -111,7 +111,7 @@ def bincount(
     The result of binning the input array.
     The length of `out` is equal to ``bu.amax(x)+1``.
   """
-  return funcs_remove_unit_unary(jnp.bincount, x, weights=weights, minlength=minlength, length=length)
+  return _fun_remove_unit_unary(jnp.bincount, x, weights=weights, minlength=minlength, length=length)
 
 
 @set_module_as('brainunit.math')

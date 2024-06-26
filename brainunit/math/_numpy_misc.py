@@ -25,7 +25,7 @@ import numpy as np
 import opt_einsum
 from jax import Array
 
-from ._numpy_array_manipulation import _func_array_manipulation
+from ._numpy_array_manipulation import _fun_require_same_unit
 from ._numpy_change_unit import funcs_change_unit_binary
 from ._numpy_keep_unit import _fun_keep_unit_unary
 from .._base import (DIMENSIONLESS,
@@ -535,11 +535,11 @@ def nanargmax(
   index_array : ndarray
     An array of indices or a single index value.
   """
-  return _func_array_manipulation(jnp.nanargmax,
-                                  a,
-                                  return_quantity=False,
-                                  axis=axis,
-                                  keepdims=keepdims)
+  return _fun_require_same_unit(jnp.nanargmax,
+                                a,
+                                return_quantity=False,
+                                axis=axis,
+                                keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')
@@ -569,11 +569,11 @@ def nanargmin(
   index_array : ndarray
     An array of indices or a single index value.
   """
-  return _func_array_manipulation(jnp.nanargmin,
-                                  a,
-                                  return_quantity=False,
-                                  axis=axis,
-                                  keepdims=keepdims)
+  return _fun_require_same_unit(jnp.nanargmin,
+                                a,
+                                return_quantity=False,
+                                axis=axis,
+                                keepdims=keepdims)
 
 
 @set_module_as('brainunit.math')

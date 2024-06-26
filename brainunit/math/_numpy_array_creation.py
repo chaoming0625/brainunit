@@ -22,14 +22,12 @@ import jax.numpy as jnp
 import numpy as np
 from jax import Array
 
-from .._base import (
-  DIMENSIONLESS,
-  Quantity,
-  Unit,
-  DimensionMismatchError,
-  fail_for_dimension_mismatch,
-  is_unitless,
-)
+from .._base import (DIMENSIONLESS,
+                     Quantity,
+                     Unit,
+                     DimensionMismatchError,
+                     fail_for_dimension_mismatch,
+                     is_unitless, )
 from .._misc import set_module_as
 
 __all__ = [
