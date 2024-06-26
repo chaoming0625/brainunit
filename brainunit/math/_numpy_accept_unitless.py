@@ -31,7 +31,7 @@ __all__ = [
   'tanh', 'deg2rad', 'rad2deg', 'degrees', 'radians', 'angle',
   'percentile', 'nanpercentile', 'quantile', 'nanquantile',
   'round', 'around', 'round_', 'rint',
-  'floor', 'ceil', 'trunc', 'fix',
+  'floor', 'ceil', 'trunc', 'fix', 'modf',
   'corrcoef', 'correlate', 'cov',
 
   # math funcs only accept unitless (binary)
@@ -824,6 +824,28 @@ def fix(
   out : jax.Array
   """
   return _func_accept_unitless_unary(jnp.fix, x, unit_to_scale=unit_to_scale)
+
+
+@set_module_as('brainunit.math')
+def modf(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> Tuple[jax.Array, jax.Array]:
+  """
+  Return the fractional and integer parts of the array elements.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  unit_to_scale : Unit, optional
+    The unit_to_scale to scale the ``x``.
+
+  Returns
+  -------
+  The fractional and integral parts of the input, both with the same dimension.
+  """
+  return _func_accept_unitless_unary(jnp.modf, x, unit_to_scale=unit_to_scale)
 
 
 # math funcs only accept unitless (binary)

@@ -25,8 +25,7 @@ import numpy as np
 import opt_einsum
 from jax import Array
 
-from ._numpy_array_manipulation import _fun_require_same_unit
-from ._numpy_change_unit import funcs_change_unit_binary
+from ._numpy_change_unit import _fun_change_unit_binary
 from ._numpy_keep_unit import _fun_keep_unit_unary
 from .._base import (DIMENSIONLESS,
                      Quantity,
@@ -499,12 +498,12 @@ def tensordot(
 
     This is a quantity if the product of the units of `a` and `b` is not dimensionless.
   """
-  return funcs_change_unit_binary(jnp.tensordot,
-                                  lambda x, y: x * y,
-                                  a, b,
-                                  axes=axes,
-                                  precision=precision,
-                                  preferred_element_type=preferred_element_type)
+  return _fun_change_unit_binary(jnp.tensordot,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 axes=axes,
+                                 precision=precision,
+                                 preferred_element_type=preferred_element_type)
 
 
 @set_module_as('brainunit.math')

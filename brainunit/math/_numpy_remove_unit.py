@@ -24,7 +24,7 @@ from .._base import Quantity, fail_for_dimension_mismatch
 from .._misc import set_module_as
 
 __all__ = [
-  'signbit', 'sign', 'bincount', 'digitize',
+  'heaviside', 'signbit', 'sign', 'bincount', 'digitize',
 ]
 
 
@@ -36,6 +36,32 @@ def _fun_remove_unit_unary(func, x, *args, **kwargs):
     return func(x.value, *args, **kwargs)
   else:
     return func(x, *args, **kwargs)
+
+
+@set_module_as('brainunit.math')
+def heaviside(
+    x1: Union[Quantity, jax.Array],
+    x2: jax.typing.ArrayLike
+) -> Union[Quantity, jax.Array]:
+  """
+  Compute the Heaviside step function.
+
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  """
+  x1 = x1.value if isinstance(x1, Quantity) else x1
+  if isinstance(x2, Quantity):
+    assert x2.is_unitless, f'Expected unitless array for x2, while got {x2}'
+  return _fun_remove_unit_unary(jnp.heaviside, x1, x2)
 
 
 @set_module_as('brainunit.math')

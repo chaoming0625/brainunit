@@ -28,7 +28,7 @@ __all__ = [
   'abs', 'sum', 'nancumsum', 'nansum',
   'cumsum', 'ediff1d', 'absolute', 'fabs', 'median',
   'nanmin', 'nanmax', 'ptp', 'average', 'mean', 'std',
-  'nanmedian', 'nanmean', 'nanstd', 'diff', 'modf',
+  'nanmedian', 'nanmean', 'nanstd', 'diff',
 
   # math funcs keep unit (binary)
   'fmod', 'mod', 'copysign', 'heaviside',
@@ -933,30 +933,7 @@ def diff(
   if isinstance(append, Quantity):
     fail_for_dimension_mismatch(x, append, 'diff requires the same dimension.')
     append = append.value
-
   return _fun_keep_unit_unary(jnp.diff, x, n=n, axis=axis, prepend=prepend, append=append)
-
-
-@set_module_as('brainunit.math')
-def modf(
-    x: Union[Quantity, jax.typing.ArrayLike],
-) -> Tuple[jax.Array, jax.Array]:
-  """
-  Return the fractional and integer parts of the array elements.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  The fractional and integral parts of the input, both with the same dimension.
-  """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'modf requires a unitless Quantity.'
-    x = x.value
-  return jnp.modf(x)
 
 
 # math funcs keep unit (binary)
@@ -994,7 +971,6 @@ def fmod(x1: Union[Quantity, jax.Array],
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  # TODO: Consider different unit of x1 and x2
   return _fun_keep_unit_binary(jnp.fmod, x1, x2)
 
 
@@ -1015,13 +991,14 @@ def mod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  # TODO: Consider different unit of x1 and x2
   return _fun_keep_unit_binary(jnp.mod, x1, x2)
 
 
 @set_module_as('brainunit.math')
-def copysign(x1: Union[Quantity, jax.Array],
-             x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def copysign(
+    x1: Union[Quantity, jax.Array],
+    x2: Union[Quantity, jax.Array]
+) -> Union[Quantity, jax.Array]:
   """
   Return a copy of the first array elements with the sign of the second array.
 
@@ -1042,30 +1019,10 @@ def copysign(x1: Union[Quantity, jax.Array],
 
 
 @set_module_as('brainunit.math')
-def heaviside(x1: Union[Quantity, jax.Array],
-              x2: jax.typing.ArrayLike) -> Union[Quantity, jax.Array]:
-  """
-  Compute the Heaviside step function.
-
-  Parameters
-  ----------
-  x1: array_like, Quantity
-    Input array.
-  x2: array_like, Quantity
-    Input array.
-
-  Returns
-  -------
-  out : jax.Array, Quantity
-    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
-  """
-  x1 = x1.value if isinstance(x1, Quantity) else x1
-  return jnp.heaviside(x1, x2)
-
-
-@set_module_as('brainunit.math')
-def maximum(x1: Union[Quantity, jax.Array],
-            x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def maximum(
+    x1: Union[Quantity, jax.Array],
+    x2: Union[Quantity, jax.Array]
+) -> Union[Quantity, jax.Array]:
   """
   Element-wise maximum of array elements.
 
@@ -1214,22 +1171,26 @@ def interp(
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x`, `xp`, and `fp` are Quantities that have the same unit, else an array.
   """
-  if isinstance(xp, Quantity):
-    fail_for_dimension_mismatch(x, xp, 'xp and x should have the same dimension.')
-    xp = xp.value
+  fail_for_dimension_mismatch(x, xp, 'xp and x should have the same dimension.')
+  if left is not None:
+    fail_for_dimension_mismatch(fp, left, 'fp and left should have the same dimension.')
+  if right is not None:
+    fail_for_dimension_mismatch(fp, right, 'fp and right should have the same dimension.')
+  if period is not None:
+    fail_for_dimension_mismatch(fp, period, 'fp and period should have the same dimension.')
+  dim = None
   if isinstance(fp, Quantity):
-    fail_for_dimension_mismatch(x, fp, 'fp and x should have the same dimension.')
-    fp = fp.value
-  if isinstance(left, Quantity):
-    fail_for_dimension_mismatch(x, left)
-    left = left.value
-  if isinstance(right, Quantity):
-    fail_for_dimension_mismatch(x, right)
-    right = right.value
-  if isinstance(period, Quantity):
-    fail_for_dimension_mismatch(x, period)
-    period = period.value
-  return _fun_keep_unit_unary(jnp.interp, x, xp=xp, fp=fp, left=left, right=right, period=period)
+    dim = fp.dim
+  x, xp, fp, left, right, period = (x.value if isinstance(x, Quantity) else x,
+                                    xp.value if isinstance(xp, Quantity) else xp,
+                                    fp.value if isinstance(fp, Quantity) else fp,
+                                    left.value if isinstance(left, Quantity) else left,
+                                    right.value if isinstance(right, Quantity) else right,
+                                    period.value if isinstance(period, Quantity) else period)
+  r = jnp.interp(x, xp=xp, fp=fp, left=left, right=right, period=period)
+  if dim is None:
+    return r
+  return Quantity(r, dim=dim)
 
 
 @set_module_as('brainunit.math')
