@@ -36,6 +36,7 @@ __all__ = [
 
   # math funcs keep unit (n-ary)
   'interp', 'clip', 'histogram',
+  'add', 'subtract', 'nextafter',
 ]
 
 
@@ -1447,3 +1448,133 @@ def histogram(
   if dim == DIMENSIONLESS:
     return hist, bin_edges
   return hist, Quantity(bin_edges, dim=dim)
+
+
+def _fun_match_unit_binary(func, x, y, *args, **kwargs):
+  if isinstance(x, Quantity) and isinstance(y, Quantity):
+    fail_for_dimension_mismatch(x, y, func.__name__)
+    return Quantity(func(x.value, y.value, *args, **kwargs), dim=x.dim)
+  elif isinstance(x, Quantity):
+    assert x.is_unitless, f'Expected unitless Quantity when y is not a Quantity, got {x}'
+    return func(x.value, y, *args, **kwargs)
+  elif isinstance(y, Quantity):
+    assert y.is_unitless, f'Expected unitless Quantity when x is not a Quantity, got {y}'
+    return func(x, y.value, *args, **kwargs)
+  else:
+    return func(x, y, *args, **kwargs)
+
+
+@set_module_as('brainunit.math')
+def add(
+    x: Union[Quantity, jax.Array],
+    y: Union[Quantity, jax.Array],
+    *args,
+    **kwargs
+) -> Union[Quantity, jax.Array]:
+  """
+  Add arguments element-wise.
+
+  Parameters
+  ----------
+  x, y : array_like, Quantity
+    The arrays to be added.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  add : ndarray or scalar
+    The sum of `x` and `y`, element-wise.
+    This is a scalar if both `x` and `y` are scalars.
+  """
+  return _fun_match_unit_binary(jnp.add, x, y, *args, **kwargs)
+
+
+@set_module_as('brainunit.math')
+def subtract(
+    x: Union[Quantity, jax.Array],
+    y: Union[Quantity, jax.Array],
+    *args,
+    **kwargs
+) -> Union[Quantity, jax.Array]:
+  """
+  subtract(x1, x2, /, out=None, *, where=True, casting='same_kind',
+  order='K', dtype=None, subok=True[, signature, extobj])
+
+  Subtract arguments, element-wise.
+
+  Parameters
+  ----------
+  x, y : array_like
+    The arrays to be subtracted from each other.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  subtract : ndarray
+    The difference of `x` and `y`, element-wise.
+    This is a scalar if both `x` and `y` are scalars.
+  """
+  return _fun_match_unit_binary(jnp.subtract, x, y, *args, **kwargs)
+
+
+@set_module_as('brainunit.math')
+def nextafter(
+    x: Union[Quantity, jax.Array],
+    y: Union[Quantity, jax.Array],
+    *args,
+    **kwargs
+) -> Union[Quantity, jax.Array]:
+  """
+  nextafter(x, y, /, out=None, *, where=True, casting='same_kind',
+  order='K', dtype=None, subok=True[, signature, extobj])
+
+  Return the next floating-point value after x1 towards x2, element-wise.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Values to find the next representable value of.
+  y : array_like, Quantity
+    The direction where to look for the next representable value of `x`.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+  where : array_like, optional
+    This condition is broadcast over the input. At locations where the
+    condition is True, the `out` array will be set to the ufunc result.
+    Elsewhere, the `out` array will retain its original value.
+    Note that if an uninitialized `out` array is created via the default
+    ``out=None``, locations within it where the condition is False will
+    remain uninitialized.
+  **kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+  Returns
+  -------
+  out : ndarray or scalar
+    The next representable values of `x` in the direction of `y`.
+    This is a scalar if both `x` and `y` are scalars.
+  """
+  return _fun_match_unit_binary(jnp.nextafter, x, y, *args, **kwargs)

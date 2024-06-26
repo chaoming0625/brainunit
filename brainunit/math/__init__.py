@@ -21,8 +21,6 @@ from ._numpy_array_creation import *
 from ._numpy_array_creation import __all__ as _compat_array_creation_all
 from ._numpy_array_manipulation import *
 from ._numpy_array_manipulation import __all__ as _compat_array_manipulation_all
-from ._numpy_bit_operation import *
-from ._numpy_bit_operation import __all__ as _compat_funcs_bit_operation_all
 from ._numpy_change_unit import *
 from ._numpy_change_unit import __all__ as _compat_funcs_change_unit_all
 from ._numpy_get_attribute import *
@@ -33,16 +31,10 @@ from ._numpy_keep_unit import *
 from ._numpy_keep_unit import __all__ as _compat_funcs_keep_unit_all
 from ._numpy_linear_algebra import *
 from ._numpy_linear_algebra import __all__ as _compat_linear_algebra_all
-from ._numpy_logic import *
-from ._numpy_logic import __all__ as _compat_funcs_logic_all
-from ._numpy_match_unit import *
-from ._numpy_match_unit import __all__ as _compat_funcs_match_unit_all
 from ._numpy_misc import *
 from ._numpy_misc import __all__ as _compat_misc_all
 from ._numpy_remove_unit import *
 from ._numpy_remove_unit import __all__ as _compat_funcs_remove_unit_all
-from ._numpy_window_funs import *
-from ._numpy_window_funs import __all__ as _compat_funcs_window_all
 from ._others import *
 from ._others import __all__ as _other_all
 
@@ -51,15 +43,11 @@ __all__ = (_compat_array_creation_all +
            _compat_funcs_change_unit_all +
            _compat_funcs_keep_unit_all +
            _compat_funcs_accept_unitless_all +
-           _compat_funcs_match_unit_all +
            _compat_funcs_remove_unit_all +
            _compat_get_attribute_all +
-           _compat_funcs_bit_operation_all +
-           _compat_funcs_logic_all +
            _compat_funcs_indexing_all +
-           _compat_funcs_window_all +
            _compat_linear_algebra_all +
-           _compat_misc_all + _other_all +
+           _compat_misc_all +
            _other_all +
            _einops_all)
 
@@ -68,13 +56,9 @@ del (_compat_array_creation_all,
      _compat_funcs_change_unit_all,
      _compat_funcs_keep_unit_all,
      _compat_funcs_accept_unitless_all,
-     _compat_funcs_match_unit_all,
      _compat_funcs_remove_unit_all,
      _compat_get_attribute_all,
-     _compat_funcs_bit_operation_all,
-     _compat_funcs_logic_all,
      _compat_funcs_indexing_all,
-     _compat_funcs_window_all,
      _compat_linear_algebra_all,
      _compat_misc_all,
      _other_all,

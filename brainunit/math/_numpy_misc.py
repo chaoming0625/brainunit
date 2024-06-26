@@ -41,6 +41,9 @@ __all__ = [
 
   # more
   'broadcast_arrays', 'broadcast_shapes', 'einsum', 'gradient',
+
+  # window funcs
+  'bartlett', 'blackman', 'hamming', 'hanning', 'kaiser',
 ]
 
 # constants
@@ -297,3 +300,13 @@ def gradient(
     varargs = [v.value if isinstance(v, Quantity) else v for v in varargs]
     result_list = jnp.gradient(f, *varargs, axis=axis)
     return [Quantity(r, dim=unit) if unit is not None else r for r, unit in zip(result_list, unit_list)]
+
+
+# window funcs
+# ------------
+
+bartlett = jnp.bartlett
+blackman = jnp.blackman
+hamming = jnp.hamming
+hanning = jnp.hanning
+kaiser = jnp.kaiser
