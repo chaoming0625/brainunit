@@ -21,7 +21,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from ._numpy_accept_unitless import _func_accept_unitless_unary
+from ._numpy_accept_unitless import _fun_accept_unitless_unary
 from ._numpy_keep_unit import _fun_keep_unit_unary
 from .._base import Quantity, Unit
 from .._misc import set_module_as
@@ -113,7 +113,7 @@ def exprel(x, *, level: int = 2):
   Returns:
     ``(exp(x) - 1)/x``, computed element-wise.
   """
-  return _func_accept_unitless_unary(_exprel_v2, x, level=level)
+  return _fun_accept_unitless_unary(_exprel_v2, x, level=level)
 
 
 @set_module_as('brainunit.math')
