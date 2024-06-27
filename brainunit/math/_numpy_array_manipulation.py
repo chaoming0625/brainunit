@@ -31,7 +31,7 @@ __all__ = [
   # array manipulation
   'reshape', 'moveaxis', 'transpose', 'swapaxes', 'row_stack',
   'concatenate', 'stack', 'vstack', 'hstack', 'dstack', 'column_stack',
-  'split', 'dsplit', 'hsplit', 'vsplit', 'tile', 'repeat', 'unique',
+  'split', 'array_split', 'dsplit', 'hsplit', 'vsplit', 'tile', 'repeat', 'unique',
   'append', 'flip', 'fliplr', 'flipud', 'roll', 'atleast_1d', 'atleast_2d',
   'atleast_3d', 'expand_dims', 'squeeze', 'sort', 'argsort', 'argmax', 'argmin',
   'nanargmax', 'nanargmin',
@@ -908,6 +908,34 @@ def split(
     A list of sub-arrays.
   """
   return _fun_keep_unit_return_sequence(jnp.split, a, indices_or_sections=indices_or_sections, axis=axis)
+
+
+@set_module_as('brainunit.math')
+def array_split(
+    ary: Union[Quantity, jax.typing.ArrayLike],
+    indices_or_sections: Union[int, jax.typing.ArrayLike],
+    axis: Optional[int] = 0
+) -> Union[list[Quantity], list[Array]]:
+  """
+  Split an array into multiple sub-arrays.
+
+  Parameters
+  ----------
+  ary : Quantity or array
+    Array to be divided into sub-arrays.
+  indices_or_sections : int or 1-D array
+    If `indices_or_sections` is an integer, `ary` is divided into `indices_or_sections` sub-arrays along `axis`.
+    If such a split is not possible, an error is raised.
+    If `indices_or_sections` is a 1-D array of sorted integers, the entries indicate where along `axis` the array is split.
+  axis : int, optional
+    The axis along which to split, default is 0.
+
+  Returns
+  -------
+  sub-arrays : list of Quantity or list of array
+    A list of sub-arrays.
+  """
+  return _fun_keep_unit_return_sequence(jnp.split, ary, indices_or_sections=indices_or_sections, axis=axis)
 
 
 @set_module_as('brainunit.math')

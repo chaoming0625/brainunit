@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import (Union, Optional, Any, List)
+from typing import (Union, Optional, List)
 
 import jax
 import jax.numpy as jnp
@@ -25,25 +25,26 @@ from jax import Array
 from .._base import (DIMENSIONLESS,
                      Quantity,
                      Unit,
-                     DimensionMismatchError,
                      fail_for_dimension_mismatch,
                      is_unitless, )
 from .._misc import set_module_as
+
+Shape = Union[int, Sequence[int]]
 
 __all__ = [
   # array creation
   'full', 'full_like', 'eye', 'identity', 'diag', 'tri', 'tril', 'triu',
   'empty', 'empty_like', 'ones', 'ones_like', 'zeros', 'zeros_like',
   'array', 'asarray', 'arange', 'linspace', 'logspace', 'fill_diagonal',
-  'array_split', 'meshgrid', 'vander',
+  'meshgrid', 'vander',
 ]
 
 
 @set_module_as('brainunit.math')
 def full(
-    shape: Sequence[int],
+    shape: Shape,
     fill_value: Union[Quantity, int, float],
-    dtype: Optional[Any] = None,
+    dtype: Optional[jax.typing.DTypeLike] = None,
 ) -> Union[Array, Quantity]:
   """
   Returns a quantity of `shape`, filled with `fill_value` if `fill_value` is a Quantity.
@@ -74,7 +75,7 @@ def eye(
     N: int,
     M: Optional[int] = None,
     k: int = 0,
-    dtype: Optional[Any] = None,
+    dtype: Optional[jax.typing.DTypeLike] = None,
     unit: Optional[Unit] = None,
 ) -> Union[Array, Quantity]:
   """
@@ -111,7 +112,7 @@ def eye(
 @set_module_as('brainunit.math')
 def identity(
     n: int,
-    dtype: Optional[Any] = None,
+    dtype: Optional[jax.typing.DTypeLike] = None,
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
   """
@@ -147,7 +148,7 @@ def tri(
     N: int,
     M: Optional[int] = None,
     k: int = 0,
-    dtype: Optional[Any] = None,
+    dtype: Optional[jax.typing.DTypeLike] = None,
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
   """
@@ -184,8 +185,8 @@ def tri(
 
 @set_module_as('brainunit.math')
 def empty(
-    shape: Sequence[int],
-    dtype: Optional[Any] = None,
+    shape: Shape,
+    dtype: Optional[jax.typing.DTypeLike] = None,
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
   """
@@ -214,8 +215,8 @@ def empty(
 
 @set_module_as('brainunit.math')
 def ones(
-    shape: Sequence[int],
-    dtype: Optional[Any] = None,
+    shape: Shape,
+    dtype: Optional[jax.typing.DTypeLike] = None,
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
   """
@@ -244,8 +245,8 @@ def ones(
 
 @set_module_as('brainunit.math')
 def zeros(
-    shape: Sequence[int],
-    dtype: Optional[Any] = None,
+    shape: Shape,
+    dtype: Optional[jax.typing.DTypeLike] = None,
     unit: Optional[Unit] = None
 ) -> Union[Array, Quantity]:
   """
@@ -277,7 +278,7 @@ def full_like(
     a: Union[Quantity, jax.typing.ArrayLike],
     fill_value: Union[Quantity, jax.typing.ArrayLike],
     dtype: Optional[jax.typing.DTypeLike] = None,
-    shape: Any = None
+    shape: Shape = None
 ) -> Union[Quantity, jax.Array]:
   """
   Return a new quantity or array with the same shape and type as a given array or quantity, filled with `fill_value`.
@@ -428,7 +429,7 @@ def triu(
 def empty_like(
     prototype: Union[Quantity, jax.typing.ArrayLike],
     dtype: Optional[jax.typing.DTypeLike] = None,
-    shape: Any = None,
+    shape: Shape = None,
     unit: Optional[Unit] = None
 ) -> Union[Quantity, jax.Array]:
   """
@@ -467,7 +468,7 @@ def empty_like(
 def ones_like(
     a: Union[Quantity, jax.typing.ArrayLike],
     dtype: Optional[jax.typing.DTypeLike] = None,
-    shape: Any = None,
+    shape: Shape = None,
     unit: Optional[Unit] = None
 ) -> Union[Quantity, jax.Array]:
   """
@@ -506,7 +507,7 @@ def ones_like(
 def zeros_like(
     a: Union[Quantity, jax.typing.ArrayLike],
     dtype: Optional[jax.typing.DTypeLike] = None,
-    shape: Any = None,
+    shape: Shape = None,
     unit: Optional[Unit] = None
 ) -> Union[Quantity, jax.Array]:
   """
@@ -848,37 +849,6 @@ def fill_diagonal(
 
 
 @set_module_as('brainunit.math')
-def array_split(
-    ary: Union[Quantity, jax.typing.ArrayLike],
-    indices_or_sections: Union[int, jax.typing.ArrayLike],
-    axis: Optional[int] = 0
-) -> Union[list[Quantity], list[Array]]:
-  """
-  Split an array into multiple sub-arrays.
-
-  Parameters
-  ----------
-  ary : Quantity or array
-    Array to be divided into sub-arrays.
-  indices_or_sections : int or 1-D array
-    If `indices_or_sections` is an integer, `ary` is divided into `indices_or_sections` sub-arrays along `axis`.
-    If such a split is not possible, an error is raised.
-    If `indices_or_sections` is a 1-D array of sorted integers, the entries indicate where along `axis` the array is split.
-  axis : int, optional
-    The axis along which to split, default is 0.
-
-  Returns
-  -------
-  sub-arrays : list of Quantity or list of array
-    A list of sub-arrays.
-  """
-  if isinstance(ary, Quantity):
-    return [Quantity(x, dim=ary.dim) for x in jnp.array_split(ary.value, indices_or_sections, axis)]
-  else:
-    return jnp.array_split(ary, indices_or_sections, axis)
-
-
-@set_module_as('brainunit.math')
 def meshgrid(
     *xi: Union[Quantity, jax.typing.ArrayLike],
     copy: Optional[bool] = True,
@@ -909,22 +879,35 @@ def meshgrid(
     or (N2, N1, N3,..., Nn) shaped arrays if indexing='xy' with the elements of xi repeated to fill the matrix along
     the first dimension for x1, the second for x2 and so on.
   """
-  unit_instances = [isinstance(x, Quantity) for x in xi]
-  if all(unit_instances):
-    fail_for_dimension_mismatch(*xi)
-    return [Quantity(x, dim=xi[0].dim)
-            for x in jnp.meshgrid(*[x.value for x in xi], copy=copy, sparse=sparse, indexing=indexing)]
-  elif any(unit_instances):
-    raise DimensionMismatchError(f"All input arrays must have the same units. But got {[x.dim for x in xi]}")
-  else:
-    return jnp.meshgrid(*xi, copy=copy, sparse=sparse, indexing=indexing)
+
+  args = [asarray(x) for x in xi]
+  if not copy:
+    raise ValueError("jax.numpy.meshgrid only supports copy=True")
+  if indexing not in ["xy", "ij"]:
+    raise ValueError(f"Valid values for indexing are 'xy' and 'ij', got {indexing}")
+  if any(a.ndim != 1 for a in args):
+    raise ValueError("Arguments to jax.numpy.meshgrid must be 1D, got shapes "
+                     f"{[a.shape for a in args]}")
+  if indexing == "xy" and len(args) >= 2:
+    args[0], args[1] = args[1], args[0]
+  shape = [1 if sparse else a.shape[0] for a in args]
+  f_shape = lambda i, a: [*shape[:i], a.shape[0], *shape[i + 1:]] if sparse else shape
+  # use jax.tree.map to compatible with Quantity
+  output = [
+    jax.tree.map(lambda x: jax.lax.broadcast_in_dim(x, f_shape(i, x), (i,)), a)
+    for i, a, in enumerate(args)
+  ]
+  if indexing == "xy" and len(args) >= 2:
+    output[0], output[1] = output[1], output[0]
+  return output
 
 
 @set_module_as('brainunit.math')
 def vander(
     x: Union[Quantity, jax.typing.ArrayLike],
     N: Optional[bool] = None,
-    increasing: Optional[bool] = False
+    increasing: Optional[bool] = False,
+    unit: Optional[Unit] = None,
 ) -> Union[Quantity, jax.Array]:
   """
   Generate a Vandermonde matrix.
@@ -948,6 +931,11 @@ def vander(
     Vandermonde matrix. If `increasing` is False, the first column is `x^(N-1)`, the second `x^(N-2)` and so forth.
   """
   if isinstance(x, Quantity):
-    return Quantity(jnp.vander(x.value, N=N, increasing=increasing), dim=x.dim)
+    assert x.is_unitless, f'x must be unitless for function {vander.__name__}.'
+    x = x.value
+  r = jnp.vander(x, N=N, increasing=increasing)
+  if unit is not None:
+    assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
+    return Quantity(r, unit=unit)
   else:
-    return jnp.vander(x, N=N, increasing=increasing)
+    return r
