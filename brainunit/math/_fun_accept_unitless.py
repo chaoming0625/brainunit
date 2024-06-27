@@ -29,9 +29,12 @@ __all__ = [
   'arctanh', 'cos', 'cosh', 'sin', 'sinc', 'sinh', 'tan',
   'tanh', 'deg2rad', 'rad2deg', 'degrees', 'radians', 'angle',
   'percentile', 'nanpercentile', 'quantile', 'nanquantile',
+  'corrcoef', 'correlate', 'cov',
+
+  # math funcs only accept unitless (unary) can return Quantity
   'round', 'around', 'round_', 'rint',
   'floor', 'ceil', 'trunc', 'fix', 'modf', 'frexp',
-  'corrcoef', 'correlate', 'cov',
+
 
   # math funcs only accept unitless (binary)
   'hypot', 'arctan2', 'logaddexp', 'logaddexp2',
