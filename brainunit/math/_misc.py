@@ -23,7 +23,6 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import opt_einsum
-from jax import Array
 
 from .._base import (DIMENSIONLESS,
                      Quantity,
@@ -39,8 +38,13 @@ __all__ = [
   # data types
   'dtype', 'finfo', 'iinfo',
 
+  # getting attribute funcs
+  'ndim', 'isreal', 'isscalar', 'isfinite', 'isinf',
+  'isnan', 'shape', 'size', 'get_dtype',
+  'is_float', 'is_int', 'broadcast_shapes',
+
   # more
-  'broadcast_arrays', 'broadcast_shapes', 'einsum', 'gradient',
+  'einsum', 'gradient',
 
   # window funcs
   'bartlett', 'blackman', 'hamming', 'hanning', 'kaiser',
@@ -55,6 +59,191 @@ inf = jnp.inf
 # data types
 # ----------
 dtype = jnp.dtype
+
+
+@set_module_as('brainunit.math')
+def ndim(a: Union[Quantity, jax.typing.ArrayLike]) -> int:
+  """
+  Return the number of dimensions of an array.
+
+  Args:
+    a: array_like, Quantity
+
+  Returns:
+    Union[jax.Array, Quantity]: int
+  """
+  if isinstance(a, Quantity):
+    return a.ndim
+  else:
+    return jnp.ndim(a)
+
+
+@set_module_as('brainunit.math')
+def isreal(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+  """
+  Return True if the input array is real.
+
+  Args:
+    a: array_like, Quantity
+
+  Returns:
+    Union[jax.Array, Quantity]: boolean array
+  """
+  if isinstance(a, Quantity):
+    return a.isreal
+  else:
+    return jnp.isreal(a)
+
+
+@set_module_as('brainunit.math')
+def isscalar(a: Union[Quantity, jax.typing.ArrayLike]) -> bool:
+  """
+  Return True if the input is a scalar.
+
+  Args:
+    a: array_like, Quantity
+
+  Returns:
+    Union[jax.Array, Quantity]: boolean array
+  """
+  if isinstance(a, Quantity):
+    return a.isscalar
+  else:
+    return jnp.isscalar(a)
+
+
+@set_module_as('brainunit.math')
+def isfinite(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+  """
+  Return each element of the array is finite or not.
+
+  Args:
+    a: array_like, Quantity
+
+  Returns:
+    Union[jax.Array, Quantity]: boolean array
+  """
+  if isinstance(a, Quantity):
+    return a.isfinite
+  else:
+    return jnp.isfinite(a)
+
+
+@set_module_as('brainunit.math')
+def isinf(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+  """
+  Return each element of the array is infinite or not.
+
+  Args:
+    a: array_like, Quantity
+
+  Returns:
+    Union[jax.Array, Quantity]: boolean array
+  """
+  if isinstance(a, Quantity):
+    return a.isinf
+  else:
+    return jnp.isinf(a)
+
+
+@set_module_as('brainunit.math')
+def isnan(a: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+  """
+  Return each element of the array is NaN or not.
+
+  Args:
+    a: array_like, Quantity
+
+  Returns:
+    Union[jax.Array, Quantity]: boolean array
+  """
+  if isinstance(a, Quantity):
+    return a.isnan
+  else:
+    return jnp.isnan(a)
+
+
+@set_module_as('brainunit.math')
+def shape(a: Union[Quantity, jax.typing.ArrayLike]) -> tuple[int, ...]:
+  """
+  Return the shape of an array.
+
+  Parameters
+  ----------
+  a : array_like
+      Input array.
+
+  Returns
+  -------
+  shape : tuple of ints
+      The elements of the shape tuple give the lengths of the
+      corresponding array dimensions.
+
+  See Also
+  --------
+  len : ``len(a)`` is equivalent to ``np.shape(a)[0]`` for N-D arrays with
+        ``N>=1``.
+  ndarray.shape : Equivalent array method.
+
+  Examples
+  --------
+  >>> brainunit.math.shape(brainunit.math.eye(3))
+  (3, 3)
+  >>> brainunit.math.shape([[1, 3]])
+  (1, 2)
+  >>> brainunit.math.shape([0])
+  (1,)
+  >>> brainunit.math.shape(0)
+  ()
+
+  """
+  if isinstance(a, (Quantity, jax.Array, np.ndarray)):
+    return a.shape
+  else:
+    return np.shape(a)
+
+
+@set_module_as('brainunit.math')
+def size(a: Union[Quantity, jax.typing.ArrayLike], axis: int = None) -> int:
+  """
+  Return the number of elements along a given axis.
+
+  Parameters
+  ----------
+  a : array_like
+      Input data.
+  axis : int, optional
+      Axis along which the elements are counted.  By default, give
+      the total number of elements.
+
+  Returns
+  -------
+  element_count : int
+      Number of elements along the specified axis.
+
+  See Also
+  --------
+  shape : dimensions of array
+  Array.shape : dimensions of array
+  Array.size : number of elements in array
+
+  Examples
+  --------
+  >>> a = Quantity([[1,2,3], [4,5,6]])
+  >>> brainunit.math.size(a)
+  6
+  >>> brainunit.math.size(a, 1)
+  3
+  >>> brainunit.math.size(a, 0)
+  2
+  """
+  if isinstance(a, (Quantity, jax.Array, np.ndarray)):
+    if axis is None:
+      return a.size
+    else:
+      return a.shape[axis]
+  else:
+    return np.size(a, axis=axis)
 
 
 @set_module_as('brainunit.math')
@@ -73,33 +262,6 @@ def iinfo(a: Union[Quantity, jax.typing.ArrayLike]) -> jnp.iinfo:
     return jnp.iinfo(a)
 
 
-# more
-# ----
-@set_module_as('brainunit.math')
-def broadcast_arrays(*args: Union[Quantity, jax.typing.ArrayLike]) -> Union[Quantity, list[Array]]:
-  """
-  Broadcast any number of arrays against each other.
-
-  Parameters
-  ----------
-  `*args` : array_likes
-      The arrays to broadcast.
-
-  Returns
-  -------
-  broadcasted : list of arrays
-      These arrays are views on the original arrays.  They are typically
-      not contiguous.  Furthermore, more than one element of a
-      broadcasted array may refer to a single memory location. If you need
-      to write to the arrays, make copies first. While you can set the
-      ``writable`` flag True, writing to a single output value may end up
-      changing more than one location in the output array.
-  """
-  leaves, tree = jax.tree.flatten(args)
-  leaves = jnp.broadcast_arrays(*leaves)
-  return jax.tree.unflatten(tree, leaves)
-
-
 @set_module_as('brainunit.math')
 def broadcast_shapes(*shapes):
   """
@@ -116,6 +278,64 @@ def broadcast_shapes(*shapes):
       The shape of the broadcasted arrays.
   """
   return jnp.broadcast_shapes(*shapes)
+
+
+environ = None  # type: ignore[assignment]
+
+
+@set_module_as('brainstate.math')
+def get_dtype(a):
+  """
+  Get the dtype of a.
+  """
+  if hasattr(a, 'dtype'):
+    return a.dtype
+  else:
+    global environ
+    if isinstance(a, bool):
+      return bool
+    elif isinstance(a, int):
+      if environ is None:
+        from brainstate import environ
+      return environ.ditype()
+    elif isinstance(a, float):
+      if environ is None:
+        from brainstate import environ
+      return environ.dftype()
+    elif isinstance(a, complex):
+      if environ is None:
+        from brainstate import environ
+      return environ.dctype()
+    else:
+      raise ValueError(f'Can not get dtype of {a}.')
+
+
+@set_module_as('brainstate.math')
+def is_float(array):
+  """
+  Check if the array is a floating point array.
+
+  Args:
+    array: The input array.
+
+  Returns:
+    A boolean value indicating if the array is a floating point array.
+  """
+  return jnp.issubdtype(get_dtype(array), jnp.floating)
+
+
+@set_module_as('brainstate.math')
+def is_int(array):
+  """
+  Check if the array is an integer array.
+
+  Args:
+    array: The input array.
+
+  Returns:
+    A boolean value indicating if the array is an integer array.
+  """
+  return jnp.issubdtype(get_dtype(array), jnp.integer)
 
 
 def _default_poly_einsum_handler(*operands, **kwargs):

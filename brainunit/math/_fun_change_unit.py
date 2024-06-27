@@ -33,6 +33,9 @@ __all__ = [
   'multiply', 'divide', 'power', 'cross', 'ldexp',
   'true_divide', 'floor_divide', 'float_power',
   'divmod', 'convolve',
+
+  # linear algebra
+  'dot', 'vdot', 'inner', 'outer', 'kron', 'matmul', 'tensordot',
 ]
 
 
@@ -911,3 +914,281 @@ def float_power(
   else:
     return jnp.float_power(x, y)
 
+
+# linear algebra
+# --------------
+
+@set_module_as('brainunit.math')
+def dot(
+    a: Union[jax.Array, Quantity],
+    b: Union[jax.Array, Quantity],
+    *,
+    precision: Any = None,
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Dot product of two arrays or quantities.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    First argument.
+  b : array_like, Quantity
+    Second argument.
+  precision : either ``None`` (default),
+    which means the default precision for the backend, a :class:`~jax.lax.Precision`
+    enum value (``Precision.DEFAULT``, ``Precision.HIGH`` or ``Precision.HIGHEST``)
+    or a tuple of two such values indicating precision of ``a`` and ``b``.
+  preferred_element_type : either ``None`` (default)
+    which means the default accumulation type for the input types, or a datatype,
+    indicating to accumulate results to and return a result with that datatype.
+
+  Returns
+  -------
+  output : ndarray, Quantity
+    array containing the dot product of the inputs, with batch dimensions of
+    ``a`` and ``b`` stacked rather than broadcast.
+
+    This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
+  """
+  return _fun_change_unit_binary(jnp.dot,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 precision=precision,
+                                 preferred_element_type=preferred_element_type)
+
+
+@set_module_as('brainunit.math')
+def vdot(
+    a: Union[jax.Array, Quantity],
+    b: Union[jax.Array, Quantity],
+    *,
+    precision: Any = None,
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Perform a conjugate multiplication of two 1D vectors.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    First argument.
+  b : array_like, Quantity
+    Second argument.
+  precision : either ``None`` (default),
+    which means the default precision for the backend, a :class:`~jax.lax.Precision`
+    enum value (``Precision.DEFAULT``, ``Precision.HIGH`` or ``Precision.HIGHEST``)
+    or a tuple of two such values indicating precision of ``a`` and ``b``.
+  preferred_element_type : either ``None`` (default)
+    which means the default accumulation type for the input types, or a datatype,
+    indicating to accumulate results to and return a result with that datatype.
+
+  Returns
+  -------
+  output : ndarray, Quantity
+    array containing the dot product of the inputs, with batch dimensions of
+    ``a`` and ``b`` stacked rather than broadcast.
+
+    This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
+  """
+  return _fun_change_unit_binary(jnp.vdot,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 precision=precision,
+                                 preferred_element_type=preferred_element_type)
+
+
+@set_module_as('brainunit.math')
+def inner(
+    a: Union[jax.Array, Quantity],
+    b: Union[jax.Array, Quantity],
+    *,
+    precision: Any = None,
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Inner product of two arrays or quantities.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    First argument.
+  b : array_like, Quantity
+    Second argument.
+  precision : either ``None`` (default),
+    which means the default precision for the backend, a :class:`~jax.lax.Precision`
+    enum value (``Precision.DEFAULT``, ``Precision.HIGH`` or ``Precision.HIGHEST``)
+    or a tuple of two such values indicating precision of ``a`` and ``b``.
+  preferred_element_type : either ``None`` (default)
+    which means the default accumulation type for the input types, or a datatype,
+    indicating to accumulate results to and return a result with that datatype.
+
+  Returns
+  -------
+  output : ndarray, Quantity
+    array containing the inner product of the inputs, with batch dimensions of
+    ``a`` and ``b`` stacked rather than broadcast.
+
+    This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
+  """
+  return _fun_change_unit_binary(jnp.inner,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 precision=precision,
+                                 preferred_element_type=preferred_element_type)
+
+
+@set_module_as('brainunit.math')
+def outer(
+    a: Union[jax.Array, Quantity],
+    b: Union[jax.Array, Quantity],
+    out: Optional[Any] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Compute the outer product of two vectors or quantities.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    First argument.
+  b : array_like, Quantity
+    Second argument.
+  out : ndarray, optional
+    A location into which the result is stored. If provided, it must have a shape that the inputs broadcast to.
+    If not provided or None, a freshly-allocated array is returned.
+
+  Returns
+  -------
+  output : ndarray, Quantity
+    array containing the outer product of the inputs, with batch dimensions of
+    ``a`` and ``b`` stacked rather than broadcast.
+
+    This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
+  """
+  return _fun_change_unit_binary(jnp.outer,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 out=out)
+
+
+@set_module_as('brainunit.math')
+def kron(
+    a: Union[jax.Array, Quantity],
+    b: Union[jax.Array, Quantity]
+) -> Union[jax.Array, Quantity]:
+  """
+  Compute the Kronecker product of two arrays or quantities.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    First input.
+  b : array_like, Quantity
+    Second input.
+
+  Returns
+  -------
+  output : ndarray, Quantity
+    Kronecker product of `a` and `b`.
+
+    This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
+  """
+  return _fun_change_unit_binary(jnp.kron,
+                                 lambda x, y: x * y,
+                                 a, b)
+
+
+@set_module_as('brainunit.math')
+def matmul(
+    a: Union[jax.Array, Quantity],
+    b: Union[jax.Array, Quantity],
+    *,
+    precision: Any = None,
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Matrix product of two arrays or quantities.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    First argument.
+  b : array_like, Quantity
+    Second argument.
+  precision : either ``None`` (default),
+    which means the default precision for the backend, a :class:`~jax.lax.Precision`
+    enum value (``Precision.DEFAULT``, ``Precision.HIGH`` or ``Precision.HIGHEST``)
+    or a tuple of two such values indicating precision of ``a`` and ``b``.
+  preferred_element_type : either ``None`` (default)
+    which means the default accumulation type for the input types, or a datatype,
+    indicating to accumulate results to and return a result with that datatype.
+
+  Returns
+  -------
+  output : ndarray, Quantity
+    array containing the matrix product of the inputs, with batch dimensions of
+    ``a`` and ``b`` stacked rather than broadcast.
+
+    This is a Quantity if the final unit is the product of the unit of `a` and the unit of `b`, else an array.
+  """
+  return _fun_change_unit_binary(jnp.matmul,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 precision=precision,
+                                 preferred_element_type=preferred_element_type)
+
+
+@set_module_as('brainunit.math')
+def tensordot(
+    a: Union[jax.typing.ArrayLike, Quantity],
+    b: Union[jax.typing.ArrayLike, Quantity],
+    axes: Union[int, Tuple[int, int]] = 2,
+    precision: Any = None,
+    preferred_element_type: Optional[jax.typing.DTypeLike] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Compute tensor dot product along specified axes.
+
+  Given two tensors, `a` and `b`, and an array_like object containing
+  two array_like objects, ``(a_axes, b_axes)``, sum the products of
+  `a`'s and `b`'s elements (components) over the axes specified by
+  ``a_axes`` and ``b_axes``. The third argument can be a single non-negative
+  integer_like scalar, ``N``; if it is such, then the last ``N`` dimensions
+  of `a` and the first ``N`` dimensions of `b` are summed over.
+
+  Parameters
+  ----------
+  a, b : array_like, Quantity
+    Tensors to "dot".
+
+  axes : int or (2,) array_like
+    * integer_like
+      If an int N, sum over the last N axes of `a` and the first N axes
+      of `b` in order. The sizes of the corresponding axes must match.
+    * (2,) array_like
+      Or, a list of axes to be summed over, first sequence applying to `a`,
+      second to `b`. Both elements array_like must be of the same length.
+  precision : Optional. Either ``None``, which means the default precision for
+    the backend, a :class:`~jax.lax.Precision` enum value
+    (``Precision.DEFAULT``, ``Precision.HIGH`` or ``Precision.HIGHEST``), a
+    string (e.g. 'highest' or 'fastest', see the
+    ``jax.default_matmul_precision`` context manager), or a tuple of two
+    :class:`~jax.lax.Precision` enums or strings indicating precision of
+    ``lhs`` and ``rhs``.
+  preferred_element_type : Optional. Either ``None``, which means the default
+    accumulation type for the input types, or a datatype, indicating to
+    accumulate results to and return a result with that datatype.
+
+  Returns
+  -------
+  output : ndarray, Quantity
+    The tensor dot product of the input.
+
+    This is a quantity if the product of the units of `a` and `b` is not dimensionless.
+  """
+  return _fun_change_unit_binary(jnp.tensordot,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 axes=axes,
+                                 precision=precision,
+                                 preferred_element_type=preferred_element_type)

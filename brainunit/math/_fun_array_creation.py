@@ -37,6 +37,16 @@ __all__ = [
   'empty', 'empty_like', 'ones', 'ones_like', 'zeros', 'zeros_like',
   'array', 'asarray', 'arange', 'linspace', 'logspace', 'fill_diagonal',
   'meshgrid', 'vander',
+
+  # indexing funcs
+  'tril_indices', 'tril_indices_from', 'triu_indices',
+  'triu_indices_from',
+
+  # others
+  'from_numpy',
+  'as_numpy',
+  'tree_ones_like',
+  'tree_zeros_like',
 ]
 
 
@@ -939,3 +949,130 @@ def vander(
     return Quantity(r, unit=unit)
   else:
     return r
+
+
+# indexing funcs
+# --------------
+
+tril_indices = jnp.tril_indices
+
+
+@set_module_as('brainunit.math')
+def tril_indices_from(
+    arr: Union[Quantity, jax.typing.ArrayLike],
+    k: Optional[int] = 0
+) -> tuple[jax.Array, jax.Array]:
+  """
+  Return the indices for the lower-triangle of an (n, m) array.
+
+  Parameters
+  ----------
+  arr : array_like, Quantity
+    The arrays for which the returned indices will be valid.
+  k : int, optional
+    Diagonal above which to zero elements. k = 0 is the main diagonal, k < 0 subdiagonal and k > 0 superdiagonal.
+
+  Returns
+  -------
+  out : tuple[jax.Array]
+    tuple of arrays
+  """
+  if isinstance(arr, Quantity):
+    return jnp.tril_indices_from(arr.value, k=k)
+  else:
+    return jnp.tril_indices_from(arr, k=k)
+
+
+triu_indices = jnp.triu_indices
+
+
+@set_module_as('brainunit.math')
+def triu_indices_from(
+    arr: Union[Quantity, jax.typing.ArrayLike],
+    k: Optional[int] = 0
+) -> tuple[jax.Array, jax.Array]:
+  """
+  Return the indices for the upper-triangle of an (n, m) array.
+
+  Parameters
+  ----------
+  arr : array_like, Quantity
+    The arrays for which the returned indices will be valid.
+  k : int, optional
+    Diagonal above which to zero elements. k = 0 is the main diagonal, k < 0 subdiagonal and k > 0 superdiagonal.
+
+  Returns
+  -------
+  out : tuple[jax.Array]
+    tuple of arrays
+  """
+  if isinstance(arr, Quantity):
+    return jnp.triu_indices_from(arr.value, k=k)
+  else:
+    return jnp.triu_indices_from(arr, k=k)
+
+
+# --- others ---
+
+
+@set_module_as('brainunit.math')
+def from_numpy(
+    x: np.ndarray,
+    unit: Unit = None
+) -> jax.Array | Quantity:
+  """
+  Convert the numpy array to jax array.
+
+  Args:
+    x: The numpy array.
+    unit: The unit of the array.
+
+  Returns:
+    The jax array.
+  """
+  if unit is not None:
+    return jnp.array(x) * unit
+  return jnp.array(x)
+
+
+@set_module_as('brainunit.math')
+def as_numpy(x):
+  """
+  Convert the array to numpy array.
+
+  Args:
+    x: The array.
+
+  Returns:
+    The numpy array.
+  """
+  return np.array(x)
+
+
+@set_module_as('brainunit.math')
+def tree_zeros_like(tree):
+  """
+  Create a tree with the same structure as the input tree, but with zeros in each leaf.
+
+  Args:
+    tree: The input tree.
+
+  Returns:
+    The tree with zeros in each leaf.
+  """
+  return jax.tree_map(jnp.zeros_like, tree)
+
+
+@set_module_as('brainunit.math')
+def tree_ones_like(tree):
+  """
+  Create a tree with the same structure as the input tree, but with ones in each leaf.
+
+  Args:
+    tree: The input tree.
+
+  Returns:
+    The tree with ones in each leaf.
+
+  """
+  return jax.tree_map(jnp.ones_like, tree)

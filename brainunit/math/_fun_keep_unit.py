@@ -14,6 +14,7 @@
 # ==============================================================================
 from __future__ import annotations
 
+import functools
 from typing import (Union, Sequence, Tuple, Optional)
 
 import jax
@@ -23,6 +24,21 @@ from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS
 from .._misc import set_module_as
 
 __all__ = [
+  # sequence inputs
+  'row_stack', 'concatenate', 'stack', 'vstack', 'hstack', 'dstack', 'column_stack', 'block', 'append',
+
+  # sequence outputs
+  'split', 'array_split', 'dsplit', 'hsplit', 'vsplit',
+
+  # broadcasting arrays
+  'atleast_1d', 'atleast_2d', 'atleast_3d', 'broadcast_arrays',
+
+  # array manipulation
+  'reshape', 'moveaxis', 'transpose', 'swapaxes', 'tile', 'repeat',
+  'flip', 'fliplr', 'flipud', 'roll', 'expand_dims', 'squeeze',
+  'sort', 'max', 'min', 'amax', 'amin', 'diagflat', 'diagonal', 'choose', 'ravel',
+  'flatten', 'unflatten', 'remove_diag',
+
   # math funcs keep unit (unary)
   'real', 'imag', 'conj', 'conjugate', 'negative', 'positive',
   'abs', 'sum', 'nancumsum', 'nansum',
@@ -32,12 +48,1143 @@ __all__ = [
 
   # math funcs keep unit (binary)
   'fmod', 'mod', 'copysign', 'remainder',
-  'maximum', 'minimum', 'fmax', 'fmin', 'lcm', 'gcd',
+  'maximum', 'minimum', 'fmax', 'fmin', 'lcm', 'gcd', 'trace',
 
   # math funcs keep unit (n-ary)
   'interp', 'clip', 'histogram',
   'add', 'subtract', 'nextafter',
+
+  # others
+  'compress', 'extract', 'take', 'select', 'where', 'unique',
 ]
+
+
+# -------------------------------------------------------------------
+
+
+def _fun_keep_unit_sequence(
+    func,
+    *args,
+    **kwargs
+):
+  leaves, treedef = jax.tree.flatten(args, is_leaf=lambda x: isinstance(x, Quantity))
+  dims = [x.dim if isinstance(x, Quantity) else None for x in leaves]
+  if not all(dim == dims[0] for dim in dims[1:]):
+    raise ValueError(f'Units in args do not match for {func.__name__} operation. Got {dims}.')
+  leaves = [x.value if isinstance(x, Quantity) else x for x in leaves]
+  args = treedef.unflatten(leaves)
+  r = func(*args, **kwargs)
+  if dims[0] is not None:
+    return Quantity(r, dim=dims[0])
+  return r
+
+
+@set_module_as('brainunit.math')
+def concatenate(
+    arrays: Union[Sequence[jax.Array], Sequence[Quantity]],
+    axis: Optional[int] = None,
+    dtype: Optional[jax.typing.DTypeLike] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Join a sequence of quantities or arrays along an existing axis.
+
+  Parameters
+  ----------
+  arrays : sequence of array_like, Quantity
+    The arrays must have the same shape, except in the dimension corresponding
+    to `axis` (the first, by default).
+  axis : int, optional
+    The axis along which the arrays will be joined.  Default is 0.
+  dtype : dtype, optional
+    If provided, the concatenation will be done using this dtype. Otherwise, the
+    array with the highest precision will be used.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The concatenated array. The type of the array is the same as that of the
+    first array passed in.
+  """
+  return _fun_keep_unit_sequence(jnp.concatenate, arrays, axis=axis, dtype=dtype)
+
+
+@set_module_as('brainunit.math')
+def stack(
+    arrays: Union[Sequence[jax.Array], Sequence[Quantity]],
+    axis: int = 0,
+    dtype: Optional[jax.typing.DTypeLike] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Join a sequence of quantities or arrays along a new axis.
+
+  Parameters
+  ----------
+  arrays : sequence of array_like, Quantity
+    The arrays must have the same shape.
+  axis : int, optional
+    The axis in the result array along which the input arrays are stacked.
+  dtype : dtype, optional
+    If provided, the concatenation will be done using this dtype. Otherwise, the
+    array with the highest precision will be used.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The stacked array has one more dimension than the input arrays.
+  """
+  return _fun_keep_unit_sequence(jnp.stack, arrays, axis=axis, dtype=dtype)
+
+
+@set_module_as('brainunit.math')
+def vstack(
+    tup: Union[Sequence[jax.Array], Sequence[Quantity]],
+    dtype: Optional[jax.typing.DTypeLike] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Stack quantities or arrays in sequence vertically (row wise).
+
+  Parameters
+  ----------
+  tup : sequence of array_like, Quantity
+    The arrays must have the same shape along all but the first axis.
+  dtype : dtype, optional
+    If provided, the concatenation will be done using this dtype. Otherwise, the
+    array with the highest precision will be used.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The array formed by stacking the given arrays.
+  """
+  return _fun_keep_unit_sequence(jnp.vstack, tup, dtype=dtype)
+
+
+row_stack = vstack
+
+
+@set_module_as('brainunit.math')
+def hstack(
+    arrays: Union[Sequence[jax.Array], Sequence[Quantity]],
+    dtype: Optional[jax.typing.DTypeLike] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Stack quantities arrays in sequence horizontally (column wise).
+
+  Parameters
+  ----------
+  arrays : sequence of array_like, Quantity
+    The arrays must have the same shape along all but the second axis.
+  dtype : dtype, optional
+    If provided, the concatenation will be done using this dtype. Otherwise, the
+    array with the highest precision will be used.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The array formed by stacking the given arrays.
+  """
+  return _fun_keep_unit_sequence(jnp.hstack, arrays, dtype=dtype)
+
+
+@set_module_as('brainunit.math')
+def dstack(
+    arrays: Union[Sequence[jax.Array], Sequence[Quantity]],
+    dtype: Optional[jax.typing.DTypeLike] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Stack quantities or arrays in sequence depth wise (along third axis).
+
+  Parameters
+  ----------
+  arrays : sequence of array_like, Quantity
+    The arrays must have the same shape along all but the third axis.
+  dtype : dtype, optional
+    If provided, the concatenation will be done using this dtype. Otherwise, the
+    array with the highest precision will be used.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The array formed by stacking the given arrays.
+  """
+  return _fun_keep_unit_sequence(jnp.dstack, arrays, dtype=dtype)
+
+
+@set_module_as('brainunit.math')
+def column_stack(
+    tup: Union[Sequence[jax.Array], Sequence[Quantity]]
+) -> Union[jax.Array, Quantity]:
+  """
+  Stack 1-D arrays as columns into a 2-D array.
+
+  Take a sequence of 1-D arrays and stack them as columns to make a single
+  2-D array. 2-D arrays are stacked as-is, just like with hstack.
+
+  Parameters
+  ----------
+  tup : sequence of 1-D array_like, Quantity
+    1-D arrays to stack as columns.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The array formed by stacking the given arrays.
+  """
+  return _fun_keep_unit_sequence(jnp.column_stack, tup)
+
+
+@set_module_as('brainunit.math')
+def block(
+    arrays: Sequence[Union[jax.Array, Quantity]]
+) -> Union[jax.Array, Quantity]:
+  """
+  Assemble a quantity or an array from nested lists of blocks.
+
+  Parameters
+  ----------
+  arrays : sequence of array_like, Quantity
+    Each element in `arrays` can itself be a nested sequence of arrays, in which case the blocks in the corresponding
+    cells are recursively stacked as the elements of the resulting array.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The array constructed from the given blocks.
+  """
+  return _fun_keep_unit_sequence(jnp.block, arrays)
+
+
+@set_module_as('brainunit.math')
+def append(
+    arr: Union[jax.Array, Quantity],
+    values: Union[jax.Array, Quantity],
+    axis: Optional[int] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Append values to the end of a quantity or an array.
+
+  Parameters
+  ----------
+  arr : array_like, Quantity
+    Values are appended to a copy of this array.
+  values : array_like, Quantity
+    These values are appended to a copy of `arr`.
+    It must be of the correct shape (the same shape as `arr`, excluding `axis`).
+  axis : int, optional
+    The axis along which `values` are appended. If `axis` is None, `values` is flattened before use.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    A copy of `arr` with `values` appended to `axis`. Note that `append` does not occur in-place:
+    a new array is allocated and filled.
+  """
+  return _fun_keep_unit_sequence(jnp.append, arr, values, axis=axis)
+
+
+def _fun_keep_unit_return_sequence(
+    func,
+    x: jax.typing.ArrayLike | Quantity,
+    *args,
+    **kwargs
+):
+  if isinstance(x, Quantity):
+    r = func(x.value, *args, **kwargs)
+    return [Quantity(rr, dim=x.dim) for rr in r]
+  return func(x, *args, **kwargs)
+
+
+@set_module_as('brainunit.math')
+def split(
+    a: Union[jax.Array, Quantity],
+    indices_or_sections: Union[int, Sequence[int]],
+    axis: int = 0
+) -> Union[Sequence[jax.Array | Quantity]]:
+  """
+  Split quantity or array into a list of multiple sub-arrays.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array to be divided into sub-arrays.
+  indices_or_sections : int or 1-D array
+    If `indices_or_sections` is an integer, N, the array will be divided into
+    N equal arrays along `axis`. If such a split is not possible, an error is
+    raised. If `indices_or_sections` is a 1-D array of sorted integers, the
+    entries indicate where along `axis` the array is split. For example,
+    `[2, 3]` would, for `axis=0`, result in
+    - `a[:2]`
+    - `a[2:3]`
+    - `a[3:]`
+  axis : int, optional
+    The axis along which to split, default is 0.
+
+  Returns
+  -------
+  res : list of ndarrays, Quantity
+    A list of sub-arrays.
+  """
+  return _fun_keep_unit_return_sequence(jnp.split, a, indices_or_sections=indices_or_sections, axis=axis)
+
+
+@set_module_as('brainunit.math')
+def array_split(
+    ary: Union[Quantity, jax.typing.ArrayLike],
+    indices_or_sections: Union[int, jax.typing.ArrayLike],
+    axis: Optional[int] = 0
+) -> Union[Sequence[Quantity | jax.Array]]:
+  """
+  Split an array into multiple sub-arrays.
+
+  Parameters
+  ----------
+  ary : Quantity or array
+    Array to be divided into sub-arrays.
+  indices_or_sections : int or 1-D array
+    If `indices_or_sections` is an integer, `ary` is divided into `indices_or_sections` sub-arrays along `axis`.
+    If such a split is not possible, an error is raised.
+    If `indices_or_sections` is a 1-D array of sorted integers, the entries indicate where along `axis` the array is split.
+  axis : int, optional
+    The axis along which to split, default is 0.
+
+  Returns
+  -------
+  sub-arrays : list of Quantity or list of array
+    A list of sub-arrays.
+  """
+  return _fun_keep_unit_return_sequence(jnp.split, ary, indices_or_sections=indices_or_sections, axis=axis)
+
+
+@set_module_as('brainunit.math')
+def dsplit(
+    a: Union[jax.Array, Quantity],
+    indices_or_sections: Union[int, Sequence[int]]
+) -> Union[Sequence[jax.Array | Quantity]]:
+  """
+  Split a quantity or an array into multiple sub-arrays along the 3rd axis (depth).
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array to be divided into sub-arrays.
+  indices_or_sections : int or 1-D array
+    If `indices_or_sections` is an integer, N, the array will be divided into
+    N equal arrays along the third axis (depth). If such a split is not possible,
+    an error is raised. If `indices_or_sections` is a 1-D array of sorted integers,
+    the entries indicate where along the third axis the array is split.
+
+  Returns
+  -------
+  res : list of ndarrays, Quantity
+    A list of sub-arrays.
+  """
+  return _fun_keep_unit_return_sequence(jnp.dsplit, a, indices_or_sections)
+
+
+@set_module_as('brainunit.math')
+def hsplit(
+    a: Union[jax.Array, Quantity],
+    indices_or_sections: Union[int, Sequence[int]]
+) -> Union[Sequence[jax.Array | Quantity]]:
+  """
+  Split a quantity or an array into multiple sub-arrays horizontally (column-wise).
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array to be divided into sub-arrays.
+  indices_or_sections : int or 1-D array
+    If `indices_or_sections` is an integer, N, the array will be divided into
+    N equal arrays along the second axis. If such a split is not possible, an
+    error is raised. If `indices_or_sections` is a 1-D array of sorted integers,
+    the entries indicate where along the second axis the array is split.
+
+  Returns
+  -------
+  res : list of ndarrays, Quantity
+    A list of sub-arrays.
+  """
+  return _fun_keep_unit_return_sequence(jnp.hsplit, a, indices_or_sections)
+
+
+@set_module_as('brainunit.math')
+def vsplit(
+    a: Union[jax.Array, Quantity],
+    indices_or_sections: Union[int, Sequence[int]]
+) -> Union[List[jax.Array], List[Quantity]]:
+  """
+  Split a quantity or an array into multiple sub-arrays vertically (row-wise).
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array to be divided into sub-arrays.
+  indices_or_sections : int or 1-D array
+    If `indices_or_sections` is an integer, N, the array will be divided into
+    N equal arrays along the first axis. If such a split is not possible, an
+    error is raised. If `indices_or_sections` is a 1-D array of sorted integers,
+    the entries indicate where along the first axis the array is split.
+
+  Returns
+  -------
+  res : list of ndarrays, Quantity
+    A list of sub-arrays.
+  """
+  return _fun_keep_unit_return_sequence(jnp.vsplit, a, indices_or_sections)
+
+
+# broadcasting arrays
+# -------------------
+
+
+def _broadcat_fun(func, *args, **kwargs):
+  args, treedef = jax.tree.flatten(args)
+  r = func(*args, **kwargs)
+  return treedef.unflatten(r)
+
+
+# more
+# ----
+@set_module_as('brainunit.math')
+def broadcast_arrays(
+    *args: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[Quantity | jax.Array | Sequence[jax.Array | Quantity]]:
+  """
+  Broadcast any number of arrays against each other.
+
+  Parameters
+  ----------
+  `*args` : array_likes
+      The arrays to broadcast.
+
+  Returns
+  -------
+  broadcasted : list of arrays
+      These arrays are views on the original arrays.  They are typically
+      not contiguous.  Furthermore, more than one element of a
+      broadcasted array may refer to a single memory location. If you need
+      to write to the arrays, make copies first. While you can set the
+      ``writable`` flag True, writing to a single output value may end up
+      changing more than one location in the output array.
+  """
+  leaves, tree = jax.tree.flatten(args)
+  leaves = jnp.broadcast_arrays(*leaves)
+  return jax.tree.unflatten(tree, leaves)
+
+
+@set_module_as('brainunit.math')
+def atleast_1d(
+    *arys: Union[jax.Array, Quantity]
+) -> Union[Quantity | jax.Array | Sequence[jax.Array | Quantity]]:
+  """
+  View inputs as quantities or arrays with at least one dimension.
+
+  Parameters
+  ----------
+  *args : array_like, Quantity
+    One or more input arrays or quantities.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    An array or a quantity, or a tuple of arrays or quantities, each with `a.ndim >= 1`.
+  """
+  return _broadcat_fun(jnp.atleast_1d, *arys)
+
+
+@set_module_as('brainunit.math')
+def atleast_2d(
+    *arys: Union[jax.Array, Quantity]
+) -> Union[Quantity | jax.Array | Sequence[jax.Array | Quantity]]:
+  """
+  View inputs as quantities or arrays with at least two dimensions.
+
+  Parameters
+  ----------
+  *args : array_like, Quantity
+    One or more input arrays or quantities.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    An array or a quantity, or a tuple of arrays or quantities, each with `a.ndim >= 2`.
+  """
+  return _broadcat_fun(jnp.atleast_2d, *arys)
+
+
+@set_module_as('brainunit.math')
+def atleast_3d(
+    *arys: Union[jax.Array, Quantity]
+) -> Union[Quantity | jax.Array | Sequence[jax.Array | Quantity]]:
+  """
+  View inputs as quantities or arrays with at least three dimensions.
+
+  Parameters
+  ----------
+  *args : array_like, Quantity
+    One or more input arrays or quantities.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    An array or a quantity, or a tuple of arrays or quantities, each with `a.ndim >= 3`.
+  """
+  return _broadcat_fun(jnp.atleast_3d, *arys)
+
+
+# array manipulation
+# ------------------
+
+
+@set_module_as('brainunit.math')
+def reshape(
+    a: Union[jax.Array, Quantity],
+    shape: Union[int, Tuple[int, ...]],
+    order: str = 'C'
+) -> Union[jax.Array, Quantity]:
+  """
+  Gives a new shape to a quantity or an array without changing its data.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array to be reshaped.
+  shape : int or tuple of ints
+    The new shape should be compatible with the original shape. If
+    an integer, then the result will be a 1-D array of that length.
+    One shape dimension can be -1. In this case, the value is
+    inferred from the length of the array and remaining dimensions.
+  order : {'C', 'F', 'A'}, optional
+    Read the elements of `a` using this index order, and place the
+    elements into the reshaped array using this index order.  'C'
+    means to read / write the elements using C-like index order,
+    with the last axis index changing fastest, back to the first
+    axis index changing slowest. 'F' means to read / write the
+    elements using Fortran-like index order, with the first index
+    changing fastest, and the last index changing slowest. Note that
+    the 'C' and 'F' options take no account of the memory layout of
+    the underlying array, and only refer to the order of indexing.
+    'A' means to read / write the elements in Fortran-like index
+    order if `a` is Fortran *contiguous* in memory, C-like order
+    otherwise.
+
+  Returns
+  -------
+  reshaped_array : ndarray, Quantity
+    This will be a new view object if possible; otherwise, it will
+    be a copy.  Note there is no guarantee of the *memory layout* (C- or
+    Fortran- contiguous) of the returned array.
+  """
+  return _fun_keep_unit_unary(jnp.reshape, a, shape=shape, order=order)
+
+
+@set_module_as('brainunit.math')
+def moveaxis(
+    a: Union[jax.Array, Quantity],
+    source: Union[int, Tuple[int, ...]],
+    destination: Union[int, Tuple[int, ...]]
+) -> Union[jax.Array, Quantity]:
+  """
+  Moves axes of a quantity or an array to new positions.
+  Other axes remain in their original order.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    The array whose axes should be reordered.
+  source : int or sequence of int
+    Original positions of the axes to move. These must be unique.
+  destination : int or sequence of int
+    Destination positions for each of the original axes. These must also be
+    unique.
+
+  Returns
+  -------
+  result : ndarray, Quantity
+    Array with moved axes. This array is a view of the input array.
+  """
+  return _fun_keep_unit_unary(jnp.moveaxis, a, source=source, destination=destination)
+
+
+@set_module_as('brainunit.math')
+def transpose(
+    a: Union[jax.Array, Quantity],
+    axes: Optional[Union[int, Tuple[int, ...]]] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Permute the dimensions of a quantity or an array.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array.
+  axes : list of ints, optional
+    By default, reverse the dimensions, otherwise permute the axes
+    according to the values given.
+
+  Returns
+  -------
+  p : ndarray, Quantity
+    `a` with its axes permuted.  A view is returned whenever
+    possible.
+  """
+  return _fun_keep_unit_unary(jnp.transpose, a, axes=axes)
+
+
+@set_module_as('brainunit.math')
+def swapaxes(
+    a: Union[jax.Array, Quantity],
+    axis1: int,
+    axis2: int
+) -> Union[jax.Array, Quantity]:
+  """
+  Interchange two axes of a quantity or an array.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array.
+  axis1 : int
+    First axis.
+  axis2 : int
+    Second axis.
+
+  Returns
+  -------
+  a_swapped : ndarray, Quantity
+    a new array where the axes are swapped.
+  """
+  return _fun_keep_unit_unary(jnp.swapaxes, a, axis1=axis1, axis2=axis2)
+
+
+@set_module_as('brainunit.math')
+def tile(
+    A: Union[jax.Array, Quantity],
+    reps: Union[int, Tuple[int, ...]]
+) -> Union[jax.Array, Quantity]:
+  """
+  Construct a quantity or an array by repeating A the number of times given by reps.
+
+  Parameters
+  ----------
+  A : array_like, Quantity
+    The input array.
+  reps : array_like
+    The number of repetitions of A along each axis.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The tiled output array.
+  """
+  return _fun_keep_unit_unary(jnp.tile, A, reps=reps)
+
+
+@set_module_as('brainunit.math')
+def repeat(
+    a: Union[jax.Array, Quantity],
+    repeats: Union[int, Tuple[int, ...]],
+    axis: Optional[int] = None,
+    total_repeat_length: Optional[int] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Repeat elements of a quantity or an array.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array.
+  repeats : int or tuple of ints
+    The number of repetitions for each element. `repeats` is broadcasted to fit the shape of the given axis.
+  axis : int, optional
+    The axis along which to repeat values. By default, use the flattened input array, and return a flat output array.
+  total_repeat_length : int, optional
+    The total length of the repeated array. If `total_repeat_length` is not None, the output array
+    will have the length of `total_repeat_length`.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    Output array which has the same shape as `a`, except along the given axis.
+  """
+  return _fun_keep_unit_unary(jnp.repeat, a, repeats=repeats, axis=axis, total_repeat_length=total_repeat_length)
+
+
+@set_module_as('brainunit.math')
+def flip(
+    m: Union[jax.Array, Quantity],
+    axis: Optional[Union[int, Tuple[int, ...]]] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Reverse the order of elements in a quantity or an array along the given axis.
+
+  Parameters
+  ----------
+  m : array_like, Quantity
+    Input array.
+  axis : int or tuple of ints, optional
+    Axis or axes along which to flip over. The default, axis=None, will flip over all of the axes of the input array.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    A view of `m` with the entries of axis reversed. Since a view is returned, this operation is done in constant time.
+  """
+  return _fun_keep_unit_unary(jnp.flip, m, axis=axis)
+
+
+@set_module_as('brainunit.math')
+def fliplr(
+    m: Union[jax.Array, Quantity]
+) -> Union[jax.Array, Quantity]:
+  """
+  Flip quantity or array in the left/right direction.
+
+  Parameters
+  ----------
+  m : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    A view of `m` with the columns reversed. Since a view is returned, this operation is done in constant time.
+  """
+  return _fun_keep_unit_unary(jnp.fliplr, m)
+
+
+@set_module_as('brainunit.math')
+def flipud(
+    m: Union[jax.Array, Quantity]
+) -> Union[jax.Array, Quantity]:
+  """
+  Flip quantity or array in the up/down direction.
+
+  Parameters
+  ----------
+  m : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    A view of `m` with the rows reversed.
+  """
+  return _fun_keep_unit_unary(jnp.flipud, m)
+
+
+@set_module_as('brainunit.math')
+def roll(
+    a: Union[jax.Array, Quantity],
+    shift: Union[int, Tuple[int, ...]],
+    axis: Optional[Union[int, Tuple[int, ...]]] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Roll quantity or array elements along a given axis.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array.
+  shift : int or tuple of ints
+    The number of places by which elements are shifted. If a tuple, then `axis` must be a tuple of the same size,
+    and each of the given axes is shifted by the corresponding number. If an int while `axis` is a tuple of ints,
+    then the same value is used for all given axes.
+  axis : int or tuple of ints, optional
+    Axis or axes along which elements are shifted. By default, the array is flattened before shifting, after which
+    the original shape is restored.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    Output array, with the same shape as `a`.
+  """
+  return _fun_keep_unit_unary(jnp.roll, a, shift=shift, axis=axis)
+
+
+@set_module_as('brainunit.math')
+def expand_dims(
+    a: Union[jax.Array, Quantity],
+    axis: int
+) -> Union[jax.Array, Quantity]:
+  """
+  Expand the shape of a quantity or an array.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array.
+  axis : int
+    Position in the expanded axes where the new axis is placed.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    View of `a` with the number of dimensions increased by one.
+  """
+  return _fun_keep_unit_unary(jnp.expand_dims, a, axis=axis)
+
+
+@set_module_as('brainunit.math')
+def squeeze(
+    a: Union[jax.Array, Quantity],
+    axis: Optional[Union[int, Tuple[int, ...]]] = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Remove single-dimensional entries from the shape of a quantity or an array.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : None or int or tuple of ints, optional
+    Selects a subset of the single-dimensional entries in the shape. If an axis is selected with shape entry greater
+    than one, an error is raised.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    An array with the same data as `a`, but with a lower dimension.
+  """
+  return _fun_keep_unit_unary(jnp.squeeze, a, axis=axis)
+
+
+@set_module_as('brainunit.math')
+def sort(
+    a: Union[jax.Array, Quantity],
+    axis: Optional[int] = -1,
+    *,
+    kind: None = None,
+    order: None = None,
+    stable: bool = True,
+    descending: bool = False,
+) -> Union[jax.Array, Quantity]:
+  """
+  Return a sorted copy of a quantity or an array.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array or quantity to be sorted.
+  axis : int or None, optional
+    Axis along which to sort. If None, the array is flattened before sorting. The default is -1, which sorts along
+    the last axis.
+  kind : {'quicksort', 'mergesort', 'heapsort', 'stable'}, optional
+    Sorting algorithm. The default is 'quicksort'.
+  order : str or list of str, optional
+    When `a` is a quantity, it can be a string or a sequence of strings, which is interpreted as an order the quantity
+    should be sorted. The default is None.
+  stable : bool, optional
+    Whether to use a stable sorting algorithm. The default is True.
+  descending : bool, optional
+    Whether to sort in descending order. The default is False.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    Sorted copy of the input array.
+  """
+  return _fun_keep_unit_unary(jnp.sort, a, axis=axis, kind=kind, order=order, stable=stable, descending=descending)
+
+
+@set_module_as('brainunit.math')
+def max(
+    a: Union[jax.Array, Quantity],
+    axis: Optional[int] = None,
+    keepdims: bool = False,
+    initial: Optional[Union[int, float, Quantity]] = None,
+    where: Optional[jax.Array] = None,
+) -> Union[jax.Array, Quantity]:
+  """
+  Return the maximum of a quantity or an array or maximum along an axis.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array or quantity containing numbers whose maximum is desired.
+  axis : int or None, optional
+    Axis or axes along which to operate. By default, flattened input is used.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this
+    option, the result will broadcast correctly against the input array.
+  initial : scalar, optional
+    The minimum value of an output element. Must be present to allow computation on empty slice.
+    See `numpy.ufunc.reduce`.
+  where : array_like, optional
+    Values of True indicate to calculate the ufunc at that position, values of False indicate to leave the value in the
+    output alone.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    Maximum of `a`. If `axis` is None, the result is a scalar value. If `axis` is given, the result is an array of
+    dimension `a.ndim - 1`.
+  """
+  return _fun_keep_unit_unary(jnp.max, a, axis=axis, keepdims=keepdims, initial=initial, where=where)
+
+
+@set_module_as('brainunit.math')
+def min(
+    a: Union[jax.Array, Quantity],
+    axis: Optional[int] = None,
+    keepdims: bool = False,
+    initial: Optional[Union[int, float, Quantity]] = None,
+    where: Optional[jax.Array] = None,
+) -> Union[jax.Array, Quantity]:
+  """
+  Return the minimum of a quantity or an array or minimum along an axis.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array or quantity containing numbers whose minimum is desired.
+  axis : int or None, optional
+    Axis or axes along which to operate. By default, flattened input is used.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this
+    option, the result will broadcast correctly against the input array.
+  initial : scalar, optional
+    The maximum value of an output element. Must be present to allow computation on empty slice.
+    See `numpy.ufunc.reduce`.
+  where : array_like, optional
+    Values of True indicate to calculate the ufunc at that position, values of False indicate to leave the value in the
+    output alone.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    Minimum of `a`. If `axis` is None, the result is a scalar value. If `axis` is given, the result is an array of
+    dimension `a.ndim - 1`.
+  """
+  return _fun_keep_unit_unary(jnp.min, a, axis=axis, keepdims=keepdims, initial=initial, where=where)
+
+
+amax = max
+amin = min
+
+
+@set_module_as('brainunit.math')
+def diagonal(
+    a: Union[jax.Array, Quantity],
+    offset: int = 0,
+    axis1: int = 0,
+    axis2: int = 1
+) -> Union[jax.Array, Quantity]:
+  """
+  Return specified diagonals.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array from which the diagonals are taken.
+  offset : int, optional
+    Offset of the diagonal from the main diagonal. Can be positive or negative. Defaults to main diagonal (0).
+  axis1 : int, optional
+    Axis to be used as the first axis of the 2-D sub-arrays from which the diagonals should be taken. Defaults to first
+    axis (0).
+  axis2 : int, optional
+    Axis to be used as the second axis of the 2-D sub-arrays from which the diagonals should be taken. Defaults to
+    second axis (1).
+
+  Returns
+  -------
+  res : ndarray
+    The extracted diagonals. The shape of the output is determined by considering the shape of the input array with
+    the specified axis removed.
+  """
+  return _fun_keep_unit_unary(jnp.diagonal, a, offset=offset, axis1=axis1, axis2=axis2)
+
+
+@set_module_as('brainunit.math')
+def ravel(
+    a: Union[jax.Array, Quantity],
+    order: str = 'C'
+) -> Union[jax.Array, Quantity]:
+  """
+  Return a contiguous flattened quantity or array.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array. The elements in `a` are read in the order specified by `order`, and packed as a 1-D array.
+  order : {'C', 'F', 'A', 'K'}, optional
+    The elements of `a` are read using this index order. 'C' means to index the elements in row-major, C-style order,
+    with the last axis index changing fastest, back to the first axis index changing slowest. 'F' means to index the
+    elements in column-major, Fortran-style order, with the first index changing fastest, and the last index changing
+    slowest. 'A' means to read the elements in Fortran-like index order if `a` is Fortran contiguous in memory, C-like
+    order otherwise. 'K' means to read the elements in the order they occur in memory, except for reversing the data
+    when strides are negative. By default, 'C' index order is used.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The flattened quantity or array. The shape of the output is the same as `a`, but the array is 1-D.
+  """
+  return _fun_keep_unit_unary(jnp.ravel, a, order=order)
+
+
+
+
+@set_module_as('brainunit.math')
+def flatten(
+    x: jax.typing.ArrayLike | Quantity,
+    start_axis: Optional[int] = None,
+    end_axis: Optional[int] = None
+) -> jax.Array | Quantity:
+  """Flattens input by reshaping it into a one-dimensional tensor.
+  If ``start_dim`` or ``end_dim`` are passed, only dimensions starting
+  with ``start_dim`` and ending with ``end_dim`` are flattened.
+  The order of elements in input is unchanged.
+
+  .. note::
+     Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+  Parameters
+  ----------
+  x: Array, Quantity
+    The input array.
+  start_axis: int
+    the first dim to flatten
+  end_axis: int
+    the last dim to flatten
+
+  Returns
+  -------
+  out: Array, Quantity
+  """
+  shape = x.shape
+  ndim = x.ndim
+  if ndim == 0:
+    ndim = 1
+  if start_axis is None:
+    start_axis = 0
+  elif start_axis < 0:
+    start_axis = ndim + start_axis
+  if end_axis is None:
+    end_axis = ndim - 1
+  elif end_axis < 0:
+    end_axis = ndim + end_axis
+  end_axis += 1
+  if start_axis < 0 or start_axis > ndim:
+    raise ValueError(f'start_axis {start_axis} is out of size.')
+  if end_axis < 0 or end_axis > ndim:
+    raise ValueError(f'end_axis {end_axis} is out of size.')
+  new_shape = shape[:start_axis] + (np.prod(shape[start_axis: end_axis], dtype=int),) + shape[end_axis:]
+  return _fun_keep_unit_unary(jnp.reshape, x, shape=new_shape)
+
+
+@set_module_as('brainunit.math')
+def unflatten(
+    x: jax.typing.ArrayLike | Quantity,
+    axis: int,
+    sizes: Sequence[int]
+) -> jax.Array | Quantity:
+  """
+  Expands a dimension of the input tensor over multiple dimensions.
+
+  Args:
+    x: input tensor.
+    axis: Dimension to be unflattened, specified as an index into ``x.shape``.
+    sizes: New shape of the unflattened dimension. One of its elements can be -1
+        in which case the corresponding output dimension is inferred.
+        Otherwise, the product of ``sizes`` must equal ``input.shape[dim]``.
+
+  Returns:
+    A tensor with the same data as ``input``, but with ``dim`` split into multiple dimensions.
+    The returned tensor has one more dimension than the input tensor.
+    The returned tensor shares the same underlying data with this tensor.
+  """
+  assert x.ndim > axis, ('The dimension to be unflattened should '
+                         'be less than the tensor dimension. '
+                         f'Got {axis} and {x.ndim}.')
+  shape = x.shape
+  new_shape = shape[:axis] + tuple(sizes) + shape[axis + 1:]
+  return _fun_keep_unit_unary(jnp.reshape, x, shape=new_shape)
+
+
+@set_module_as('brainunit.math')
+def remove_diag(x: jax.typing.ArrayLike | Quantity) -> jax.Array | Quantity:
+  """Remove the diagonal of the matrix.
+
+  Parameters
+  ----------
+  x: Array, Quantity
+    The matrix with the shape of `(M, N)`.
+
+  Returns
+  -------
+  arr: Array, Quantity
+    The matrix without diagonal which has the shape of `(M, N-1)`.
+  """
+  dim = None
+  if isinstance(x, Quantity):
+    x = x.value
+    dim = x.dim
+
+  if x.ndim != 2:
+    raise ValueError(f'Only support 2D matrix, while we got a {x.ndim}D array.')
+  eyes = jnp.fill_diagonal(jnp.ones(x.shape, dtype=bool), False)
+  x = jnp.reshape(x[eyes], (x.shape[0], x.shape[1] - 1))
+  if dim is not None:
+    return Quantity(x, dim=dim)
+  return x
+
+
+
+# ----------  selection
+
+
+@set_module_as('brainunit.math')
+def choose(
+    a: Union[jax.Array, Quantity],
+    choices: Sequence[Union[jax.Array, Quantity]],
+    mode: str = 'raise',
+) -> Union[jax.Array, Quantity]:
+  """
+  Construct a quantity or an array from an index array and a set of arrays to choose from.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    This array must be an integer array of the same shape as `choices`. The elements of `a` are used to select elements
+    from `choices`.
+  choices : sequence of array_like
+    Choice arrays. `a` and all `choices` must be broadcastable to the same shape.
+  mode : {'raise', 'wrap', 'clip'}, optional
+    Specifies how indices outside [0, n-1] will be treated:
+    - 'raise' : raise an error (default)
+    - 'wrap' : wrap around
+    - 'clip' : clip to the range [0, n-1]
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The constructed array. The shape is identical to the shape of `a`, and the data type is the data type of `choices`.
+  """
+  return _fun_keep_unit_unary(jnp.choose, a, choices=choices, mode=mode)
+
+
+@set_module_as('brainunit.math')
+def diagflat(
+    v: Union[jax.Array, Quantity],
+    k: int = 0
+) -> Union[jax.Array, Quantity]:
+  """
+  Create a two-dimensional a quantity or array with the flattened input as a diagonal.
+
+  Parameters
+  ----------
+  v : array_like, Quantity
+    Input data, which is flattened and set as the `k`-th diagonal of the output.
+  k : int, optional
+    Diagonal in question. The default is 0.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The 2-D output array.
+  """
+  return _fun_keep_unit_unary(jnp.diagflat, v, k=k)
 
 
 # math funcs keep unit (unary)
@@ -1099,6 +2246,54 @@ def nan_to_num(
     return jnp.nan_to_num(x, nan=nan, posinf=posinf, neginf=neginf)
 
 
+@set_module_as('brainunit.math')
+def trace(
+    a: Union[jax.Array, Quantity],
+    offset: int = 0,
+    axis1: int = 0,
+    axis2: int = 1,
+    dtype: Optional[jax.typing.DTypeLike] = None,
+) -> Union[jax.Array, Quantity]:
+  """
+  Return the sum along diagonals of the array.
+
+  If `a` is 2-D, the sum along its diagonal with the given offset
+  is returned, i.e., the sum of elements ``a[i,i+offset]`` for all i.
+
+  If `a` has more than two dimensions, then the axes specified by axis1 and
+  axis2 are used to determine the 2-D sub-arrays whose traces are returned.
+  The shape of the resulting array is the same as that of `a` with `axis1`
+  and `axis2` removed.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array, from which the diagonals are taken.
+  offset : int, optional
+    Offset of the diagonal from the main diagonal. Can be both positive
+    and negative. Defaults to 0.
+  axis1, axis2 : int, optional
+    Axes to be used as the first and second axis of the 2-D sub-arrays
+    from which the diagonals should be taken. Defaults are the first two
+    axes of `a`.
+  dtype : dtype, optional
+    Determines the data-type of the returned array and of the accumulator
+    where the elements are summed. If dtype has the value None and `a` is
+    of integer type of precision less than the default integer
+    precision, then the default integer precision is used. Otherwise,
+    the precision is the same as that of `a`.
+
+  Returns
+  -------
+  sum_along_diagonals : ndarray
+    If `a` is 2-D, the sum along the diagonal is returned.  If `a` has
+    larger dimensions, then an array of sums along diagonals is returned.
+
+    This is a Quantity if `a` is a Quantity, else an array.
+  """
+  return _fun_keep_unit_unary(jnp.trace, a, offset=offset, axis1=axis1, axis2=axis2, dtype=dtype)
+
+
 # math funcs keep unit (binary)
 # -----------------------------
 
@@ -1179,8 +2374,6 @@ def copysign(
   """
   x2 = x2.value if isinstance(x2, Quantity) else x2
   return _fun_keep_unit_unary(jnp.copysign, x1, x2)
-
-
 
 
 @set_module_as('brainunit.math')
@@ -1613,3 +2806,302 @@ def nextafter(
     This is a scalar if both `x` and `y` are scalars.
   """
   return _fun_match_unit_binary(jnp.nextafter, x, y, *args, **kwargs)
+
+
+@set_module_as('brainunit.math')
+def compress(
+    condition: jax.Array,
+    a: Union[jax.Array, Quantity],
+    axis: Optional[int] = None,
+    *,
+    size: Optional[int] = None,
+    fill_value: Optional[jax.typing.ArrayLike] = None,
+) -> Union[jax.Array, Quantity]:
+  """
+  Return selected slices of a quantity or an array along given axis.
+
+  Parameters
+  ----------
+  condition : array_like, Quantity
+    An array of boolean values that selects which slices to return. If the shape of condition is not the same as `a`,
+    it must be broadcastable to `a`.
+  a : array_like, Quantity
+    Array from which to extract a part.
+  axis : int or None, optional
+    The axis along which to take slices. If axis is None, `condition` must be a 1-D array with the same length as `a`.
+    If axis is an integer, `condition` must be broadcastable to the same shape as `a` along all axes except `axis`.
+  size : int, optional
+    The length of the returned axis. By default, the length of the input array along the axis is used.
+  fill_value : scalar, optional
+    The value to use for elements in the output array that are not selected. If None, the output array has the same
+    type as `a` and is filled with zeros.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    A new array that has the same number of dimensions as `a`, and the same shape as `a` with axis `axis` removed.
+  """
+  assert not isinstance(condition, Quantity), f'condition must be an array_like. But got {condition}'
+  if isinstance(a, Quantity):
+    if fill_value is not None:
+      fail_for_dimension_mismatch(fill_value, a)
+      fill_value = fill_value.value
+  else:
+    if isinstance(fill_value, Quantity):
+      assert fill_value.is_unitless, 'fill_value must be unitless when "a" is not a Quantity.'
+      fill_value = fill_value.value
+  return _fun_keep_unit_unary(functools.partial(jnp.compress, condition),
+                              a, axis=axis, size=size, fill_value=fill_value)
+
+
+@set_module_as('brainunit.math')
+def extract(
+    condition: jax.Array,
+    arr: Union[jax.Array, Quantity],
+    *,
+    size: Optional[int] = None,
+    fill_value: Optional[jax.typing.ArrayLike | Quantity] = None,
+) -> jax.Array | Quantity:
+  """
+  Return the elements of an array that satisfy some condition.
+
+  Parameters
+  ----------
+  condition : array_like, Quantity
+    An array of boolean values that selects which elements to extract.
+  arr : array_like, Quantity
+    The array from which to extract elements.
+  size: int
+    optional static size for output. Must be specified in order for ``extract``
+    to be compatible with JAX transformations like :func:`~jax.jit` or :func:`~jax.vmap`.
+  fill_value: array_like
+    if ``size`` is specified, fill padded entries with this value (default: 0).
+
+  Returns
+  -------
+  res : ndarray
+    The extracted elements. The shape of `res` is the same as that of `condition`.
+  """
+  assert not isinstance(condition, Quantity), f'condition must be an array_like. But got {condition}'
+  if isinstance(arr, Quantity):
+    if fill_value is not None:
+      fail_for_dimension_mismatch(fill_value, arr)
+      fill_value = fill_value.value
+  else:
+    if isinstance(fill_value, Quantity):
+      assert fill_value.is_unitless, 'fill_value must be unitless when "a" is not a Quantity.'
+      fill_value = fill_value.value
+  return _fun_keep_unit_unary(functools.partial(jnp.extract, condition),
+                              arr, size=size, fill_value=fill_value)
+
+
+@set_module_as('brainunit.math')
+def take(
+    a: Union[Quantity, jax.typing.ArrayLike],
+    indices: Union[Quantity, jax.typing.ArrayLike],
+    axis: Optional[int] = None,
+    mode: Optional[str] = None,
+    unique_indices: bool = False,
+    indices_are_sorted: bool = False,
+    fill_value: Optional[Union[Quantity, jax.typing.ArrayLike]] = None,
+) -> Union[Quantity, jax.Array]:
+  """
+  Take elements from an array along an axis.
+
+  When axis is not None, this function does the same thing as "fancy"
+  indexing (indexing arrays using arrays); however, it can be easier to use
+  if you need elements along a given axis. A call such as
+  ``np.take(arr, indices, axis=3)`` is equivalent to
+  ``arr[:,:,:,indices,...]``.
+
+  Explained without fancy indexing, this is equivalent to the following use
+  of `ndindex`, which sets each of ``ii``, ``jj``, and ``kk`` to a tuple of
+  indices::
+
+    Ni, Nk = a.shape[:axis], a.shape[axis+1:]
+    Nj = indices.shape
+    for ii in ndindex(Ni):
+        for jj in ndindex(Nj):
+            for kk in ndindex(Nk):
+                out[ii + jj + kk] = a[ii + (indices[jj],) + kk]
+
+  Parameters
+  ----------
+  a : array_like (Ni..., M, Nk...)
+    The source array.
+  indices : array_like (Nj...)
+    The indices of the values to extract.
+
+    Also allow scalars for indices.
+  axis : int, optional
+    The axis over which to select values. By default, the flattened
+    input array is used.
+  mode : string, default="fill"
+    Out-of-bounds indexing mode. The default mode="fill" returns invalid values
+    (e.g. NaN) for out-of bounds indices (see also ``fill_value`` below).
+    For more discussion of mode options, see :attr:`jax.numpy.ndarray.at`.
+  fill_value : optional
+    The fill value to return for out-of-bounds slices when mode is 'fill'. Ignored
+    otherwise. Defaults to NaN for inexact types, the largest negative value for
+    signed types, the largest positive value for unsigned types, and True for booleans.
+  unique_indices : bool, default=False
+    If True, the implementation will assume that the indices are unique,
+    which can result in more efficient execution on some backends.
+  indices_are_sorted : bool, default=False
+    If True, the implementation will assume that the indices are sorted in
+    ascending order, which can lead to more efficient execution on some backends.
+
+  Returns
+  -------
+  out : ndarray (Ni..., Nj..., Nk...)
+    The returned array has the same type as `a`.
+  """
+  if isinstance(a, Quantity):
+    return a.take(indices, axis=axis, mode=mode, unique_indices=unique_indices,
+                  indices_are_sorted=indices_are_sorted, fill_value=fill_value)
+  else:
+    return jnp.take(a, indices, axis=axis, mode=mode, unique_indices=unique_indices,
+                    indices_are_sorted=indices_are_sorted, fill_value=fill_value)
+
+
+@set_module_as('brainunit.math')
+def select(
+    condlist: list[Union[jax.typing.ArrayLike]],
+    choicelist: Union[Quantity, jax.typing.ArrayLike],
+    default: int = 0
+) -> Union[Quantity, jax.Array]:
+  """
+  Return an array drawn from elements in choicelist, depending on conditions.
+
+  Parameters
+  ----------
+  condlist : list of bool ndarrays
+    The list of conditions which determine from which array in `choicelist`
+    the output elements are taken. When multiple conditions are satisfied,
+    the first one encountered in `condlist` is used.
+  choicelist : list of ndarrays or Quantity
+    The list of arrays from which the output elements are taken. It has
+    to be of the same length as `condlist`.
+  default : scalar, optional
+    The element inserted in `output` when all conditions evaluate to False.
+
+  Returns
+  -------
+  output : ndarray, Quantity
+    The output at position m is the m-th element of the array in
+    `choicelist` where the m-th element of the corresponding array in
+    `condlist` is True.
+  """
+  for cond in condlist:
+    assert not isinstance(cond, Quantity), "condlist should not contain Quantity."
+  return _fun_keep_unit_sequence(functools.partial(jnp.select, condlist), choicelist, default)
+
+
+@set_module_as('brainunit.math')
+def where(condition, x=None, y=None, /, *, size=None, fill_value=None):
+  """
+  Return elements chosen from `x` or `y` depending on `condition`.
+
+  .. note::
+    When only `condition` is provided, this function is a shorthand for
+    ``np.asarray(condition).nonzero()``. Using `nonzero` directly should be
+    preferred, as it behaves correctly for subclasses. The rest of this
+    documentation covers only the case where all three arguments are
+    provided.
+
+  Parameters
+  ----------
+  condition : array_like, bool,
+    Where True, yield `x`, otherwise yield `y`.
+  x, y : array_like, Quantity
+    Values from which to choose. `x`, `y` and `condition` need to be
+    broadcastable to some shape.
+
+  Returns
+  -------
+  out : ndarray
+    An array with elements from `x` where `condition` is True, and elements
+    from `y` elsewhere.
+
+  See Also
+  --------
+  choose
+  nonzero : The function that is called when x and y are omitted
+  """
+  assert not isinstance(condition, Quantity), "condition should not be a Quantity."
+  if x is None and y is None:
+    return jnp.where(condition, size=size, fill_value=fill_value)
+  return _fun_keep_unit_binary(functools.partial(jnp.where, condition, size=size, fill_value=fill_value), x, y)
+
+
+@set_module_as('brainunit.math')
+def unique(
+    a: Union[jax.Array, Quantity],
+    return_index: bool = False,
+    return_inverse: bool = False,
+    return_counts: bool = False,
+    axis: Optional[int] = None,
+    *,
+    equal_nan: bool = False,
+    size: Optional[int] = None,
+    fill_value: Optional[jax.typing.ArrayLike, Quantity] = None
+) -> Sequence[jax.Array | Quantity] | jax.Array | Quantity:
+  """
+  Find the unique elements of a quantity or an array.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array.
+  return_index : bool, optional
+    If True, also return the indices of `a` (along the specified axis, if provided) that result in the unique array.
+  return_inverse : bool, optional
+    If True, also return the indices of the unique array (for the specified axis, if provided)
+    that can be used to reconstruct `a`.
+  return_counts : bool, optional
+    If True, also return the number of times each unique item appears in `a`.
+  axis : int, optional
+    The axis along which to operate. If None, the array is flattened before use. Default is None.
+  equal_nan : bool, optional
+    Whether to compare NaN's as equal. If True, NaN's in `a` will be considered equal to each other in the unique array.
+  size : int, optional
+    The length of the output array. If `size` is not None, the output array will have the length of `size`.
+  fill_value : scalar, optional
+    The value to use for missing values. If `fill_value` is not None, the output array will have the length of `size`.
+
+  Returns
+  -------
+  res : ndarray, Quantity
+    The sorted unique values.
+  """
+  if isinstance(a, Quantity):
+    if fill_value is not None:
+      fail_for_dimension_mismatch(fill_value, a)
+      fill_value = fill_value.value
+    result = jnp.unique(a.value,
+                        return_index=return_index,
+                        return_inverse=return_inverse,
+                        return_counts=return_counts,
+                        axis=axis, equal_nan=equal_nan,
+                        size=size,
+                        fill_value=fill_value)
+    if isinstance(result, tuple):
+      output = []
+      output.append(Quantity(result[0], dim=a.dim))
+      for r in result[1:]:
+        output.append(r)
+      return tuple(output)
+    else:
+      return Quantity(result, dim=a.dim)
+  else:
+    if isinstance(fill_value, Quantity):
+      assert fill_value.is_unitless, 'fill_value must be unitless when "a" is not a Quantity.'
+      fill_value = fill_value.value
+    return jnp.unique(a,
+                      return_index=return_index,
+                      return_inverse=return_inverse,
+                      return_counts=return_counts,
+                      axis=axis,
+                      equal_nan=equal_nan,
+                      size=size,
+                      fill_value=fill_value)

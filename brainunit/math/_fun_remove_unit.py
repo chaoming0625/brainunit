@@ -34,6 +34,10 @@ __all__ = [
   'equal', 'not_equal', 'greater', 'greater_equal', 'less', 'less_equal',
   'array_equal', 'isclose', 'allclose', 'logical_and',
   'logical_or', 'logical_xor', "alltrue", 'sometrue',
+
+  # indexing
+  'argsort', 'argmax', 'argmin', 'nanargmax', 'nanargmin', 'argwhere',
+  'nonzero', 'flatnonzero', 'searchsorted', 'count_nonzero',
 ]
 
 
@@ -870,3 +874,337 @@ def logical_xor(
     This is a scalar if both `x` and `y` are scalars.
   """
   return _fun_logic_binary(jnp.logical_xor, x, y, *args, **kwargs)
+
+
+# ----------------------
+# Indexing functions
+# ----------------------
+
+
+@set_module_as('brainunit.math')
+def argsort(
+    a: Union[Array, Quantity],
+    axis: Optional[int] = -1,
+    *,
+    kind: None = None,
+    order: None = None,
+    stable: bool = True,
+    descending: bool = False,
+) -> Array:
+  """
+  Returns the indices that would sort an array or a quantity.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array or quantity to be sorted.
+  axis : int or None, optional
+    Axis along which to sort. If None, the array is flattened before sorting. The default is -1, which sorts along
+    the last axis.
+  kind : {'quicksort', 'mergesort', 'heapsort', 'stable'}, optional
+    Sorting algorithm. The default is 'None'.
+  order : str or list of str, optional
+    When `a` is a quantity, it can be a string or a sequence of strings, which is interpreted as an order the quantity
+    should be sorted. The default is None.
+  stable : bool, optional
+    Whether to use a stable sorting algorithm. The default is True.
+  descending : bool, optional
+    Whether to sort in descending order. The default is False.
+
+  Returns
+  -------
+  res : ndarray
+    Array of indices that sort the array.
+  """
+  return _fun_remove_unit_unary(jnp.argsort,
+                                a,
+                                axis=axis,
+                                kind=kind,
+                                order=order,
+                                stable=stable,
+                                descending=descending)
+
+
+@set_module_as('brainunit.math')
+def argmax(
+    a: Union[Array, Quantity],
+    axis: Optional[int] = None,
+    keepdims: Optional[bool] = None
+) -> Array:
+  """
+  Returns indices of the max value along an axis.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    By default, the index is into the flattened array, otherwise along the specified axis.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this
+    option, the result will broadcast correctly against the input array.
+
+  Returns
+  -------
+  res : ndarray
+    Array of indices into the array. It has the same shape as `a.shape` with the dimension along `axis` removed.
+  """
+  return _fun_remove_unit_unary(jnp.argmax, a, axis=axis, keepdim=keepdims)
+
+
+@set_module_as('brainunit.math')
+def argmin(
+    a: Union[Array, Quantity],
+    axis: Optional[int] = None,
+    keepdims: Optional[bool] = None
+) -> Array:
+  """
+  Returns indices of the min value along an axis.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    By default, the index is into the flattened array, otherwise along the specified axis.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this
+    option, the result will broadcast correctly against the input array.
+
+  Returns
+  -------
+  res : ndarray
+    Array of indices into the array. It has the same shape as `a.shape` with the dimension along `axis` removed.
+  """
+  return _fun_remove_unit_unary(jnp.argmin, a, axis=axis, keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def nanargmax(
+    a: Union[jax.typing.ArrayLike, Quantity],
+    axis: int = None,
+    keepdims: bool = False
+) -> jax.Array:
+  """
+  Return the indices of the maximum values in the specified axis ignoring
+  NaNs. For all-NaN slices ``ValueError`` is raised. Warning: the
+  results cannot be trusted if a slice contains only NaNs and -Infs.
+
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    Axis along which to operate.  By default flattened input is used.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the array.
+
+  Returns
+  -------
+  index_array : ndarray
+    An array of indices or a single index value.
+  """
+  return _fun_remove_unit_unary(jnp.nanargmax,
+                                a,
+                                return_quantity=False,
+                                axis=axis,
+                                keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def nanargmin(
+    a: Union[jax.typing.ArrayLike, Quantity],
+    axis: int = None,
+    keepdims: bool = False
+) -> jax.Array:
+  """
+  Return the indices of the minimum values in the specified axis ignoring
+  NaNs. For all-NaN slices ``ValueError`` is raised. Warning: the results
+  cannot be trusted if a slice contains only NaNs and Infs.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    Axis along which to operate.  By default flattened input is used.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the array.
+
+  Returns
+  -------
+  index_array : ndarray
+    An array of indices or a single index value.
+  """
+  return _fun_remove_unit_unary(jnp.nanargmin,
+                                a,
+                                return_quantity=False,
+                                axis=axis,
+                                keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def argwhere(
+    a: Union[Array, Quantity],
+    *,
+    size: Optional[int] = None,
+    fill_value: Optional[jax.typing.ArrayLike] = None,
+) -> Array:
+  """
+  Find the indices of array elements that are non-zero, grouped by element.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  size : int, optional
+    The length of the returned axis. By default, the length of the input array along the axis is used.
+  fill_value : scalar, optional
+    The value to use for elements in the output array that are not selected. If None, the output array has the same
+    type as `a` and is filled with zeros.
+
+  Returns
+  -------
+  res : ndarray
+    The indices of elements that are non-zero. The indices are grouped by element.
+  """
+  return _fun_remove_unit_unary(jnp.argwhere, a, size=size, fill_value=fill_value)
+
+
+@set_module_as('brainunit.math')
+def nonzero(
+    a: Union[Array, Quantity],
+    *,
+    size: Optional[int] = None,
+    fill_value: Optional[jax.typing.ArrayLike] = None,
+) -> Tuple[Array, ...]:
+  """
+  Return the indices of the elements that are non-zero.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  size : int, optional
+    The length of the returned axis. By default, the length of the input array along the axis is used.
+  fill_value : scalar, optional
+    The value to use for elements in the output array that are not selected. If None, the output array has the same
+    type as `a` and is filled with zeros.
+
+  Returns
+  -------
+  res : tuple of ndarrays
+    Indices of elements that are non-zero along the specified axis. Each array in the tuple has the same shape as the
+    input array.
+  """
+  return _fun_remove_unit_unary(jnp.nonzero, a, size=size, fill_value=fill_value)
+
+
+@set_module_as('brainunit.math')
+def flatnonzero(
+    a: Union[Array, Quantity],
+    *,
+    size: Optional[int] = None,
+    fill_value: Optional[jax.typing.ArrayLike] = None,
+) -> Array:
+  """
+  Return indices that are non-zero in the flattened version of the input quantity or array.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  size : int, optional
+    The length of the returned axis. By default, the length of the input array along the axis is used.
+  fill_value : scalar, optional
+    The value to use for elements in the output array that are not selected. If None, the output array has the same
+    type as `a` and is filled with zeros.
+
+  Returns
+  -------
+  res : ndarray
+    Output array, containing the indices of the elements of `a.ravel()` that are non-zero.
+  """
+  return _fun_remove_unit_unary(jnp.flatnonzero, a, size=size, fill_value=fill_value)
+
+
+@set_module_as('brainunit.math')
+def count_nonzero(
+    a: Union[Array, Quantity],
+    axis: Optional[int] = None,
+    keepdims: Optional[bool] = None
+) -> Array:
+  """
+  Count the number of non-zero values in the quantity or array `a`.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    The array for which to count non-zeros.
+  axis : int, optional
+    The axis along which to count the non-zeros. If `None`, count non-zeros over the entire array.
+  keepdims : bool, optional
+    If this is set to `True`, the axes which are counted are left in the result as dimensions with size one. With this
+    option, the result will broadcast correctly against the original array.
+
+  Returns
+  -------
+  res : ndarray
+    Number of non-zero values in the quantity or array along a given axis.
+  """
+  return _fun_remove_unit_unary(jnp.count_nonzero, a, axis=axis, keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def searchsorted(
+    a: Union[Array, Quantity],
+    v: Union[Array, Quantity],
+    side: str = 'left',
+    sorter: Optional[Array] = None,
+    *,
+    method: Optional[str] = 'scan'
+) -> Array:
+  """
+  Find indices where elements should be inserted to maintain order.
+
+  Find the indices into a sorted array `a` such that, if the corresponding elements in `v` were inserted before the
+  indices, the order of `a` would be preserved.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array. It must be sorted in ascending order.
+  v : array_like, Quantity
+    Values to insert into `a`.
+  side : {'left', 'right'}, optional
+    If 'left', the index of the first suitable location found is given. If 'right', return the last such index. If
+    there is no suitable index, return either 0 or N (where N is the length of `a`).
+  sorter : 1-D array_like, optional
+    Optional array of integer indices that sort array `a` into ascending order. They are typically the result of
+    `argsort`.
+  method : str
+    One of 'scan' (default), 'scan_unrolled', 'sort' or 'compare_all'. Controls the method used by the
+    implementation: 'scan' tends to be more performant on CPU (particularly when ``a`` is
+    very large), 'scan_unrolled' is more performant on GPU at the expense of additional compile time,
+    'sort' is often more performant on accelerator backends like GPU and TPU
+    (particularly when ``v`` is very large), and 'compare_all' can be most performant
+    when ``a`` is very small. The default is 'scan'.
+
+  Returns
+  -------
+  out : ndarray
+    Array of insertion points with the same shape as `v`.
+  """
+  if isinstance(a, Quantity):
+    fail_for_dimension_mismatch(a, v)
+    a = a.value
+    v = v.value
+  if isinstance(v, Quantity):
+    assert v.is_unitless, 'v must be unitless when "a" is not a Quantity.'
+    v = v.value
+  return jnp.searchsorted(a, v, side=side, sorter=sorter, method=method)
