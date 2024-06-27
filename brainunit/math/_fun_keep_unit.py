@@ -19,6 +19,7 @@ from typing import (Union, Sequence, Tuple, Optional)
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS
 from .._misc import set_module_as
@@ -411,7 +412,7 @@ def hsplit(
 def vsplit(
     a: Union[jax.Array, Quantity],
     indices_or_sections: Union[int, Sequence[int]]
-) -> Union[List[jax.Array], List[Quantity]]:
+) -> Union[Sequence[jax.Array | Quantity]]:
   """
   Split a quantity or an array into multiple sub-arrays vertically (row-wise).
 
@@ -1023,8 +1024,6 @@ def ravel(
   return _fun_keep_unit_unary(jnp.ravel, a, order=order)
 
 
-
-
 @set_module_as('brainunit.math')
 def flatten(
     x: jax.typing.ArrayLike | Quantity,
@@ -1128,7 +1127,6 @@ def remove_diag(x: jax.typing.ArrayLike | Quantity) -> jax.Array | Quantity:
   if dim is not None:
     return Quantity(x, dim=dim)
   return x
-
 
 
 # ----------  selection
