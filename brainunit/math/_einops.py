@@ -979,7 +979,7 @@ def _einsum(
       operand = transpose(operand, perm)
     operands.append(operand)  # used in next iteration
 
-  ret = operands[0].value if isinstance(operands[0], Quantity) else operand[0]
+  ret = operands[0].value if isinstance(operands[0], Quantity) else operands[0]
   ret = jax.lax.convert_element_type(ret, preferred_element_type)
   if isinstance(operands[0], Quantity):
     return Quantity(ret, dim=operands[0].dim)
@@ -1007,7 +1007,6 @@ def einsum(
     subscripts,
     /,
     *operands,
-    out: None = None,
     optimize: str | bool | list[tuple[int, ...]] = "optimal",
     precision: jax.lax.PrecisionLike = None,
     preferred_element_type: jax.typing.DTypeLike | None = None,
@@ -1221,8 +1220,6 @@ def einsum(
   .. _opt_einsum: https://github.com/dgasmith/opt_einsum
   """
   operands = (subscripts, *operands)
-  if out is not None:
-    raise NotImplementedError("The 'out' argument to jnp.einsum is not supported.")
   spec = operands[0] if isinstance(operands[0], str) else None
   path_type = 'optimal' if optimize is True else Unoptimized() if optimize is False else optimize
 
@@ -1234,12 +1231,11 @@ def einsum(
   if not non_constant_dim_types:
     contract_path = opt_einsum.contract_path
   else:
-    ty = next(iter(non_constant_dim_types))
+    # ty = next(iter(non_constant_dim_types))
     # contract_path = _poly_einsum_handlers.get(ty, _default_poly_einsum_handler)
     contract_path = _default_poly_einsum_handler
   # using einsum_call=True here is an internal api for opt_einsum... sorry
   operands, contractions = contract_path(*operands, einsum_call=True, use_blas=True, optimize=path_type)
-
   contractions = tuple((a, frozenset(b), c) for a, b, c, *_ in contractions)
 
   einsum = jax.jit(_einsum, static_argnums=(1, 2, 3), inline=True)
