@@ -1062,7 +1062,7 @@ def test_special_case_numpy_functions():
   )
 
   # Check some error cases
-  with pytest.raises(AssertionError):
+  with pytest.raises(TypeError):
     where(cond, ar1)
   with pytest.raises(TypeError):
     where(cond, ar1, ar1, ar2)
