@@ -950,7 +950,7 @@ def test_unitsafe_functions():
   for func, np_func in funcs:
     # make sure these functions raise errors when run on values with dimensions
     for val in unit_values:
-      with pytest.raises(DimensionMismatchError):
+      with pytest.raises(AssertionError):
         func(val)
 
     # make sure the functions are equivalent to their numpy counterparts
@@ -1057,7 +1057,7 @@ def test_special_case_numpy_functions():
 
   # check the where function
   # pure numpy array
-  cond = [True, False, False]
+  cond = np.array([True, False, False])
   ar1 = np.array([1, 2, 3])
   ar2 = np.array([4, 5, 6])
   assert_equal(np.where(cond), where(cond))
@@ -1078,7 +1078,7 @@ def test_special_case_numpy_functions():
   )
 
   # Check some error cases
-  with pytest.raises(ValueError):
+  with pytest.raises(AssertionError):
     where(cond, ar1)
   with pytest.raises(TypeError):
     where(cond, ar1, ar1, ar2)

@@ -2297,7 +2297,7 @@ def trace(
 
 def _fun_keep_unit_binary(func, x1, x2, *args, **kwargs):
   if isinstance(x1, Quantity) and isinstance(x2, Quantity):
-    fail_for_dimension_mismatch(x1, x2, func.__name__)
+    fail_for_dimension_mismatch(x1, x2)
     return Quantity(func(x1.value, x2.value, *args, **kwargs), dim=x1.dim)
   elif isinstance(x1, Quantity):
     assert x1.is_unitless, f'Expected unitless array when x2 is not Quantity, while got {x1}'
@@ -2813,7 +2813,7 @@ def compress(
     axis: Optional[int] = None,
     *,
     size: Optional[int] = None,
-    fill_value: Optional[jax.typing.ArrayLike] = None,
+    fill_value: Optional[jax.typing.ArrayLike] = 0,
 ) -> Union[jax.Array, Quantity]:
   """
   Return selected slices of a quantity or an array along given axis.
@@ -2841,7 +2841,7 @@ def compress(
   """
   assert not isinstance(condition, Quantity), f'condition must be an array_like. But got {condition}'
   if isinstance(a, Quantity):
-    if fill_value is not None:
+    if fill_value != 0:
       fail_for_dimension_mismatch(fill_value, a)
       fill_value = fill_value.value
   else:
@@ -2858,7 +2858,7 @@ def extract(
     arr: Union[jax.Array, Quantity],
     *,
     size: Optional[int] = None,
-    fill_value: Optional[jax.typing.ArrayLike | Quantity] = None,
+    fill_value: Optional[jax.typing.ArrayLike | Quantity] = 0,
 ) -> jax.Array | Quantity:
   """
   Return the elements of an array that satisfy some condition.
@@ -2882,7 +2882,7 @@ def extract(
   """
   assert not isinstance(condition, Quantity), f'condition must be an array_like. But got {condition}'
   if isinstance(arr, Quantity):
-    if fill_value is not None:
+    if fill_value != 0:
       fail_for_dimension_mismatch(fill_value, arr)
       fill_value = fill_value.value
   else:
@@ -2992,7 +2992,7 @@ def select(
   """
   for cond in condlist:
     assert not isinstance(cond, Quantity), "condlist should not contain Quantity."
-  return _fun_keep_unit_sequence(functools.partial(jnp.select, condlist), choicelist, default)
+  return _fun_keep_unit_sequence(functools.partial(jnp.select, condlist), choicelist, default=default)
 
 
 @set_module_as('brainunit.math')
