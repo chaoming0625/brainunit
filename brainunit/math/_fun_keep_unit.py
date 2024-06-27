@@ -51,12 +51,12 @@ __all__ = [
   # math funcs keep unit (binary)
   'fmod', 'mod', 'copysign', 'remainder',
   'maximum', 'minimum', 'fmax', 'fmin', 'lcm', 'gcd', 'trace',
-
-  # math funcs keep unit (n-ary)
-  'interp', 'clip', 'histogram',
   'add', 'subtract', 'nextafter',
 
-  # others
+  # math funcs keep unit
+  'interp', 'clip', 'histogram',
+
+  # selection
   'compress', 'extract', 'take', 'select', 'where', 'unique',
 ]
 
