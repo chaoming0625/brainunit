@@ -18,7 +18,6 @@ from typing import (Union, Optional, Tuple, Any, Callable)
 
 import jax
 import jax.numpy as jnp
-from jax import Array
 
 from .._base import (Quantity, Unit, fail_for_dimension_mismatch)
 from .._misc import set_module_as
@@ -79,7 +78,7 @@ def _fun_accept_unitless_unary(
 def exp(
     x: Union[Quantity, jax.typing.ArrayLike],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Calculate the exponential of all elements in the input quantity or array.
 
@@ -102,7 +101,7 @@ def exp(
 def exp2(
     x: Union[Quantity, jax.typing.ArrayLike],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Calculate 2**p for all p in the input quantity or array.
 
@@ -123,9 +122,9 @@ def exp2(
 
 @set_module_as('brainunit.math')
 def expm1(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Calculate the exponential of the input elements minus 1.
 
@@ -146,9 +145,9 @@ def expm1(
 
 @set_module_as('brainunit.math')
 def log(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Natural logarithm, element-wise.
 
@@ -169,9 +168,9 @@ def log(
 
 @set_module_as('brainunit.math')
 def log10(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Base-10 logarithm of the input elements.
 
@@ -192,9 +191,9 @@ def log10(
 
 @set_module_as('brainunit.math')
 def log1p(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Natural logarithm of 1 + the input elements.
 
@@ -215,9 +214,9 @@ def log1p(
 
 @set_module_as('brainunit.math')
 def log2(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Base-2 logarithm of the input elements.
 
@@ -238,9 +237,9 @@ def log2(
 
 @set_module_as('brainunit.math')
 def arccos(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the arccosine of the input elements.
 
@@ -261,9 +260,9 @@ def arccos(
 
 @set_module_as('brainunit.math')
 def arccosh(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the hyperbolic arccosine of the input elements.
 
@@ -284,9 +283,9 @@ def arccosh(
 
 @set_module_as('brainunit.math')
 def arcsin(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the arcsine of the input elements.
 
@@ -307,9 +306,9 @@ def arcsin(
 
 @set_module_as('brainunit.math')
 def arcsinh(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the hyperbolic arcsine of the input elements.
 
@@ -330,9 +329,9 @@ def arcsinh(
 
 @set_module_as('brainunit.math')
 def arctan(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the arctangent of the input elements.
 
@@ -353,9 +352,9 @@ def arctan(
 
 @set_module_as('brainunit.math')
 def arctanh(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the hyperbolic arctangent of the input elements.
 
@@ -376,9 +375,9 @@ def arctanh(
 
 @set_module_as('brainunit.math')
 def cos(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the cosine of the input elements.
 
@@ -399,9 +398,9 @@ def cos(
 
 @set_module_as('brainunit.math')
 def cosh(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the hyperbolic cosine of the input elements.
 
@@ -422,9 +421,9 @@ def cosh(
 
 @set_module_as('brainunit.math')
 def sin(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the sine of the input elements.
 
@@ -445,9 +444,9 @@ def sin(
 
 @set_module_as('brainunit.math')
 def sinc(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the sinc function of the input elements.
 
@@ -468,9 +467,9 @@ def sinc(
 
 @set_module_as('brainunit.math')
 def sinh(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the hyperbolic sine of the input elements.
 
@@ -491,9 +490,9 @@ def sinh(
 
 @set_module_as('brainunit.math')
 def tan(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the tangent of the input elements.
 
@@ -514,9 +513,9 @@ def tan(
 
 @set_module_as('brainunit.math')
 def tanh(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Compute the hyperbolic tangent of the input elements.
 
@@ -537,9 +536,9 @@ def tanh(
 
 @set_module_as('brainunit.math')
 def deg2rad(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Convert angles from degrees to radians.
 
@@ -560,9 +559,9 @@ def deg2rad(
 
 @set_module_as('brainunit.math')
 def rad2deg(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Convert angles from radians to degrees.
 
@@ -583,9 +582,9 @@ def rad2deg(
 
 @set_module_as('brainunit.math')
 def degrees(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Convert angles from radians to degrees.
 
@@ -606,9 +605,9 @@ def degrees(
 
 @set_module_as('brainunit.math')
 def radians(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Convert angles from degrees to radians.
 
@@ -629,9 +628,9 @@ def radians(
 
 @set_module_as('brainunit.math')
 def angle(
-    x: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Return the angle of the complex argument.
 
@@ -913,6 +912,241 @@ def modf(
   return _fun_accept_unitless_return_keep_unit(jnp.modf, x, unit_to_scale=unit_to_scale)
 
 
+@set_module_as('brainunit.math')
+def percentile(
+    a: Union[jax.Array, Quantity],
+    q: jax.typing.ArrayLike,
+    axis: Optional[Union[int, Tuple[int]]] = None,
+    method: str = 'linear',
+    keepdims: Optional[bool] = False,
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
+  """
+  Compute the q-th percentile of the data along the specified axis.
+
+  Returns the q-th percentile(s) of the array elements.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array or Quantity.
+  q : array_like
+    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
+  method : str, optional
+    This parameter specifies the method to use for estimating the
+    percentile.  There are many different methods, some unique to NumPy.
+    See the notes for explanation.  The options sorted by their R type
+    as summarized in the H&F paper [1]_ are:
+
+    1. 'inverted_cdf'
+    2. 'averaged_inverted_cdf'
+    3. 'closest_observation'
+    4. 'interpolated_inverted_cdf'
+    5. 'hazen'
+    6. 'weibull'
+    7. 'linear'  (default)
+    8. 'median_unbiased'
+    9. 'normal_unbiased'
+
+    The first three methods are discontinuous.  NumPy further defines the
+    following discontinuous variations of the default 'linear' (7.) option:
+
+    * 'lower'
+    * 'higher',
+    * 'midpoint'
+    * 'nearest'
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+
+  Returns
+  -------
+  out : jax.Array
+    Output array.
+  """
+  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
+  return _fun_accept_unitless_return_keep_unit(
+    jnp.percentile, a, q=q, axis=axis,
+    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
+  )
+
+
+@set_module_as('brainunit.math')
+def nanpercentile(
+    a: Union[jax.Array, Quantity],
+    q: jax.typing.ArrayLike,
+    axis: Optional[Union[int, Tuple[int]]] = None,
+    method: str = 'linear',
+    keepdims: Optional[bool] = False,
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
+  """
+  Compute the q-th percentile of the data along the specified axis, while ignoring nan values.
+
+  Returns the q-th percentile(s) of the array elements, while ignoring nan values.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array or Quantity.
+  q : array_like, Quantity
+    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
+  method : str, optional
+    This parameter specifies the method to use for estimating the
+    percentile.  There are many different methods, some unique to NumPy.
+    See the notes for explanation.  The options sorted by their R type
+    as summarized in the H&F paper [1]_ are:
+
+    1. 'inverted_cdf'
+    2. 'averaged_inverted_cdf'
+    3. 'closest_observation'
+    4. 'interpolated_inverted_cdf'
+    5. 'hazen'
+    6. 'weibull'
+    7. 'linear'  (default)
+    8. 'median_unbiased'
+    9. 'normal_unbiased'
+
+    The first three methods are discontinuous.  NumPy further defines the
+    following discontinuous variations of the default 'linear' (7.) option:
+
+    * 'lower'
+    * 'higher',
+    * 'midpoint'
+    * 'nearest'
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+
+  Returns
+  -------
+  out : jax.Array
+    Output array.
+  """
+  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
+  return _fun_accept_unitless_return_keep_unit(
+    jnp.nanpercentile, a, q=q,
+    axis=axis,
+    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
+  )
+
+
+@set_module_as('brainunit.math')
+def quantile(
+    a: Union[jax.Array, Quantity],
+    q: jax.typing.ArrayLike,
+    axis: Optional[Union[int, Tuple[int]]] = None,
+    method: str = 'linear',
+    keepdims: Optional[bool] = False,
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
+  """
+  Compute the q-th percentile of the data along the specified axis.
+
+  Returns the q-th percentile(s) of the array elements.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array or Quantity.
+  q : array_like, Quantity
+    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
+  method : str, optional
+    This parameter specifies the method to use for estimating the
+    percentile.  There are many different methods, some unique to NumPy.
+    See the notes for explanation.  The options sorted by their R type
+    as summarized in the H&F paper [1]_ are:
+
+    1. 'inverted_cdf'
+    2. 'averaged_inverted_cdf'
+    3. 'closest_observation'
+    4. 'interpolated_inverted_cdf'
+    5. 'hazen'
+    6. 'weibull'
+    7. 'linear'  (default)
+    8. 'median_unbiased'
+    9. 'normal_unbiased'
+
+    The first three methods are discontinuous.  NumPy further defines the
+    following discontinuous variations of the default 'linear' (7.) option:
+
+    * 'lower'
+    * 'higher',
+    * 'midpoint'
+    * 'nearest'
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+
+  Returns
+  -------
+  out : jax.Array
+    Output array.
+  """
+  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
+  return _fun_accept_unitless_return_keep_unit(
+    jnp.quantile, a, q=q,
+    axis=axis,
+    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
+  )
+
+
+@set_module_as('brainunit.math')
+def nanquantile(
+    a: Union[jax.Array, Quantity],
+    q: jax.typing.ArrayLike,
+    axis: Optional[Union[int, Tuple[int]]] = None,
+    method: str = 'linear',
+    keepdims: Optional[bool] = False,
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
+  """
+  Compute the q-th percentile of the data along the specified axis, while ignoring nan values.
+
+  Returns the q-th percentile(s) of the array elements, while ignoring nan values.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array or Quantity.
+  q : array_like, Quantity
+    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
+  method : str, optional
+    This parameter specifies the method to use for estimating the
+    percentile.  There are many different methods, some unique to NumPy.
+    See the notes for explanation.  The options sorted by their R type
+    as summarized in the H&F paper [1]_ are:
+
+    1. 'inverted_cdf'
+    2. 'averaged_inverted_cdf'
+    3. 'closest_observation'
+    4. 'interpolated_inverted_cdf'
+    5. 'hazen'
+    6. 'weibull'
+    7. 'linear'  (default)
+    8. 'median_unbiased'
+    9. 'normal_unbiased'
+
+    The first three methods are discontinuous.  NumPy further defines the
+    following discontinuous variations of the default 'linear' (7.) option:
+
+    * 'lower'
+    * 'higher',
+    * 'midpoint'
+    * 'nearest'
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+
+  Returns
+  -------
+  out : jax.Array
+    Output array.
+  """
+  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
+  return _fun_accept_unitless_return_keep_unit(
+    jnp.nanquantile, a, q=q,
+    axis=axis,
+    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
+  )
+
+
 # math funcs only accept unitless (binary)
 # ----------------------------------------
 
@@ -957,10 +1191,10 @@ def _fun_accept_unitless_binary(
 
 @set_module_as('brainunit.math')
 def hypot(
-    x: Union[Array, Quantity],
-    y: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
+    y: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Given the “legs” of a right triangle, return its hypotenuse.
 
@@ -981,10 +1215,10 @@ def hypot(
 
 @set_module_as('brainunit.math')
 def arctan2(
-    x: Union[Array, Quantity],
-    y: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
+    y: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Element-wise arc tangent of `x1/x2` choosing the quadrant correctly.
 
@@ -1005,10 +1239,10 @@ def arctan2(
 
 @set_module_as('brainunit.math')
 def logaddexp(
-    x: Union[Array, Quantity],
-    y: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
+    y: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Logarithm of the sum of exponentiations of the inputs.
 
@@ -1029,10 +1263,10 @@ def logaddexp(
 
 @set_module_as('brainunit.math')
 def logaddexp2(
-    x: Union[Array, Quantity],
-    y: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
+    y: Union[jax.Array, Quantity],
     unit_to_scale: Optional[Unit] = None,
-) -> Array | Quantity:
+) -> jax.Array:
   """
   Logarithm of the sum of exponentiations of the inputs in base-2.
 
@@ -1052,243 +1286,12 @@ def logaddexp2(
 
 
 @set_module_as('brainunit.math')
-def percentile(
-    a: Union[Array, Quantity],
-    q: Union[Array, Quantity],
-    axis: Optional[Union[int, Tuple[int]]] = None,
-    method: str = 'linear',
-    keepdims: Optional[bool] = False,
-    unit_to_scale: Optional[Unit] = None,
-) -> Array:
-  """
-  Compute the q-th percentile of the data along the specified axis.
-
-  Returns the q-th percentile(s) of the array elements.
-
-  Parameters
-  ----------
-  a : array_like, Quantity
-    Input array or Quantity.
-  q : array_like, Quantity
-    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
-  method : str, optional
-    This parameter specifies the method to use for estimating the
-    percentile.  There are many different methods, some unique to NumPy.
-    See the notes for explanation.  The options sorted by their R type
-    as summarized in the H&F paper [1]_ are:
-
-    1. 'inverted_cdf'
-    2. 'averaged_inverted_cdf'
-    3. 'closest_observation'
-    4. 'interpolated_inverted_cdf'
-    5. 'hazen'
-    6. 'weibull'
-    7. 'linear'  (default)
-    8. 'median_unbiased'
-    9. 'normal_unbiased'
-
-    The first three methods are discontinuous.  NumPy further defines the
-    following discontinuous variations of the default 'linear' (7.) option:
-
-    * 'lower'
-    * 'higher',
-    * 'midpoint'
-    * 'nearest'
-  keepdims : bool, optional
-    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-
-  Returns
-  -------
-  out : jax.Array
-    Output array.
-  """
-  return _fun_accept_unitless_binary(
-    jnp.percentile, a, q, axis=axis,
-    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
-  )
-
-
-@set_module_as('brainunit.math')
-def nanpercentile(
-    a: Union[Array, Quantity],
-    q: Union[Array, Quantity],
-    axis: Optional[Union[int, Tuple[int]]] = None,
-    method: str = 'linear',
-    keepdims: Optional[bool] = False,
-    unit_to_scale: Optional[Unit] = None,
-) -> Array:
-  """
-  Compute the q-th percentile of the data along the specified axis, while ignoring nan values.
-
-  Returns the q-th percentile(s) of the array elements, while ignoring nan values.
-
-  Parameters
-  ----------
-  a : array_like, Quantity
-    Input array or Quantity.
-  q : array_like, Quantity
-    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
-  method : str, optional
-    This parameter specifies the method to use for estimating the
-    percentile.  There are many different methods, some unique to NumPy.
-    See the notes for explanation.  The options sorted by their R type
-    as summarized in the H&F paper [1]_ are:
-
-    1. 'inverted_cdf'
-    2. 'averaged_inverted_cdf'
-    3. 'closest_observation'
-    4. 'interpolated_inverted_cdf'
-    5. 'hazen'
-    6. 'weibull'
-    7. 'linear'  (default)
-    8. 'median_unbiased'
-    9. 'normal_unbiased'
-
-    The first three methods are discontinuous.  NumPy further defines the
-    following discontinuous variations of the default 'linear' (7.) option:
-
-    * 'lower'
-    * 'higher',
-    * 'midpoint'
-    * 'nearest'
-  keepdims : bool, optional
-    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-
-  Returns
-  -------
-  out : jax.Array
-    Output array.
-  """
-  return _fun_accept_unitless_binary(
-    jnp.nanpercentile, a, q,
-    axis=axis,
-    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
-  )
-
-
-@set_module_as('brainunit.math')
-def quantile(
-    a: Union[Array, Quantity],
-    q: Union[Array, Quantity],
-    axis: Optional[Union[int, Tuple[int]]] = None,
-    method: str = 'linear',
-    keepdims: Optional[bool] = False,
-    unit_to_scale: Optional[Unit] = None,
-) -> Array:
-  """
-  Compute the q-th percentile of the data along the specified axis.
-
-  Returns the q-th percentile(s) of the array elements.
-
-  Parameters
-  ----------
-  a : array_like, Quantity
-    Input array or Quantity.
-  q : array_like, Quantity
-    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
-  method : str, optional
-    This parameter specifies the method to use for estimating the
-    percentile.  There are many different methods, some unique to NumPy.
-    See the notes for explanation.  The options sorted by their R type
-    as summarized in the H&F paper [1]_ are:
-
-    1. 'inverted_cdf'
-    2. 'averaged_inverted_cdf'
-    3. 'closest_observation'
-    4. 'interpolated_inverted_cdf'
-    5. 'hazen'
-    6. 'weibull'
-    7. 'linear'  (default)
-    8. 'median_unbiased'
-    9. 'normal_unbiased'
-
-    The first three methods are discontinuous.  NumPy further defines the
-    following discontinuous variations of the default 'linear' (7.) option:
-
-    * 'lower'
-    * 'higher',
-    * 'midpoint'
-    * 'nearest'
-  keepdims : bool, optional
-    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-
-  Returns
-  -------
-  out : jax.Array
-    Output array.
-  """
-  return _fun_accept_unitless_binary(
-    jnp.quantile, a, q,
-    axis=axis,
-    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
-  )
-
-
-@set_module_as('brainunit.math')
-def nanquantile(
-    a: Union[Array, Quantity],
-    q: Union[Array, Quantity],
-    axis: Optional[Union[int, Tuple[int]]] = None,
-    method: str = 'linear',
-    keepdims: Optional[bool] = False,
-    unit_to_scale: Optional[Unit] = None,
-) -> Array:
-  """
-  Compute the q-th percentile of the data along the specified axis, while ignoring nan values.
-
-  Returns the q-th percentile(s) of the array elements, while ignoring nan values.
-
-  Parameters
-  ----------
-  a : array_like, Quantity
-    Input array or Quantity.
-  q : array_like, Quantity
-    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
-  method : str, optional
-    This parameter specifies the method to use for estimating the
-    percentile.  There are many different methods, some unique to NumPy.
-    See the notes for explanation.  The options sorted by their R type
-    as summarized in the H&F paper [1]_ are:
-
-    1. 'inverted_cdf'
-    2. 'averaged_inverted_cdf'
-    3. 'closest_observation'
-    4. 'interpolated_inverted_cdf'
-    5. 'hazen'
-    6. 'weibull'
-    7. 'linear'  (default)
-    8. 'median_unbiased'
-    9. 'normal_unbiased'
-
-    The first three methods are discontinuous.  NumPy further defines the
-    following discontinuous variations of the default 'linear' (7.) option:
-
-    * 'lower'
-    * 'higher',
-    * 'midpoint'
-    * 'nearest'
-  keepdims : bool, optional
-    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-
-  Returns
-  -------
-  out : jax.Array
-    Output array.
-  """
-  return _fun_accept_unitless_binary(
-    jnp.nanquantile, a, q,
-    axis=axis,
-    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
-  )
-
-
-@set_module_as('brainunit.math')
 def corrcoef(
-    x: Union[Array, Quantity],
-    y: Union[Array, Quantity],
+    x: Union[jax.Array, Quantity],
+    y: Union[jax.Array, Quantity],
     rowvar: bool = True,
     unit_to_scale: Optional[Unit] = None,
-) -> Array:
+) -> jax.Array:
   """
   Return Pearson product-moment correlation coefficients.
 
@@ -1314,31 +1317,27 @@ def corrcoef(
     variable, with observations in the columns. Otherwise, the relationship
     is transposed: each column represents a variable, while the rows
     contain observations.
+  unit_to_scale : Unit, optional
+    The unit to scale the ``x``.
 
   Returns
   -------
   R : ndarray
     The correlation coefficient matrix of the variables.
   """
-  if isinstance(x, Quantity):
-    assert x.is_unitless, 'Input should be unitless for the function "corrcoef".'
-    x = x.value
-  if isinstance(y, Quantity):
-    assert y.is_unitless, 'Input should be unitless for the function "corrcoef".'
-    y = y.value
-  return jnp.corrcoef(x, y, rowvar=rowvar)
+  return _fun_accept_unitless_binary(jnp.corrcoef, x, y, rowvar=rowvar, unit_to_scale=unit_to_scale)
 
 
 @set_module_as('brainunit.math')
 def correlate(
-    a: Union[Array, Quantity],
-    v: Union[Array, Quantity],
+    a: Union[jax.Array, Quantity],
+    v: Union[jax.Array, Quantity],
     mode: str = 'valid',
     *,
     precision: Any = None,
     preferred_element_type: Optional[jax.typing.DTypeLike] = None,
     unit_to_scale: Optional[Unit] = None,
-) -> Array:
+) -> jax.Array:
   """
   Cross-correlation of two 1-dimensional sequences.
 
@@ -1367,33 +1366,33 @@ def correlate(
   preferred_element_type : Optional. Either ``None``, which means the default
     accumulation type for the input types, or a datatype, indicating to
     accumulate results to and return a result with that datatype.
+  unit_to_scale : Unit, optional
+    The unit to scale the ``x``.
 
   Returns
   -------
   out : ndarray
     Discrete cross-correlation of `a` and `v`.
   """
-  if isinstance(a, Quantity):
-    assert a.is_unitless, 'Input should be unitless for the function "correlate".'
-    a = a.value
-  if isinstance(v, Quantity):
-    assert v.is_unitless, 'Input should be unitless for the function "correlate".'
-    v = v.value
-  return jnp.correlate(a, v, mode=mode, precision=precision,
-                       preferred_element_type=preferred_element_type)
+  return _fun_accept_unitless_binary(
+    jnp.correlate, a, v,
+    mode=mode, precision=precision,
+    preferred_element_type=preferred_element_type,
+    unit_to_scale=unit_to_scale
+  )
 
 
 @set_module_as('brainunit.math')
 def cov(
-    m: Union[Array, Quantity],
-    y: Optional[Union[Array, Quantity]] = None,
+    m: Union[jax.Array, Quantity],
+    y: Optional[Union[jax.Array, Quantity]] = None,
     rowvar: bool = True,
     bias: bool = False,
     ddof: Optional[int] = None,
     fweights: Optional[jax.typing.ArrayLike] = None,
     aweights: Optional[jax.typing.ArrayLike] = None,
     unit_to_scale: Optional[Unit] = None,
-) -> Array:
+) -> jax.Array:
   """
   Estimate a covariance matrix, given data and weights.
 
@@ -1438,35 +1437,27 @@ def cov(
     typically large for observations considered "important" and smaller for
     observations considered less "important". If ``ddof=0`` the array of
     weights can be used to assign probabilities to observation vectors.
+  unit_to_scale : Unit, optional
+    The unit to scale the ``x``.
 
   Returns
   -------
   out : ndarray
     The covariance matrix of the variables.
   """
-  if isinstance(m, Quantity):
-    assert m.is_unitless, 'Input should be unitless for the function "cov".'
-    m = m.value
-  if isinstance(y, Quantity):
-    assert y.is_unitless, 'Input should be unitless for the function "cov".'
-    y = y.value
-  return jnp.cov(m, y,
-                 rowvar=rowvar, bias=bias, ddof=ddof, fweights=fweights,
-                 aweights=aweights)
+  return _fun_accept_unitless_binary(
+    jnp.cov, m, y,
+    rowvar=rowvar, bias=bias, ddof=ddof, fweights=fweights,
+    aweights=aweights, unit_to_scale=unit_to_scale
+  )
 
 
 # Elementwise bit operations (unary)
 # ----------------------------------
 
-def _fun_unitless_unary(func, x, *args, **kwargs):
-  if isinstance(x, Quantity):
-    assert x.is_unitless, f'Expected unitless array, got {x}'
-    x = x.value
-  return func(x, *args, **kwargs)
-
 
 @set_module_as('brainunit.math')
-def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
+def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
   """
   Compute the bit-wise NOT of an array, element-wise.
 
@@ -1480,11 +1471,11 @@ def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   out : jax.Array
     Output array.
   """
-  return _fun_unitless_unary(jnp.bitwise_not, x)
+  return _fun_accept_unitless_unary(jnp.bitwise_not, x)
 
 
 @set_module_as('brainunit.math')
-def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
+def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
   """
   Compute bit-wise inversion, or bit-wise NOT, element-wise.
 
@@ -1498,7 +1489,7 @@ def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> Array:
   out : jax.Array
     Output array.
   """
-  return _fun_unitless_unary(jnp.invert, x)
+  return _fun_accept_unitless_unary(jnp.invert, x)
 
 
 # Elementwise bit operations (binary)
@@ -1519,7 +1510,7 @@ def _fun_unitless_binary(func, x, y, *args, **kwargs):
 def bitwise_and(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
-) -> Array:
+) -> jax.Array:
   """
   Compute the bit-wise AND of two arrays element-wise.
 
@@ -1542,7 +1533,7 @@ def bitwise_and(
 def bitwise_or(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
-) -> Array:
+) -> jax.Array:
   """
   Compute the bit-wise OR of two arrays element-wise.
 
@@ -1565,7 +1556,7 @@ def bitwise_or(
 def bitwise_xor(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
-) -> Array:
+) -> jax.Array:
   """
   Compute the bit-wise XOR of two arrays element-wise.
 
@@ -1588,7 +1579,7 @@ def bitwise_xor(
 def left_shift(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
-) -> Array:
+) -> jax.Array:
   """
   Shift the bits of an integer to the left.
 
@@ -1611,7 +1602,7 @@ def left_shift(
 def right_shift(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
-) -> Array:
+) -> jax.Array:
   """
   Shift the bits of an integer to the right.
 
