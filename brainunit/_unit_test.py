@@ -222,7 +222,7 @@ def test_numpy_methods():
   assert q.argmin() == 0
   assert q.argsort(axis=None).tolist() == [0, 1, 2, 3]
   assert_quantity(q.var(), 1.25, second ** 2)
-  assert_quantity(q.round(), [[1, 2], [3, 4]], second)
+  assert_quantity(q.round(unit=second), [[1, 2], [3, 4]], second)
   assert_quantity(q.std(), 1.11803398875, second)
   assert_quantity(q.sum(), 10, second)
   assert_quantity(q.trace(), 5, second)
@@ -316,7 +316,7 @@ def test_misc_methods():
   assert_quantity(q.repeat(2), [5, 5, 10, 10, 15, 15], volt)
 
   # Test clamp (same as clip, but using min and max values directly)
-  assert_quantity(q.clamp(6 * volt, 14 * volt), [6, 10, 14], volt)
+  assert_quantity(q.clip(6 * volt, 14 * volt), [6, 10, 14], volt)
 
   # Test sort
   q = [15, 5, 10] * volt
@@ -934,7 +934,7 @@ def test_unitsafe_functions():
   for func, np_func in funcs:
     # make sure these functions raise errors when run on values with dimensions
     for val in unit_values:
-      with pytest.raises(DimensionMismatchError):
+      with pytest.raises(AssertionError):
         func(val)
 
     # make sure the functions are equivalent to their numpy counterparts
@@ -1041,7 +1041,7 @@ def test_special_case_numpy_functions():
 
   # check the where function
   # pure numpy array
-  cond = [True, False, False]
+  cond = np.array([True, False, False])
   ar1 = np.array([1, 2, 3])
   ar2 = np.array([4, 5, 6])
   assert_equal(np.where(cond), where(cond))
@@ -1062,7 +1062,7 @@ def test_special_case_numpy_functions():
   )
 
   # Check some error cases
-  with pytest.raises(ValueError):
+  with pytest.raises(AssertionError):
     where(cond, ar1)
   with pytest.raises(TypeError):
     where(cond, ar1, ar1, ar2)

@@ -15,6 +15,9 @@
 
 import unittest
 
+import jax.numpy as  jnp
+import numpy as np
+
 import brainunit as bu
 
 
@@ -25,4 +28,73 @@ class TestQuantity(unittest.TestCase):
     with self.assertRaises(NotImplementedError):
       a.dim = bu.mV.dim
 
+  def test_clip(self):
+    a = [1, 2.] * bu.ms
+    self.assertTrue(bu.math.allclose(a.clip(1.5 * bu.ms, 2.5 * bu.ms), [1.5, 2.] * bu.ms))
+
+    b = bu.Quantity([1, 2.])
+    self.assertTrue(bu.math.allclose(b.clip(1.5, 2.5), bu.math.asarray([1.5, 2.])))
+
+  def test_round(self):
+    a = [1.1, 2.2] * bu.ms
+    self.assertTrue(bu.math.allclose(a.round(unit=bu.ms), [1, 2] * bu.ms))
+
+    b = bu.Quantity([1.1, 2.2])
+    self.assertTrue(bu.math.allclose(b.round(), bu.math.asarray([1, 2])))
+
+    with self.assertRaises(AssertionError):
+      a = [1.1, 2.2] * bu.ms
+      self.assertTrue(bu.math.allclose(a.round(), [1, 2] * bu.ms))
+
+  def test_astype(self):
+    a = [1, 2.] * bu.ms
+    self.assertTrue(a.astype(jnp.float16).dtype == jnp.float16)
+
+  def test_to_numpy(self):
+    a = bu.Quantity([1, 2.])
+    self.assertTrue(bu.math.allclose(a.to_numpy(), jnp.asarray([1, 2.])))
+
+    with self.assertRaises(AssertionError):
+      a = [1, 2.] * bu.ms
+      self.assertTrue(bu.math.allclose(a.to_numpy(), jnp.asarray([1, 2.])))
+
+  def test_to_jax(self):
+    a = bu.Quantity([1, 2.])
+    self.assertTrue(bu.math.allclose(a.to_jax(), jnp.asarray([1, 2.])))
+
+    with self.assertRaises(AssertionError):
+      a = [1, 2.] * bu.ms
+      self.assertTrue(bu.math.allclose(a.to_jax(), jnp.asarray([1, 2.])))
+
+  def test___array__(self):
+    a = bu.Quantity([1, 2.])
+    self.assertTrue(bu.math.allclose(np.asarray(a), np.asarray([1, 2.])))
+
+    with self.assertRaises(TypeError):
+      a = [1, 2.] * bu.ms
+      self.assertTrue(bu.math.allclose(np.asarray(a), np.asarray([1, 2.])))
+
+  def test__float__(self):
+    a = bu.Quantity(1.)
+    self.assertTrue(bu.math.allclose(float(a), 1.))
+
+    a = bu.Quantity([1, 2.])
+    with self.assertRaises(TypeError):
+      self.assertTrue(bu.math.allclose(float(a), 1.5))
+
+    with self.assertRaises(TypeError):
+      a = [1, 2.] * bu.ms
+      self.assertTrue(bu.math.allclose(float(a), 1.5))
+
+  def test__int__(self):
+    a = bu.Quantity(1.)
+    self.assertTrue(bu.math.allclose(int(a), 1.))
+
+    a = bu.Quantity([1, 2.])
+    with self.assertRaises(TypeError):
+      self.assertTrue(bu.math.allclose(int(a), 1.5))
+
+    with self.assertRaises(TypeError):
+      a = [1, 2.] * bu.ms
+      self.assertTrue(bu.math.allclose(int(a), 1.5))
 

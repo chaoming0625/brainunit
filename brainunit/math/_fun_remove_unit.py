@@ -14,17 +14,18 @@
 # ==============================================================================
 from __future__ import annotations
 
-from typing import (Union, Optional)
+from typing import (Union, Optional, Sequence)
 
 import jax
 import jax.numpy as jnp
-import numpy as np
-from jax import Array
 
-from .._base import (Quantity, DIMENSIONLESS, fail_for_dimension_mismatch)
+from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS
 from .._misc import set_module_as
 
 __all__ = [
+  # math funcs remove unit (unary)
+  'heaviside', 'signbit', 'sign', 'bincount', 'digitize',
+
   # logic funcs (unary)
   'all', 'any', 'logical_not',
 
@@ -32,20 +33,182 @@ __all__ = [
   'equal', 'not_equal', 'greater', 'greater_equal', 'less', 'less_equal',
   'array_equal', 'isclose', 'allclose', 'logical_and',
   'logical_or', 'logical_xor', "alltrue", 'sometrue',
+
+  # indexing
+  'argsort', 'argmax', 'argmin', 'nanargmax', 'nanargmin', 'argwhere',
+  'nonzero', 'flatnonzero', 'searchsorted', 'count_nonzero',
 ]
 
 
-# logic funcs (unary)
-# -------------------
+# math funcs remove unit (unary)
+# ------------------------------
 
-
-def logic_func_unary(func, x, *args, **kwargs):
+def _fun_remove_unit_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
-    raise ValueError(f'Expected arrays, got {x}')
-  elif isinstance(x, (jax.Array, np.ndarray)):
-    return func(x, *args, **kwargs)
+    return func(x.value, *args, **kwargs)
   else:
-    raise ValueError(f'Unsupported types {type(x)} for {func.__name__}')
+    return func(x, *args, **kwargs)
+
+
+@set_module_as('brainunit.math')
+def heaviside(
+    x1: Union[Quantity, jax.jax.Array],
+    x2: jax.typing.ArrayLike
+) -> Union[Quantity, jax.jax.Array]:
+  """
+  Compute the Heaviside step function.
+
+  Parameters
+  ----------
+  x1: array_like, Quantity
+    Input array.
+  x2: array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array, Quantity
+    Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
+  """
+  x1 = x1.value if isinstance(x1, Quantity) else x1
+  if isinstance(x2, Quantity):
+    assert x2.is_unitless, f'Expected unitless array for x2, while got {x2}'
+  return _fun_remove_unit_unary(jnp.heaviside, x1, x2)
+
+
+@set_module_as('brainunit.math')
+def signbit(x: Union[jax.Array, Quantity]) -> jax.Array:
+  """
+  Returns element-wise True where signbit is set (less than zero).
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+      The input value(s).
+
+  Returns
+  -------
+  result : ndarray of bool
+      Output array, or reference to `out` if that was supplied.
+      This is a scalar if `x` is a scalar.
+  """
+  return _fun_remove_unit_unary(jnp.signbit, x)
+
+
+@set_module_as('brainunit.math')
+def sign(x: Union[jax.Array, Quantity]) -> jax.Array:
+  """
+  Returns the sign of each element in the input array.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input values.
+
+  Returns
+  -------
+  y : ndarray
+    The sign of `x`.
+    This is a scalar if `x` is a scalar.
+  """
+  return _fun_remove_unit_unary(jnp.sign, x)
+
+
+@set_module_as('brainunit.math')
+def bincount(
+    x: Union[jax.Array, Quantity],
+    weights: Optional[jax.typing.ArrayLike] = None,
+    minlength: int = 0,
+    *,
+    length: Optional[int] = None
+) -> jax.Array:
+  """
+  Count number of occurrences of each value in array of non-negative ints.
+
+  The number of bins (of size 1) is one larger than the largest value in
+  `x`. If `minlength` is specified, there will be at least this number
+  of bins in the output array (though it will be longer if necessary,
+  depending on the contents of `x`).
+  Each bin gives the number of occurrences of its index value in `x`.
+  If `weights` is specified the input array is weighted by it, i.e. if a
+  value ``n`` is found at position ``i``, ``out[n] += weight[i]`` instead
+  of ``out[n] += 1``.
+
+  Parameters
+  ----------
+  x : array_like, Quantity, 1 dimension, nonnegative ints
+    Input array.
+  weights : array_like, optional
+    Weights, array of the same shape as `x`.
+  minlength : int, optional
+    A minimum number of bins for the output array.
+
+  Returns
+  -------
+  out : ndarray of ints
+    The result of binning the input array.
+    The length of `out` is equal to ``bu.amax(x)+1``.
+  """
+  return _fun_remove_unit_unary(jnp.bincount, x, weights=weights, minlength=minlength, length=length)
+
+
+@set_module_as('brainunit.math')
+def digitize(
+    x: Union[jax.Array, Quantity],
+    bins: Union[jax.Array, Quantity],
+    right: bool = False
+) -> jax.Array:
+  """
+  Return the indices of the bins to which each value in input array belongs.
+
+  =========  =============  ============================
+  `right`    order of bins  returned index `i` satisfies
+  =========  =============  ============================
+  ``False``  increasing     ``bins[i-1] <= x < bins[i]``
+  ``True``   increasing     ``bins[i-1] < x <= bins[i]``
+  ``False``  decreasing     ``bins[i-1] > x >= bins[i]``
+  ``True``   decreasing     ``bins[i-1] >= x > bins[i]``
+  =========  =============  ============================
+
+  If values in `x` are beyond the bounds of `bins`, 0 or ``len(bins)`` is
+  returned as appropriate.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array to be binned. Prior to NumPy 1.10.0, this array had to
+    be 1-dimensional, but can now have any shape.
+  bins : array_like, Quantity
+    Array of bins. It has to be 1-dimensional and monotonic.
+  right : bool, optional
+    Indicating whether the intervals include the right or the left bin
+    edge. Default behavior is (right==False) indicating that the interval
+    does not include the right edge. The left bin end is open in this
+    case, i.e., bins[i-1] <= x < bins[i] is the default behavior for
+    monotonically increasing bins.
+
+  Returns
+  -------
+  indices : ndarray of ints
+      Output array of indices, of same shape as `x`.
+  """
+  if isinstance(x, Quantity) and isinstance(bins, Quantity):
+    fail_for_dimension_mismatch(x, bins, 'digitize requires x and bins to have the same dimension')
+    x = x.value
+    bins = bins.value
+  elif isinstance(x, Quantity):
+    assert x.is_unitless, f'Expected unitless Quantity when bins is not a Quantity, got {x}'
+    x = x.value
+  elif isinstance(bins, Quantity):
+    assert bins.is_unitless, f'Expected unitless Quantity when x is not a Quantity, got {bins}'
+    bins = bins.value
+  return jnp.digitize(x, bins, right=right)
+
+
+def _fun_logic_unary(func, x, *args, **kwargs):
+  if isinstance(x, Quantity):
+    assert x.is_unitless, f'Expected unitless array for {func.__name__}, while got {x}'
+  return func(x, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -53,8 +216,8 @@ def all(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[int] = None,
     keepdims: bool = False,
-    where: Optional[Array] = None
-) -> Union[bool, Array]:
+    where: Optional[jax.Array] = None
+) -> Union[bool, jax.Array]:
   """
   Test whether all array elements along a given axis evaluate to True.
 
@@ -89,7 +252,7 @@ def all(
     A new boolean or array is returned unless `out` is specified,
     in which case a reference to `out` is returned.
   """
-  return logic_func_unary(jnp.all, x, axis=axis, keepdims=keepdims, where=where)
+  return _fun_logic_unary(jnp.all, x, axis=axis, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
@@ -97,8 +260,8 @@ def any(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[int] = None,
     keepdims: bool = False,
-    where: Optional[Array] = None
-) -> Union[bool, Array]:
+    where: Optional[jax.Array] = None
+) -> Union[bool, jax.Array]:
   """
   Test whether any array element along a given axis evaluates to True.
 
@@ -133,13 +296,13 @@ def any(
     A new boolean or array is returned unless `out` is specified,
     in which case a reference to `out` is returned.
   """
-  return logic_func_unary(jnp.any, x, axis=axis, keepdims=keepdims, where=where)
+  return _fun_logic_unary(jnp.any, x, axis=axis, keepdims=keepdims, where=where)
 
 
 @set_module_as('brainunit.math')
 def logical_not(
     x: Union[Quantity, jax.typing.ArrayLike],
-) -> Union[bool, Array]:
+) -> Union[bool, jax.Array]:
   """
   Compute the truth value of NOT x element-wise.
 
@@ -154,7 +317,7 @@ def logical_not(
     A new boolean or array is returned unless `out` is specified,
     in which case a reference to `out` is returned.
   """
-  return logic_func_unary(jnp.logical_not, x)
+  return _fun_logic_unary(jnp.logical_not, x)
 
 
 alltrue = all
@@ -165,7 +328,7 @@ sometrue = any
 # --------------------
 
 
-def logic_func_binary(func, x, y, *args, **kwargs):
+def _fun_logic_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     fail_for_dimension_mismatch(x, y)
     return func(x.value, y.value, *args, **kwargs)
@@ -185,7 +348,7 @@ def equal(
     y: Union[Quantity, jax.typing.ArrayLike],
     *args,
     **kwargs
-) -> Union[bool, Array]:
+) -> Union[bool, jax.Array]:
   """
   equal(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
@@ -220,7 +383,7 @@ def equal(
     Typically of type bool, unless ``dtype=object`` is passed.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.equal, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -229,7 +392,7 @@ def not_equal(
     y: Union[Quantity, jax.typing.ArrayLike],
     *args,
     **kwargs
-) -> Union[bool, Array]:
+) -> Union[bool, jax.Array]:
   """
   not_equal(x, y, /, out=None, *, where=True, casting='same_kind',
   order='K', dtype=None, subok=True[, signature, extobj])
@@ -265,7 +428,7 @@ def not_equal(
     Typically of type bool, unless ``dtype=object`` is passed.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.not_equal, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.not_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -274,7 +437,7 @@ def greater(
     y: Union[Quantity, jax.typing.ArrayLike],
     *args,
     **kwargs
-) -> Union[bool, Array]:
+) -> Union[bool, jax.Array]:
   """
   greater(x, y, /, out=None, *, where=True, casting='same_kind',
   order='K', dtype=None, subok=True[, signature, extobj])
@@ -310,7 +473,7 @@ def greater(
     Typically of type bool, unless ``dtype=object`` is passed.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.greater, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.greater, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -320,7 +483,7 @@ def greater_equal(
     *args,
     **kwargs
 ) -> Union[
-  bool, Array]:
+  bool, jax.Array]:
   """
   greater_equal(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
@@ -355,7 +518,7 @@ def greater_equal(
     Typically of type bool, unless ``dtype=object`` is passed.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.greater_equal, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.greater_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -364,7 +527,7 @@ def less(
     y: Union[Quantity, jax.typing.ArrayLike],
     *args,
     **kwargs
-) -> Union[bool, Array]:
+) -> Union[bool, jax.Array]:
   """
   less(x, y, /, out=None, *, where=True, casting='same_kind',
   order='K', dtype=None, subok=True[, signature, extobj])
@@ -400,7 +563,7 @@ def less(
       Typically of type bool, unless ``dtype=object`` is passed.
       This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.less, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.less, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -410,7 +573,7 @@ def less_equal(
     *args,
     **kwargs
 ) -> Union[
-  bool, Array]:
+  bool, jax.Array]:
   """
   less_equal(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
@@ -445,7 +608,7 @@ def less_equal(
     Typically of type bool, unless ``dtype=object`` is passed.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.less_equal, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.less_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -455,7 +618,7 @@ def array_equal(
     *args,
     **kwargs
 ) -> Union[
-  bool, Array]:
+  bool, jax.Array]:
   """
   True if two arrays have the same shape and elements, False otherwise.
 
@@ -473,7 +636,7 @@ def array_equal(
   b : bool
     Returns True if the arrays are equal.
   """
-  return logic_func_binary(jnp.array_equal, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.array_equal, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -483,7 +646,7 @@ def isclose(
     rtol: float | Quantity = 1e-05,
     atol: float | Quantity = 1e-08,
     equal_nan: bool = False
-) -> Union[bool, Array]:
+) -> Union[bool, jax.Array]:
   """
   Returns a boolean array where two arrays are element-wise equal within a
   tolerance.
@@ -524,7 +687,7 @@ def isclose(
     fail_for_dimension_mismatch(rtol, Quantity(0., dim=dim), 'rtol should be a Quantity with {dim}.', dim=dim)
   if isinstance(atol, Quantity):
     fail_for_dimension_mismatch(atol, Quantity(0., dim=dim), 'atol should be a Quantity with {dim}.', dim=dim)
-  return logic_func_binary(jnp.isclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
+  return _fun_logic_binary(jnp.isclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @set_module_as('brainunit.math')
@@ -534,7 +697,7 @@ def allclose(
     rtol: float | Quantity = 1e-05,
     atol: float | Quantity = 1e-08,
     equal_nan: bool = False
-) -> Union[bool, Array]:
+) -> Union[bool, jax.Array]:
   """
   Returns True if two arrays are element-wise equal within a tolerance.
 
@@ -577,7 +740,7 @@ def allclose(
     fail_for_dimension_mismatch(rtol, Quantity(0., dim=dim), 'rtol should be a Quantity with {dim}.', dim=dim)
   if isinstance(atol, Quantity):
     fail_for_dimension_mismatch(atol, Quantity(0., dim=dim), 'atol should be a Quantity with {dim}.', dim=dim)
-  return logic_func_binary(jnp.allclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
+  return _fun_logic_binary(jnp.allclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @set_module_as('brainunit.math')
@@ -586,7 +749,7 @@ def logical_and(
     y: Union[Quantity, jax.typing.ArrayLike],
     *args,
     **kwargs
-) -> Union[bool, Array]:
+) -> Union[bool, jax.Array]:
   """
   logical_and(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
@@ -621,7 +784,7 @@ def logical_and(
     of `x` and `y`; the shape is determined by broadcasting.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.logical_and, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.logical_and, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -630,7 +793,7 @@ def logical_or(
     y: Union[Quantity, jax.typing.ArrayLike],
     *args,
     **kwargs
-) -> Union[bool, Array]:
+) -> Union[bool, jax.Array]:
   """
   logical_or(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
@@ -665,7 +828,7 @@ def logical_or(
     of `x` and `y`; the shape is determined by broadcasting.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.logical_or, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.logical_or, x, y, *args, **kwargs)
 
 
 @set_module_as('brainunit.math')
@@ -674,7 +837,7 @@ def logical_xor(
     y: Union[Quantity, jax.typing.ArrayLike],
     *args,
     **kwargs
-) -> Union[bool, Array]:
+) -> Union[bool, jax.Array]:
   """
   logical_xor(x, y, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
 
@@ -709,4 +872,337 @@ def logical_xor(
     of `x` and `y`; the shape is determined by broadcasting.
     This is a scalar if both `x` and `y` are scalars.
   """
-  return logic_func_binary(jnp.logical_xor, x, y, *args, **kwargs)
+  return _fun_logic_binary(jnp.logical_xor, x, y, *args, **kwargs)
+
+
+# ----------------------
+# Indexing functions
+# ----------------------
+
+
+@set_module_as('brainunit.math')
+def argsort(
+    a: Union[jax.Array, Quantity],
+    axis: Optional[int] = -1,
+    *,
+    kind: None = None,
+    order: None = None,
+    stable: bool = True,
+    descending: bool = False,
+) -> jax.Array:
+  """
+  Returns the indices that would sort an array or a quantity.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Array or quantity to be sorted.
+  axis : int or None, optional
+    Axis along which to sort. If None, the array is flattened before sorting. The default is -1, which sorts along
+    the last axis.
+  kind : {'quicksort', 'mergesort', 'heapsort', 'stable'}, optional
+    Sorting algorithm. The default is 'None'.
+  order : str or list of str, optional
+    When `a` is a quantity, it can be a string or a sequence of strings, which is interpreted as an order the quantity
+    should be sorted. The default is None.
+  stable : bool, optional
+    Whether to use a stable sorting algorithm. The default is True.
+  descending : bool, optional
+    Whether to sort in descending order. The default is False.
+
+  Returns
+  -------
+  res : ndarray
+    Array of indices that sort the array.
+  """
+  return _fun_remove_unit_unary(jnp.argsort,
+                                a,
+                                axis=axis,
+                                kind=kind,
+                                order=order,
+                                stable=stable,
+                                descending=descending)
+
+
+@set_module_as('brainunit.math')
+def argmax(
+    a: Union[jax.Array, Quantity],
+    axis: Optional[int] = None,
+) -> jax.Array:
+  """
+  Returns indices of the max value along an axis.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    By default, the index is into the flattened array, otherwise along the specified axis.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this
+    option, the result will broadcast correctly against the input array.
+
+  Returns
+  -------
+  res : ndarray
+    Array of indices into the array. It has the same shape as `a.shape` with the dimension along `axis` removed.
+  """
+  return _fun_remove_unit_unary(jnp.argmax, a, axis=axis)
+
+
+@set_module_as('brainunit.math')
+def argmin(
+    a: Union[jax.Array, Quantity],
+    axis: Optional[int] = None,
+    keepdims: Optional[bool] = None
+) -> jax.Array:
+  """
+  Returns indices of the min value along an axis.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    By default, the index is into the flattened array, otherwise along the specified axis.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this
+    option, the result will broadcast correctly against the input array.
+
+  Returns
+  -------
+  res : ndarray
+    Array of indices into the array. It has the same shape as `a.shape` with the dimension along `axis` removed.
+  """
+  return _fun_remove_unit_unary(jnp.argmin, a, axis=axis, keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def nanargmax(
+    a: Union[jax.typing.ArrayLike, Quantity],
+    axis: int = None,
+    keepdims: bool = False
+) -> jax.Array:
+  """
+  Return the indices of the maximum values in the specified axis ignoring
+  NaNs. For all-NaN slices ``ValueError`` is raised. Warning: the
+  results cannot be trusted if a slice contains only NaNs and -Infs.
+
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    Axis along which to operate.  By default flattened input is used.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the array.
+
+  Returns
+  -------
+  index_array : ndarray
+    An array of indices or a single index value.
+  """
+  return _fun_remove_unit_unary(jnp.nanargmax,
+                                a,
+                                return_quantity=False,
+                                axis=axis,
+                                keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def nanargmin(
+    a: Union[jax.typing.ArrayLike, Quantity],
+    axis: int = None,
+    keepdims: bool = False
+) -> jax.Array:
+  """
+  Return the indices of the minimum values in the specified axis ignoring
+  NaNs. For all-NaN slices ``ValueError`` is raised. Warning: the results
+  cannot be trusted if a slice contains only NaNs and Infs.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  axis : int, optional
+    Axis along which to operate.  By default flattened input is used.
+  keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the array.
+
+  Returns
+  -------
+  index_array : ndarray
+    An array of indices or a single index value.
+  """
+  return _fun_remove_unit_unary(jnp.nanargmin,
+                                a,
+                                return_quantity=False,
+                                axis=axis,
+                                keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def argwhere(
+    a: Union[jax.Array, Quantity],
+    *,
+    size: Optional[int] = None,
+    fill_value: Optional[jax.typing.ArrayLike] = None,
+) -> jax.Array:
+  """
+  Find the indices of array elements that are non-zero, grouped by element.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  size : int, optional
+    The length of the returned axis. By default, the length of the input array along the axis is used.
+  fill_value : scalar, optional
+    The value to use for elements in the output array that are not selected. If None, the output array has the same
+    type as `a` and is filled with zeros.
+
+  Returns
+  -------
+  res : ndarray
+    The indices of elements that are non-zero. The indices are grouped by element.
+  """
+  return _fun_remove_unit_unary(jnp.argwhere, a, size=size, fill_value=fill_value)
+
+
+@set_module_as('brainunit.math')
+def nonzero(
+    a: Union[jax.Array, Quantity],
+    *,
+    size: Optional[int] = None,
+    fill_value: Optional[jax.typing.ArrayLike] = None,
+) -> Sequence[jax.Array]:
+  """
+  Return the indices of the elements that are non-zero.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  size : int, optional
+    The length of the returned axis. By default, the length of the input array along the axis is used.
+  fill_value : scalar, optional
+    The value to use for elements in the output array that are not selected. If None, the output array has the same
+    type as `a` and is filled with zeros.
+
+  Returns
+  -------
+  res : tuple of ndarrays
+    Indices of elements that are non-zero along the specified axis. Each array in the tuple has the same shape as the
+    input array.
+  """
+  return _fun_remove_unit_unary(jnp.nonzero, a, size=size, fill_value=fill_value)
+
+
+@set_module_as('brainunit.math')
+def flatnonzero(
+    a: Union[jax.Array, Quantity],
+    *,
+    size: Optional[int] = None,
+    fill_value: Optional[jax.typing.ArrayLike] = None,
+) -> jax.Array:
+  """
+  Return indices that are non-zero in the flattened version of the input quantity or array.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input data.
+  size : int, optional
+    The length of the returned axis. By default, the length of the input array along the axis is used.
+  fill_value : scalar, optional
+    The value to use for elements in the output array that are not selected. If None, the output array has the same
+    type as `a` and is filled with zeros.
+
+  Returns
+  -------
+  res : ndarray
+    Output array, containing the indices of the elements of `a.ravel()` that are non-zero.
+  """
+  return _fun_remove_unit_unary(jnp.flatnonzero, a, size=size, fill_value=fill_value)
+
+
+@set_module_as('brainunit.math')
+def count_nonzero(
+    a: Union[jax.Array, Quantity],
+    axis: Optional[int] = None,
+    keepdims: Optional[bool] = None
+) -> jax.Array:
+  """
+  Count the number of non-zero values in the quantity or array `a`.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    The array for which to count non-zeros.
+  axis : int, optional
+    The axis along which to count the non-zeros. If `None`, count non-zeros over the entire array.
+  keepdims : bool, optional
+    If this is set to `True`, the axes which are counted are left in the result as dimensions with size one. With this
+    option, the result will broadcast correctly against the original array.
+
+  Returns
+  -------
+  res : ndarray
+    Number of non-zero values in the quantity or array along a given axis.
+  """
+  return _fun_remove_unit_unary(jnp.count_nonzero, a, axis=axis, keepdims=keepdims)
+
+
+@set_module_as('brainunit.math')
+def searchsorted(
+    a: Union[jax.Array, Quantity],
+    v: Union[jax.Array, Quantity],
+    side: str = 'left',
+    sorter: Optional[jax.Array] = None,
+    *,
+    method: Optional[str] = 'scan'
+) -> jax.Array:
+  """
+  Find indices where elements should be inserted to maintain order.
+
+  Find the indices into a sorted array `a` such that, if the corresponding elements in `v` were inserted before the
+  indices, the order of `a` would be preserved.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Input array. It must be sorted in ascending order.
+  v : array_like, Quantity
+    Values to insert into `a`.
+  side : {'left', 'right'}, optional
+    If 'left', the index of the first suitable location found is given. If 'right', return the last such index. If
+    there is no suitable index, return either 0 or N (where N is the length of `a`).
+  sorter : 1-D array_like, optional
+    Optional array of integer indices that sort array `a` into ascending order. They are typically the result of
+    `argsort`.
+  method : str
+    One of 'scan' (default), 'scan_unrolled', 'sort' or 'compare_all'. Controls the method used by the
+    implementation: 'scan' tends to be more performant on CPU (particularly when ``a`` is
+    very large), 'scan_unrolled' is more performant on GPU at the expense of additional compile time,
+    'sort' is often more performant on accelerator backends like GPU and TPU
+    (particularly when ``v`` is very large), and 'compare_all' can be most performant
+    when ``a`` is very small. The default is 'scan'.
+
+  Returns
+  -------
+  out : ndarray
+    Array of insertion points with the same shape as `v`.
+  """
+  if isinstance(a, Quantity):
+    fail_for_dimension_mismatch(a, v)
+    a = a.value
+    v = v.value
+  if isinstance(v, Quantity):
+    assert v.is_unitless, 'v must be unitless when "a" is not a Quantity.'
+    v = v.value
+  return jnp.searchsorted(a, v, side=side, sorter=sorter, method=method)

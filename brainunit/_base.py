@@ -18,6 +18,7 @@ from __future__ import annotations
 import collections
 import itertools
 import numbers
+from functools import wraps
 import operator
 from contextlib import contextmanager
 from typing import Union, Optional, Sequence, Callable, Tuple, Any, List
@@ -99,6 +100,21 @@ def _assert_not_quantity(array):
   return array
 
 
+@contextmanager
+def change_printoption(**kwargs):
+  """
+  Temporarily change the numpy print options.
+
+  :param kwargs: The new print options.
+  """
+  old_printoptions = np.get_printoptions()
+  try:
+    np.set_printoptions(**kwargs)
+    yield
+  finally:
+    np.set_printoptions(**old_printoptions)
+
+
 def _short_str(arr):
   """
   Return a short string representation of an array, suitable for use in
@@ -106,10 +122,8 @@ def _short_str(arr):
   """
   arr = arr.value if isinstance(arr, Quantity) else arr
   arr = np.asanyarray(arr)
-  old_printoptions = jnp.get_printoptions()
-  jnp.set_printoptions(edgeitems=2, threshold=5)
-  arr_string = str(arr)
-  jnp.set_printoptions(**old_printoptions)
+  with change_printoption(edgeitems=2, threshold=5):
+    arr_string = str(arr)
   return arr_string
 
 
@@ -537,7 +551,10 @@ def get_dim(obj) -> Dimension:
       The physical dimensions of the `obj`.
   """
   try:
-    return obj.dim
+    try:
+      return obj.dim.dim
+    except:
+      return obj.dim
   except AttributeError:
     # The following is not very pretty, but it will avoid the costly
     # isinstance check for the common types
@@ -960,9 +977,9 @@ class Quantity(object):
   def __init__(
       self,
       value: Any,
-      dtype: Optional[jax.typing.DTypeLike] = None,
       dim: Dimension = DIMENSIONLESS,
       unit: Optional['Unit'] = None,
+      dtype: Optional[jax.typing.DTypeLike] = None,
   ):
     scale, dim = _get_dim(dim, unit)
 
@@ -1780,7 +1797,6 @@ class Quantity(object):
 
   var = wrap_function_change_dimensions(jnp.var, lambda v, d: d ** 2)
 
-  round = wrap_function_keep_dimensions(jnp.round)
   std = wrap_function_keep_dimensions(jnp.std)
   sum = wrap_function_keep_dimensions(jnp.sum)
   trace = wrap_function_keep_dimensions(jnp.trace)
@@ -1792,7 +1808,44 @@ class Quantity(object):
   ptp = wrap_function_keep_dimensions(jnp.ptp)
   ravel = wrap_function_keep_dimensions(jnp.ravel)
 
-  def astype(self, dtype) -> 'Quantity':
+  def round(
+      self,
+      decimals: int = 0,
+      unit: 'Unit' = None
+  ) -> 'Quantity':
+    """
+    Evenly round to the given number of decimals.
+
+    Parameters
+    ----------
+    decimals : int, optional
+        Number of decimal places to round to (default: 0).  If
+        decimals is negative, it specifies the number of positions to
+        the left of the decimal point.
+    unit : `Unit`, optional
+        The unit of the result. If not specified, the unit of the
+        original array is used.
+
+    Returns
+    -------
+    rounded_array : Quantity
+        An array of the same type as `a`, containing the rounded values.
+        Unless `out` was specified, a new array is created.  A reference to
+        the result is returned.
+
+        The real and imaginary parts of complex numbers are rounded
+        separately.  The result of rounding a float is a float.
+    """
+    if unit is None:
+      assert self.is_unitless, "Cannot round an array with units, use .to_value() function or dimensionless quantity."
+      return Quantity(jnp.round(self.value, decimals), dim=self.dim)
+    else:
+      assert isinstance(unit, Unit), f"unit must be a Unit object, but got {unit}"
+      fail_for_dimension_mismatch(self, unit, "round")
+      return Quantity(jnp.round(self / unit, decimals), unit=unit)
+
+  def astype(self,
+             dtype: jax.typing.DTypeLike) -> 'Quantity':
     """Copy of the array, cast to a specified type.
 
     Parameters
@@ -1805,18 +1858,20 @@ class Quantity(object):
     else:
       return Quantity(jnp.astype(self.value, dtype), dim=self.dim)
 
-  def clip(self, min: Quantity = None, max: Quantity = None, *args, **kwds) -> 'Quantity':
+  def clip(
+      self,
+      min: Quantity | jax.typing.ArrayLike = None,
+      max: Quantity | jax.typing.ArrayLike = None,
+  ) -> 'Quantity':
     """Return an array whose values are limited to [min, max]. One of max or min must be given."""
 
     fail_for_dimension_mismatch(self, min, "clip")
     fail_for_dimension_mismatch(self, max, "clip")
     return Quantity(
       jnp.clip(
-        jnp.array(self.value),
-        jnp.array(min.value),
-        jnp.array(max.value),
-        *args,
-        **kwds,
+        self.value,
+        min.value if isinstance(min, Quantity) else min,
+        max.value if isinstance(max, Quantity) else max,
       ),
       dim=self.dim,
     )
@@ -1830,8 +1885,8 @@ class Quantity(object):
     return Quantity(jnp.conjugate(self.value), dim=self.dim)
 
   def copy(self) -> 'Quantity':
-    """Return a copy of the array."""
-    return Quantity(jnp.copy(self.value), dim=self.dim)
+    """Return a copy of the quantity."""
+    return type(self)(jnp.copy(self.value), dim=self.dim)
 
   def dot(self, b) -> 'Quantity':
     """Dot product of two arrays."""
@@ -2422,18 +2477,6 @@ class Quantity(object):
   def pow(self, oc) -> 'Quantity':
     return self.__pow__(oc)
 
-  def clamp(
-      self,
-      min_value: Optional['Quantity'] = None,
-      max_value: Optional['Quantity'] = None,
-  ) -> 'Quantity':
-    """
-    return the value between min_value and max_value,
-    if min_value is None, then no lower bound,
-    if max_value is None, then no upper bound.
-    """
-    return self.clip(min_value, max_value)
-
   def clone(self) -> 'Quantity':
     if isinstance(self.value, jax.Array):
       return self.copy()
@@ -2968,7 +3011,8 @@ def get_basic_unit(d):
 
 
 def check_units(**au):
-  """Decorator to check units of arguments passed to a function
+  """
+  Decorator to check units of arguments passed to a function
 
   Examples
   --------
@@ -2990,11 +3034,6 @@ def check_units(**au):
   fails, but
 
   >>> getvoltage(1*amp, 1*ohm, wibble=1*metre)
-  1. * volt
-
-  passes. String arguments or ``None`` are not checked
-
-  >>> getvoltage(1*amp, 1*ohm, wibble='hello')
   1. * volt
 
   By using the special name ``result``, you can check the return value of the
@@ -3073,6 +3112,7 @@ def check_units(**au):
   """
 
   def do_check_units(f):
+    @wraps(f)
     def new_f(*args, **kwds):
       newkeyset = kwds.copy()
       arg_names = f.__code__.co_varnames[0: f.__code__.co_argcount]
@@ -3178,8 +3218,6 @@ def check_units(**au):
       return result
 
     new_f._orig_func = f
-    new_f.__doc__ = f.__doc__
-    new_f.__name__ = f.__name__
     # store the information in the function, necessary when using the
     # function in expressions or equations
     if hasattr(f, "_orig_arg_names"):
@@ -3213,3 +3251,4 @@ def check_units(**au):
     return new_f
 
   return do_check_units
+
