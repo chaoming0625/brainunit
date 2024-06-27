@@ -928,7 +928,6 @@ def argsort(
 def argmax(
     a: Union[jax.Array, Quantity],
     axis: Optional[int] = None,
-    keepdims: Optional[bool] = None
 ) -> jax.Array:
   """
   Returns indices of the max value along an axis.
@@ -948,7 +947,7 @@ def argmax(
   res : ndarray
     Array of indices into the array. It has the same shape as `a.shape` with the dimension along `axis` removed.
   """
-  return _fun_remove_unit_unary(jnp.argmax, a, axis=axis, keepdim=keepdims)
+  return _fun_remove_unit_unary(jnp.argmax, a, axis=axis)
 
 
 @set_module_as('brainunit.math')

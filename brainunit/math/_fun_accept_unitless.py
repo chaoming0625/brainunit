@@ -778,7 +778,7 @@ def _fun_accept_unitless_return_keep_unit(
         unit_to_scale=unit_to_scale
       )
       r = func(x.to_value(unit_to_scale), *args, **kwargs)
-      return jax.tree.map(lambda a: Quantity(a, unit=unit_to_scale), r)
+      return jax.tree.map(lambda a: a * unit_to_scale, r)
   else:
     assert unit_to_scale is None, f'Unit should be None for the function "{func}" when "x" is not a Quantity.'
     return func(x, *args, **kwargs)

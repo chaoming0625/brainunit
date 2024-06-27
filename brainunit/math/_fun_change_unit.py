@@ -863,7 +863,7 @@ def floor_divide(
     out = floor(`x`/`y`)
     This is a scalar if both `x` and `y` are scalars.
   """
-  return _fun_change_unit_binary(jnp.floor_divide, lambda ux, uy: ux // uy, x, y)
+  return _fun_change_unit_binary(jnp.floor_divide, lambda ux, uy: ux / uy, x, y)
 
 
 @set_module_as('brainunit.math')

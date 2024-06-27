@@ -237,7 +237,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.vander(array)))
 
     q = jnp.array([1, 2, 3]) * bu.second
-    result_q = bu.math.vander(q)
+    result_q = bu.math.vander(q.to_value(bu.second))
     assert_quantity(result_q, jnp.vander(jnp.array([1, 2, 3])), bu.second)
 
 
@@ -1245,8 +1245,9 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     self.assertTrue(result == jnp.percentile(array, 50))
 
     quantity = jnp.array([1, 2, 3, 4]) * bu.meter
-    result = bu.math.percentile(quantity, 50 * bu.meter, unit_to_scale=bu.dametre)
-    self.assertTrue(result == jnp.percentile(array / bu.dametre.value, 50 / bu.dametre.value))
+    result = bu.math.percentile(quantity, 50, unit_to_scale=bu.meter)
+    expected = jnp.percentile(array, 50)
+    assert_quantity(result, expected, bu.meter)
 
   def test_nanpercentile(self):
     array = jnp.array([1, jnp.nan, 3, 4])
@@ -1254,11 +1255,12 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     self.assertTrue(result == jnp.nanpercentile(array, 50))
 
     quantity = jnp.array([1, 2, jnp.nan, 4]) * bu.meter
-    result = bu.math.percentile(quantity, 50 * bu.meter, unit_to_scale=bu.dametre)
-    if jnp.isnan(result) and jnp.isnan(jnp.percentile(array / bu.dametre.value, 50 / bu.dametre.value)):
+    result = bu.math.percentile(quantity, 50, unit_to_scale=bu.meter)
+    expected = jnp.percentile(array, 50)
+    if bu.math.isnan(result) and jnp.isnan(expected):
       self.assertTrue(True)
     else:
-      self.assertTrue(result == jnp.percentile(array / bu.dametre.value, 50 / bu.dametre.value))
+      assert_quantity(result, expected, bu.meter)
 
   def test_quantile(self):
     array = jnp.array([1, 2, 3, 4])
@@ -1266,8 +1268,9 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     self.assertTrue(result == jnp.quantile(array, 0.5))
 
     quantity = jnp.array([1, 2, 3, 4]) * bu.meter
-    result = bu.math.percentile(quantity, 0.5 * bu.meter, unit_to_scale=bu.dametre)
-    self.assertTrue(result == jnp.percentile(array / bu.dametre.value, 0.5 / bu.dametre.value))
+    result = bu.math.percentile(quantity, 0.5, unit_to_scale=bu.meter)
+    expected = jnp.percentile(array, 0.5)
+    assert_quantity(result, expected, bu.meter)
 
   def test_nanquantile(self):
     array = jnp.array([1, jnp.nan, 3, 4])
@@ -1275,11 +1278,12 @@ class TestMathFuncsOnlyAcceptUnitlessUnary(unittest.TestCase):
     self.assertTrue(result == jnp.nanquantile(array, 0.5))
 
     quantity = jnp.array([1, 2, jnp.nan, 4]) * bu.meter
-    result = bu.math.percentile(quantity, 0.5 * bu.meter, unit_to_scale=bu.dametre)
-    if jnp.isnan(result) and jnp.isnan(jnp.percentile(array / bu.dametre.value, 50 / bu.dametre.value)):
+    result = bu.math.percentile(quantity, 0.5, unit_to_scale=bu.meter)
+    expected = jnp.percentile(array, 0.5)
+    if bu.math.isnan(result) and jnp.isnan(expected):
       self.assertTrue(True)
     else:
-      self.assertTrue(result == jnp.percentile(array / bu.dametre.value, 0.5 / bu.dametre.value))
+      assert_quantity(result, expected, bu.meter)
 
 
 class TestMathFuncsOnlyAcceptUnitlessBinary(unittest.TestCase):
