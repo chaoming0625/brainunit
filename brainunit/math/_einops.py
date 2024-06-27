@@ -25,7 +25,7 @@ import jax.numpy as jnp
 
 from ._einops_parsing import ParsedExpression, _ellipsis, AnonymousAxis, EinopsError
 from ._fun_array_creation import asarray
-from ._numpy_array_manipulation import reshape, transpose, expand_dims, tile
+from ._fun_keep_unit import reshape, transpose, expand_dims, tile
 from .._base import Quantity
 from .._misc import set_module_as
 
