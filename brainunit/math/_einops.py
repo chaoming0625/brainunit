@@ -23,9 +23,9 @@ from typing import Set, Tuple, List, Dict, Union, Callable, Optional, Sequence
 import jax
 import jax.numpy as jnp
 
-from ._compat_numpy_array_creation import asarray
-from ._compat_numpy_array_manipulation import reshape, transpose, expand_dims, tile
 from ._einops_parsing import ParsedExpression, _ellipsis, AnonymousAxis, EinopsError
+from ._fun_array_creation import asarray
+from ._fun_keep_unit import reshape, transpose, expand_dims, tile
 from .._base import Quantity
 from .._misc import set_module_as
 
@@ -499,7 +499,7 @@ def einreduce(
     **axes_lengths: int
 ) -> jax.typing.ArrayLike | Quantity:
   """
-  ``ein_reduce`` provides combination of reordering and reduction using reader-friendly notation.
+  ``einreduce`` provides combination of reordering and reduction using reader-friendly notation.
 
   Examples for reduce operation:
 
@@ -578,7 +578,7 @@ def einrearrange(
     **axes_lengths
 ) -> jax.typing.ArrayLike | Quantity:
   """
-  ``ein_rearrange`` is a reader-friendly smart element reordering for multidimensional tensors.
+  ``einrearrange`` is a reader-friendly smart element reordering for multidimensional tensors.
   This operation includes functionality of transpose (axes permutation), reshape (view), squeeze, unsqueeze,
   stack, concatenate and other operations.
 
@@ -642,7 +642,7 @@ def einrepeat(
     **axes_lengths
 ) -> jax.typing.ArrayLike | Quantity:
   """
-  ``ein_repeat`` allows reordering elements and repeating them in arbitrary combinations.
+  ``einrepeat`` allows reordering elements and repeating them in arbitrary combinations.
   This operation includes functionality of repeat, tile, broadcast functions.
 
   Examples for repeat operation:
