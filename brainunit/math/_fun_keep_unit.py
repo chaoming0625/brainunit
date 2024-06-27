@@ -21,6 +21,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from ._fun_array_creation import asarray
 from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS
 from .._misc import set_module_as
 
@@ -439,6 +440,7 @@ def vsplit(
 
 
 def _broadcast_fun(func, *args, **kwargs):
+  args = [asarray(x) for x in args]
   args, treedef = jax.tree.flatten(args)
   r = func(*args, **kwargs)
   r = treedef.unflatten(r)
@@ -471,9 +473,7 @@ def broadcast_arrays(
       ``writable`` flag True, writing to a single output value may end up
       changing more than one location in the output array.
   """
-  leaves, tree = jax.tree.flatten(args)
-  leaves = jnp.broadcast_arrays(*leaves)
-  return jax.tree.unflatten(tree, leaves)
+  return _broadcast_fun(jnp.broadcast_arrays, *args)
 
 
 @set_module_as('brainunit.math')
