@@ -2967,6 +2967,10 @@ def where(condition, x=None, y=None, /, *, size=None, fill_value=None):
   x, y : array_like, Quantity
     Values from which to choose. `x`, `y` and `condition` need to be
     broadcastable to some shape.
+  size : int, optional
+    The length of the output array. If `size` is not None, the output array will have the length of `size`.
+  fill_value : scalar, Quantity, optional
+    The value to use for missing values. If `fill_value` is not None, the output array will have the length of `size`.
 
   Returns
   -------
@@ -2982,8 +2986,13 @@ def where(condition, x=None, y=None, /, *, size=None, fill_value=None):
   assert not isinstance(condition, Quantity), "condition should not be a Quantity."
   if x is None and y is None:
     return jnp.where(condition, size=size, fill_value=fill_value)
-  return _fun_keep_unit_binary(functools.partial(jnp.where, condition, size=size, fill_value=fill_value), x, y)
-
+  if isinstance(x, Quantity) and isinstance(y, Quantity):
+    fail_for_dimension_mismatch(x, y)
+    if fill_value is not None:
+      fail_for_dimension_mismatch(x, fill_value)
+    return Quantity(jnp.where(condition, x.value, y.value, size=size, fill_value=fill_value), dim=x.dim)
+  else:
+    return jnp.where(condition, x, y, size=size, fill_value=fill_value)
 
 @set_module_as('brainunit.math')
 def unique(

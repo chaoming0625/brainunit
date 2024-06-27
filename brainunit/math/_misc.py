@@ -23,12 +23,20 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import opt_einsum
+from jax import Array, core, jit, lax
+from jax._src import config, dtypes, api_util
+from jax._src.lax import lax as lax_internal
+from jax._src.lax.lax import DotDimensionNumbers, PrecisionLike, dot_general_p, canonicalize_precision, select_n_p
+from jax._src.numpy.lax_numpy import _einsum, asarray, bool_, _removechars, shape
+from jax._src.util import partition_list, unzip2
+
+from brainunit.math import squeeze, transpose, zeros_like
 
 from .._base import (DIMENSIONLESS,
                      Quantity,
                      fail_for_dimension_mismatch,
                      is_unitless,
-                     get_dim, )
+                     get_dim, _return_check_unitless)
 from .._misc import set_module_as
 
 __all__ = [
@@ -337,6 +345,10 @@ def is_int(array):
   """
   return jnp.issubdtype(get_dtype(array), jnp.integer)
 
+# Enable other modules to override einsum_contact_path.
+# Indexed by the type of the non constant dimension
+_poly_einsum_handlers = {}  # type: ignore
+
 
 def _default_poly_einsum_handler(*operands, **kwargs):
   dummy = collections.namedtuple('dummy', ['shape', 'dtype'])
@@ -346,6 +358,228 @@ def _default_poly_einsum_handler(*operands, **kwargs):
   out_dummies, contractions = opt_einsum.contract_path(*dummies, **kwargs)
   contract_operands = [operands[mapping[id(d)]] for d in out_dummies]
   return contract_operands, contractions
+
+def _quantity_dot_general(
+    lhs: jax.ArrayLike | Quantity,
+    rhs: jax.ArrayLike | Quantity,
+    dimension_numbers: DotDimensionNumbers,
+    precision: PrecisionLike = None,
+    preferred_element_type: jax.DTypeLike | None = None
+) -> Array | Quantity:
+  (lhs_contract, rhs_contract), (lhs_batch, rhs_batch) = dimension_numbers
+  cdims = (api_util._ensure_index_tuple(lhs_contract),
+           api_util._ensure_index_tuple(rhs_contract))
+  bdims = (api_util._ensure_index_tuple(lhs_batch),
+           api_util._ensure_index_tuple(rhs_batch))
+  preferred_element_type = (
+    None if preferred_element_type is None else
+    dtypes.canonicalize_dtype(np.dtype(preferred_element_type)))
+  if isinstance(lhs, Quantity) and isinstance(rhs, Quantity):
+    return _return_check_unitless(
+      Quantity(
+        dot_general_p.bind(lhs.value, rhs.value,
+                           dimension_numbers=(cdims, bdims),
+                           precision=canonicalize_precision(precision),
+                           preferred_element_type=preferred_element_type),
+        dim=lhs.dim * rhs.dim))
+  elif isinstance(lhs, Quantity):
+    return Quantity(
+      dot_general_p.bind(lhs.value, rhs,
+                         dimension_numbers=(cdims, bdims),
+                         precision=canonicalize_precision(precision),
+                         preferred_element_type=preferred_element_type),
+      dim=lhs.dim)
+  elif isinstance(rhs, Quantity):
+    return Quantity(
+      dot_general_p.bind(lhs, rhs.value,
+                         dimension_numbers=(cdims, bdims),
+                         precision=canonicalize_precision(precision),
+                         preferred_element_type=preferred_element_type),
+      dim=rhs.dim)
+  else:
+    return dot_general_p.bind(lhs, rhs,
+                              dimension_numbers=(cdims, bdims),
+                              precision=canonicalize_precision(precision),
+                              preferred_element_type=preferred_element_type)
+
+
+def _select(
+    pred: jax.ArrayLike,
+    on_true: jax.ArrayLike | Quantity,
+    on_false: jax.ArrayLike | Quantity
+) -> Array | Quantity:
+  if isinstance(on_true, Quantity) and isinstance(on_false, Quantity):
+    fail_for_dimension_mismatch(on_true, on_false, 'select')
+    return Quantity(select_n_p.bind(pred, on_true.value, on_false.value), dim=on_true.dim)
+  else:
+    return select_n_p.bind(pred, on_false, on_true)
+
+
+def _einsum(
+    operands: Sequence[Quantity | Array],
+    contractions: Sequence[tuple[tuple[int, ...], frozenset[str], str]],
+    precision,
+    preferred_element_type,
+    _dot_general=_quantity_dot_general,
+):
+  dtypes.check_user_dtype_supported(preferred_element_type, "einsum")
+  new_operands = []
+  for operand in operands:
+    if isinstance(operand, Array):
+      new_operands.append(asarray(operand))
+    elif isinstance(operand, Quantity):
+      new_operands.append(operand)
+
+  operands = new_operands
+  if preferred_element_type is None:
+    preferred_element_type, output_weak_type = dtypes.result_type(*operands, return_weak_type_flag=True)
+  else:
+    output_weak_type = False
+
+  def sum(x, axes):
+    if dtypes.result_type(x, preferred_element_type) != x.dtype:
+      x = x.astype(preferred_element_type)
+    dim = None
+    if isinstance(x, Quantity):
+      dim = x.dim
+      x = x.value
+    x = lax.reduce(x, np.array(0, x.dtype), lax.add if x.dtype != bool_ else lax.bitwise_or, axes)
+    return Quantity(x, dim=dim) if dim is not None else x
+
+  def sum_uniques(operand, names, uniques):
+    if uniques:
+      axes = [names.index(name) for name in uniques]
+      operand = sum(operand, axes)
+      names = _removechars(names, uniques)
+    return operand, names
+
+  def sum_repeats(operand, names, counts, keep_names):
+    for name, count in counts.items():
+      if count > 1:
+        axes = [i for i, n in enumerate(names) if n == name]
+        eye = lax_internal._delta(np.dtype('bool'), operand.shape, axes)
+        operand = _select(eye,
+                          operand,
+                          zeros_like(operand))
+        if name not in keep_names:
+          operand = sum(operand, axes)
+          names = names.replace(name, '')
+        else:
+          operand = sum(operand, axes[:-1])
+          names = names.replace(name, '', count - 1)
+    return operand, names
+
+  def filter_singleton_dims(operand, names, other_shape, other_names):
+    eq = core.definitely_equal
+    keep = [not eq(operand.shape[i], 1) or j == -1 or eq(other_shape[j], 1)
+            for i, j in enumerate(map(other_names.find, names))]
+    sqez_axes, keep_axes = partition_list(keep, list(range(operand.ndim)))
+    return squeeze(operand, sqez_axes), "".join(names[i] for i in keep_axes)
+
+  for operand_indices, contracted_names_set, einstr in contractions:
+    contracted_names = sorted(contracted_names_set)
+    input_str, result_names = einstr.split('->')
+    input_names = input_str.split(',')
+
+    # switch on the number of operands to be processed in this loop iteration.
+    # every case here sets 'operand' and 'names'.
+    if len(operand_indices) == 1:
+      operand = operands.pop(operand_indices[0])
+      names, = input_names
+      counts = collections.Counter(names)
+
+      # sum out unique contracted indices with a single reduce-sum
+      uniques = [name for name in contracted_names if counts[name] == 1]
+      operand, names = sum_uniques(operand, names, uniques)
+
+      # for every repeated index, do a contraction against an identity matrix
+      operand, names = sum_repeats(operand, names, counts, result_names)
+
+    elif len(operand_indices) == 2:
+      lhs, rhs = map(operands.pop, operand_indices)
+      lhs_names, rhs_names = input_names
+
+      # handle cases where one side of a contracting or batch dimension is 1
+      # but its counterpart is not.
+      lhs, lhs_names = filter_singleton_dims(lhs, lhs_names, shape(rhs),
+                                             rhs_names)
+      rhs, rhs_names = filter_singleton_dims(rhs, rhs_names, shape(lhs),
+                                             lhs_names)
+
+      lhs_counts = collections.Counter(lhs_names)
+      rhs_counts = collections.Counter(rhs_names)
+
+      # sum out unique contracted indices in lhs and rhs
+      lhs_uniques = [name for name in contracted_names
+                     if lhs_counts[name] == 1 and rhs_counts[name] == 0]
+      lhs, lhs_names = sum_uniques(lhs, lhs_names, lhs_uniques)
+
+      rhs_uniques = [name for name in contracted_names
+                     if rhs_counts[name] == 1 and lhs_counts[name] == 0]
+      rhs, rhs_names = sum_uniques(rhs, rhs_names, rhs_uniques)
+
+      # for every repeated index, contract against an identity matrix
+      lhs, lhs_names = sum_repeats(lhs, lhs_names, lhs_counts,
+                                   result_names + rhs_names)
+      rhs, rhs_names = sum_repeats(rhs, rhs_names, rhs_counts,
+                                   result_names + lhs_names)
+
+      lhs_or_rhs_names = set(lhs_names) | set(rhs_names)
+      contracted_names = [x for x in contracted_names if x in lhs_or_rhs_names]
+      lhs_and_rhs_names = set(lhs_names) & set(rhs_names)
+      batch_names = [x for x in result_names if x in lhs_and_rhs_names]
+
+      lhs_batch, rhs_batch = unzip2((lhs_names.find(n), rhs_names.find(n))
+                                    for n in batch_names)
+
+      # NOTE(mattjj): this can fail non-deterministically in python3, maybe
+      # due to opt_einsum
+      assert config.dynamic_shapes.value or all(
+        name in lhs_names and name in rhs_names and
+        lhs.shape[lhs_names.index(name)] == rhs.shape[rhs_names.index(name)]
+        for name in contracted_names), (
+        "Incompatible reduction dimensions: "
+        f"lhs.shape={lhs.shape} lhs_names={lhs_names} "
+        f"rhs.shape={rhs.shape} rhs_names={rhs_names}")
+
+      # contract using dot_general
+      batch_names_str = ''.join(batch_names)
+      lhs_cont, rhs_cont = unzip2((lhs_names.index(n), rhs_names.index(n))
+                                  for n in contracted_names)
+      deleted_names = batch_names_str + ''.join(contracted_names)
+      remaining_lhs_names = _removechars(lhs_names, deleted_names)
+      remaining_rhs_names = _removechars(rhs_names, deleted_names)
+      # Try both orders of lhs and rhs, in the hope that one of them means we
+      # don't need an explicit transpose. opt_einsum likes to contract from
+      # right to left, so we expect (rhs,lhs) to have the best chance of not
+      # needing a transpose.
+      names = batch_names_str + remaining_rhs_names + remaining_lhs_names
+      if names == result_names:
+        dimension_numbers = ((rhs_cont, lhs_cont), (rhs_batch, lhs_batch))
+        operand = _dot_general(rhs, lhs, dimension_numbers, precision,
+                               preferred_element_type=preferred_element_type)
+      else:
+        names = batch_names_str + remaining_lhs_names + remaining_rhs_names
+        dimension_numbers = ((lhs_cont, rhs_cont), (lhs_batch, rhs_batch))
+        operand = _dot_general(lhs, rhs, dimension_numbers, precision,
+                               preferred_element_type=preferred_element_type)
+    else:
+      raise NotImplementedError  # if this is actually reachable, open an issue!
+
+    # the resulting 'operand' with axis labels 'names' should be a permutation
+    # of the desired result
+    assert len(names) == len(result_names) == len(set(names))
+    assert set(names) == set(result_names)
+    if names != result_names:
+      perm = tuple(names.index(name) for name in result_names)
+      operand = transpose(operand, perm)
+    operands.append(operand)  # used in next iteration
+
+  if isinstance(operands[0], Quantity):
+    return Quantity(lax_internal._convert_element_type(operands[0].value, preferred_element_type, output_weak_type),
+                    dim=operands[0].dim)
+  else:
+    return lax_internal._convert_element_type(operands[0], preferred_element_type, output_weak_type)
 
 
 def einsum(
@@ -398,55 +632,24 @@ def einsum(
   # Allow handling of shape polymorphism
   non_constant_dim_types = {
     type(d) for op in operands if not isinstance(op, str)
-    for d in np.shape(op) if not jax.core.is_constant_dim(d)
+    for d in np.shape(op) if not core.is_constant_dim(d)
   }
   if not non_constant_dim_types:
     contract_path = opt_einsum.contract_path
   else:
-    contract_path = _default_poly_einsum_handler
+    ty = next(iter(non_constant_dim_types))
+    contract_path = _poly_einsum_handlers.get(ty, _default_poly_einsum_handler)
+    # using einsum_call=True here is an internal api for opt_einsum... sorry
+  operands, contractions = contract_path(
+    *operands, einsum_call=True, use_blas=True, optimize=optimize)
 
-  operands, contractions = contract_path(*operands, einsum_call=True, use_blas=True, optimize=optimize)
+  contractions = tuple((a, frozenset(b), c) for a, b, c, *_ in contractions)
 
-  unit = None
-  for i in range(len(contractions) - 1):
-    if contractions[i][4] == 'False':
-      fail_for_dimension_mismatch(
-        Quantity([], dim=unit), operands[i + 1], 'einsum'
-      )
-    elif contractions[i][4] == 'DOT' or \
-        contractions[i][4] == 'TDOT' or \
-        contractions[i][4] == 'GEMM' or \
-        contractions[i][4] == 'OUTER/EINSUM':
-      if i == 0:
-        if isinstance(operands[i], Quantity) and isinstance(operands[i + 1], Quantity):
-          unit = operands[i].dim * operands[i + 1].dim
-        elif isinstance(operands[i], Quantity):
-          unit = operands[i].dim
-        elif isinstance(operands[i + 1], Quantity):
-          unit = operands[i + 1].dim
-      else:
-        if isinstance(operands[i + 1], Quantity):
-          unit = unit * operands[i + 1].dim
-  operands = [op.value if isinstance(op, Quantity) else op for op in operands]
-
-  r = jnp.einsum(subscripts,
-                 *operands,
-                 precision=precision,
-                 preferred_element_type=preferred_element_type,
-                 _dot_general=_dot_general)
-
-  # contractions = tuple((a, frozenset(b), c) for a, b, c, *_ in contractions)
-  #
-  # einsum = jax.jit(_einsum, static_argnums=(1, 2, 3, 4), inline=True)
-  # if spec is not None:
-  #   einsum = jax.named_call(einsum, name=spec)
-
-  # r = einsum(operands, contractions, precision,  # type: ignore[operator]
-  #            preferred_element_type, _dot_general)
-  if unit is not None:
-    return Quantity(r, dim=unit)
-  else:
-    return r
+  einsum = jit(_einsum, static_argnums=(1, 2, 3, 4), inline=True)
+  if spec is not None:
+    einsum = jax.named_call(einsum, name=spec)
+  return einsum(operands, contractions, precision,  # type: ignore[operator]
+                preferred_element_type, _quantity_dot_general)
 
 
 @set_module_as('brainunit.math')

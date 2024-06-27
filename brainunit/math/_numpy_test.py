@@ -241,7 +241,7 @@ class TestArrayCreation(unittest.TestCase):
 
     q = jnp.array([1, 2, 3]) * bu.second
     result_q = bu.math.vander(q.to_value(bu.second))
-    assert_quantity(result_q, jnp.vander(jnp.array([1, 2, 3])), bu.second)
+    assert_quantity(result_q, jnp.vander(jnp.array([1, 2, 3])))
 
 
 class TestAttributeFunctions(unittest.TestCase):
@@ -378,7 +378,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     q = bu.Quantity([1.123, 2.567, 3.891], bu.second)
     result_q = bu.math.round(q, unit_to_scale=bu.second)
     expected_q = jnp.round(jnp.array([1.123, 2.567, 3.891])) * bu.second
-    assert_quantity(result_q, expected_q.value)
+    assert_quantity(result_q, expected_q.value, bu.second)
 
   def test_rint(self):
     array = jnp.array([1.5, 2.3, 3.8])
@@ -388,7 +388,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     q = bu.Quantity([1.5, 2.3, 3.8], bu.second)
     result_q = bu.math.rint(q, unit_to_scale=bu.second)
     expected_q = jnp.rint(jnp.array([1.5, 2.3, 3.8])) * bu.second
-    assert_quantity(result_q, expected_q.value)
+    assert_quantity(result_q, expected_q.value, bu.second)
 
   def test_floor(self):
     array = jnp.array([1.5, 2.3, 3.8])
@@ -398,7 +398,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     q = bu.Quantity([1.5, 2.3, 3.8], bu.second)
     result_q = bu.math.floor(q, unit_to_scale=bu.second)
     expected_q = jnp.floor(jnp.array([1.5, 2.3, 3.8]))
-    assert_quantity(result_q, expected_q)
+    assert_quantity(result_q, expected_q, bu.second)
 
   def test_ceil(self):
     array = jnp.array([1.5, 2.3, 3.8])
@@ -1848,7 +1848,7 @@ class TestArrayManipulation(unittest.TestCase):
     q = [2, 3, 1] * bu.second
     result_q = bu.math.argsort(q)
     expected_q = jnp.argsort(jnp.array([2, 3, 1]))
-    assert_quantity(result_q, expected_q, bu.second)
+    assert_quantity(result_q, expected_q)
 
   def test_argmax(self):
     array = jnp.array([2, 3, 1])
@@ -2161,7 +2161,7 @@ class TestIndexingFuncs(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.where(array > 2, array, 0)))
 
     q = [1, 2, 3, 4, 5] * bu.second
-    result_q = bu.math.where(q > 2 * bu.second, q.to_value(bu.second), 0)
+    result_q = bu.math.where(q > 2 * bu.second, q, 0 * bu.second)
     expected_q = jnp.where(jnp.array([1, 2, 3, 4, 5]) > 2, jnp.array([1, 2, 3, 4, 5]), 0)
     assert_quantity(result_q, expected_q, bu.second)
 
