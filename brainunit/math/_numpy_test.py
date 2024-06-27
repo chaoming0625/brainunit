@@ -373,7 +373,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.round(array)))
 
     q = bu.Quantity([1.123, 2.567, 3.891], bu.second)
-    result_q = bu.math.round(q)
+    result_q = bu.math.round(q, unit_to_scale=bu.second)
     expected_q = jnp.round(jnp.array([1.123, 2.567, 3.891])) * bu.second
     assert_quantity(result_q, expected_q.value, bu.second)
 
@@ -383,7 +383,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.rint(array)))
 
     q = bu.Quantity([1.5, 2.3, 3.8], bu.second)
-    result_q = bu.math.rint(q)
+    result_q = bu.math.rint(q, unit_to_scale=bu.second)
     expected_q = jnp.rint(jnp.array([1.5, 2.3, 3.8])) * bu.second
     assert_quantity(result_q, expected_q.value, bu.second)
 
@@ -393,7 +393,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.floor(array)))
 
     q = bu.Quantity([1.5, 2.3, 3.8], bu.second)
-    result_q = bu.math.floor(q)
+    result_q = bu.math.floor(q, unit_to_scale=bu.second)
     expected_q = jnp.floor(jnp.array([1.5, 2.3, 3.8]))
     assert_quantity(result_q, expected_q, bu.second)
 
@@ -713,6 +713,16 @@ class TestMathFuncsKeepUnitBinary(unittest.TestCase):
     expected_q = jnp.gcd(jnp.array([4, 5, 6]), jnp.array([2, 3, 4])) * bu.second
     assert_quantity(result_q, expected_q.value, bu.second)
 
+  def test_remainder(self):
+    result = bu.math.remainder(jnp.array([5, 7]), jnp.array([2, 3]))
+    self.assertTrue(jnp.all(result == jnp.remainder(jnp.array([5, 7]), jnp.array([2, 3]))))
+
+    q1 = [5, 7] * bu.second
+    q2 = [2, 3] * bu.second
+    result_q = bu.math.remainder(q1, q2)
+    expected_q = jnp.remainder(jnp.array([5, 7]), jnp.array([2, 3])) * bu.second
+    assert_quantity(result_q, expected_q.value, bu.second)
+
 
 class TestMathFuncsKeepUnitUnary2(unittest.TestCase):
 
@@ -946,15 +956,6 @@ class TestMathFuncsChangeUnitBinary(unittest.TestCase):
     expected = jnp.divmod(jnp.array([5, 6]), jnp.array([2, 3]))
     self.assertTrue(jnp.all(result[0] == expected[0]) and jnp.all(result[1] == expected[1]))
 
-  def test_remainder(self):
-    result = bu.math.remainder(jnp.array([5, 7]), jnp.array([2, 3]))
-    self.assertTrue(jnp.all(result == jnp.remainder(jnp.array([5, 7]), jnp.array([2, 3]))))
-
-    q1 = [5, 7] * (bu.second ** 2)
-    q2 = [2, 3] * bu.second
-    result_q = bu.math.remainder(q1, q2)
-    expected_q = jnp.remainder(jnp.array([5, 7]), jnp.array([2, 3])) * bu.second
-    assert_quantity(result_q, expected_q.value, bu.second)
 
   def test_convolve(self):
     result = bu.math.convolve(jnp.array([1, 2, 3]), jnp.array([4, 5, 6]))
@@ -1625,7 +1626,7 @@ class TestArrayManipulation(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.append(array, 3)))
 
     q = [0, 1, 2] * bu.second
-    result_q = bu.math.append(q, 3)
+    result_q = bu.math.append(q, 3 * bu.second)
     expected_q = jnp.append(jnp.array([0, 1, 2]), 3)
     assert_quantity(result_q, expected_q, bu.second)
 
@@ -1901,7 +1902,7 @@ class TestArrayManipulation(unittest.TestCase):
     self.assertTrue(result == jnp.searchsorted(array, 2))
 
     q = [0, 1, 2] * bu.second
-    result_q = bu.math.searchsorted(q, 2)
+    result_q = bu.math.searchsorted(q, 2 * bu.second)
     expected_q = jnp.searchsorted(jnp.array([0, 1, 2]), 2)
     assert result_q == expected_q
 
@@ -1932,7 +1933,7 @@ class TestElementwiseBitOperationsUnary(unittest.TestCase):
     result = bu.math.bitwise_not(jnp.array([0b1100]))
     self.assertTrue(jnp.all(result == jnp.bitwise_not(jnp.array([0b1100]))))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
       q = [0b1100] * bu.second
       result_q = bu.math.bitwise_not(q)
 
@@ -1940,7 +1941,7 @@ class TestElementwiseBitOperationsUnary(unittest.TestCase):
     result = bu.math.invert(jnp.array([0b1100]))
     self.assertTrue(jnp.all(result == jnp.invert(jnp.array([0b1100]))))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
       q = [0b1100] * bu.second
       result_q = bu.math.invert(q)
 
@@ -1951,7 +1952,7 @@ class TestElementwiseBitOperationsBinary(unittest.TestCase):
     result = bu.math.bitwise_and(jnp.array([0b1100]), jnp.array([0b1010]))
     self.assertTrue(jnp.all(result == jnp.bitwise_and(jnp.array([0b1100]), jnp.array([0b1010]))))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
       q1 = [0b1100] * bu.second
       q2 = [0b1010] * bu.second
       result_q = bu.math.bitwise_and(q1, q2)
@@ -1960,7 +1961,7 @@ class TestElementwiseBitOperationsBinary(unittest.TestCase):
     result = bu.math.bitwise_or(jnp.array([0b1100]), jnp.array([0b1010]))
     self.assertTrue(jnp.all(result == jnp.bitwise_or(jnp.array([0b1100]), jnp.array([0b1010]))))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
       q1 = [0b1100] * bu.second
       q2 = [0b1010] * bu.second
       result_q = bu.math.bitwise_or(q1, q2)
@@ -1969,7 +1970,7 @@ class TestElementwiseBitOperationsBinary(unittest.TestCase):
     result = bu.math.bitwise_xor(jnp.array([0b1100]), jnp.array([0b1010]))
     self.assertTrue(jnp.all(result == jnp.bitwise_xor(jnp.array([0b1100]), jnp.array([0b1010]))))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
       q1 = [0b1100] * bu.second
       q2 = [0b1010] * bu.second
       result_q = bu.math.bitwise_xor(q1, q2)
@@ -1978,7 +1979,7 @@ class TestElementwiseBitOperationsBinary(unittest.TestCase):
     result = bu.math.left_shift(jnp.array([0b1100]), 2)
     self.assertTrue(jnp.all(result == jnp.left_shift(jnp.array([0b1100]), 2)))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
       q = [0b1100] * bu.second
       result_q = bu.math.left_shift(q, 2)
 
@@ -1986,7 +1987,7 @@ class TestElementwiseBitOperationsBinary(unittest.TestCase):
     result = bu.math.right_shift(jnp.array([0b1100]), 2)
     self.assertTrue(jnp.all(result == jnp.right_shift(jnp.array([0b1100]), 2)))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
       q = [0b1100] * bu.second
       result_q = bu.math.right_shift(q, 2)
 
@@ -1996,7 +1997,7 @@ class TestLogicFuncsUnary(unittest.TestCase):
     result = bu.math.all(jnp.array([True, True, True]))
     self.assertTrue(result == jnp.all(jnp.array([True, True, True])))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
       q = [True, True, True] * bu.second
       result_q = bu.math.all(q)
 
@@ -2004,7 +2005,7 @@ class TestLogicFuncsUnary(unittest.TestCase):
     result = bu.math.any(jnp.array([False, True, False]))
     self.assertTrue(result == jnp.any(jnp.array([False, True, False])))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
       q = [False, True, False] * bu.second
       result_q = bu.math.any(q)
 
@@ -2012,7 +2013,7 @@ class TestLogicFuncsUnary(unittest.TestCase):
     result = bu.math.logical_not(jnp.array([True, False]))
     self.assertTrue(jnp.all(result == jnp.logical_not(jnp.array([True, False]))))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
       q = [True, False] * bu.second
       result_q = bu.math.logical_not(q)
 
@@ -2153,7 +2154,7 @@ class TestIndexingFuncs(unittest.TestCase):
     self.assertTrue(jnp.all(result == jnp.where(array > 2, array, 0)))
 
     q = [1, 2, 3, 4, 5] * bu.second
-    result_q = bu.math.where(q > 2 * bu.second, q, 0)
+    result_q = bu.math.where(q > 2 * bu.second, q.to_value(bu.second), 0)
     expected_q = jnp.where(jnp.array([1, 2, 3, 4, 5]) > 2, jnp.array([1, 2, 3, 4, 5]), 0)
     assert_quantity(result_q, expected_q, bu.second)
 

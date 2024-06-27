@@ -228,4 +228,4 @@ def select(
   """
   for cond in condlist:
     assert not isinstance(cond, Quantity), "condlist should not contain Quantity."
-  return _fun_keep_unit_sequence(functools.partial(jnp.select, condlist), choicelist, default)
+  return _fun_keep_unit_sequence(functools.partial(jnp.select, condlist), choicelist, default=default)

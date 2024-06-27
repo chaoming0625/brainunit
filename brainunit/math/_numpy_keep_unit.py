@@ -33,6 +33,7 @@ __all__ = [
   # math funcs keep unit (binary)
   'fmod', 'mod', 'copysign', 'remainder',
   'maximum', 'minimum', 'fmax', 'fmin', 'lcm', 'gcd',
+  'remainder',
 
   # math funcs keep unit (n-ary)
   'interp', 'clip', 'histogram',
@@ -1613,3 +1614,35 @@ def nextafter(
     This is a scalar if both `x` and `y` are scalars.
   """
   return _fun_match_unit_binary(jnp.nextafter, x, y, *args, **kwargs)
+
+@set_module_as('brainunit.math')
+def remainder(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike]
+) -> Union[Quantity, jax.Array]:
+  """
+  Returns the element-wise remainder of division.
+
+  Computes the remainder complementary to the `floor_divide` function.  It is
+  equivalent to the Python modulus operator``x1 % x2`` and has the same sign
+  as the divisor `x2`. The MATLAB function equivalent to ``np.remainder``
+  is ``mod``.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Dividend array.
+  y : array_like, Quantity
+    Divisor array.
+    If ``x1.shape != x2.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+
+  Returns
+  -------
+  out : ndarray, Quantity
+    The element-wise remainder of the quotient ``floor_divide(x1, x2)``.
+    This is a scalar if both `x1` and `x2` are scalars.
+
+    This is a Quantity if division of `x1` by `x2` is not dimensionless.
+  """
+  return _fun_keep_unit_binary(jnp.remainder, x, y)

@@ -1068,7 +1068,7 @@ def compress(
     axis: Optional[int] = None,
     *,
     size: Optional[int] = None,
-    fill_value: Optional[jax.typing.ArrayLike] = None,
+    fill_value: Optional[jax.typing.ArrayLike] = 0,
 ) -> Union[Array, Quantity]:
   """
   Return selected slices of a quantity or an array along given axis.
@@ -1096,7 +1096,7 @@ def compress(
   """
   assert not isinstance(condition, Quantity), f'condition must be an array_like. But got {condition}'
   if isinstance(a, Quantity):
-    if fill_value is not None:
+    if fill_value != 0:
       fail_for_dimension_mismatch(fill_value, a)
       fill_value = fill_value.value
   else:
@@ -1113,7 +1113,7 @@ def extract(
     arr: Union[Array, Quantity],
     *,
     size: Optional[int] = None,
-    fill_value: Optional[jax.typing.ArrayLike | Quantity] = None,
+    fill_value: Optional[jax.typing.ArrayLike | Quantity] = 0,
 ) -> Array | Quantity:
   """
   Return the elements of an array that satisfy some condition.
@@ -1137,7 +1137,7 @@ def extract(
   """
   assert not isinstance(condition, Quantity), f'condition must be an array_like. But got {condition}'
   if isinstance(arr, Quantity):
-    if fill_value is not None:
+    if fill_value != 0:
       fail_for_dimension_mismatch(fill_value, arr)
       fill_value = fill_value.value
   else:
@@ -1196,7 +1196,6 @@ def argsort(
 def argmax(
     a: Union[Array, Quantity],
     axis: Optional[int] = None,
-    keepdims: Optional[bool] = None
 ) -> Array:
   """
   Returns indices of the max value along an axis.
@@ -1207,16 +1206,13 @@ def argmax(
     Input data.
   axis : int, optional
     By default, the index is into the flattened array, otherwise along the specified axis.
-  keepdims : bool, optional
-    If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this
-    option, the result will broadcast correctly against the input array.
 
   Returns
   -------
   res : ndarray
     Array of indices into the array. It has the same shape as `a.shape` with the dimension along `axis` removed.
   """
-  return _fun_remove_unit_unary(jnp.argmax, a, axis=axis, keepdim=keepdims)
+  return _fun_remove_unit_unary(jnp.argmax, a, axis=axis)
 
 
 @set_module_as('brainunit.math')

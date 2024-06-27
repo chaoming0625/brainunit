@@ -551,7 +551,10 @@ def get_dim(obj) -> Dimension:
       The physical dimensions of the `obj`.
   """
   try:
-    return obj.dim
+    try:
+      return obj.dim.dim
+    except:
+      return obj.dim
   except AttributeError:
     # The following is not very pretty, but it will avoid the costly
     # isinstance check for the common types
