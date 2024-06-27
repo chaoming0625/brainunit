@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import (Union, Optional, List)
+from typing import (Union, Optional, List, Any)
 
 import jax
 import jax.numpy as jnp
@@ -554,7 +554,7 @@ def zeros_like(
 
 @set_module_as('brainunit.math')
 def asarray(
-    a: Union[Quantity, jax.typing.ArrayLike, Sequence[Quantity], Sequence[jax.typing.ArrayLike]],
+    a: Any,
     dtype: Optional[jax.typing.DTypeLike] = None,
     order: Optional[str] = None,
     unit: Optional[Unit] = None,
@@ -583,40 +583,29 @@ def asarray(
   out : quantity or array
     Array interpretation of `a`. No copy is made if the input is already an array.
   """
+  # get leaves
+  leaves, treedef = jax.tree.flatten(a, is_leaf=lambda x: isinstance(x, Quantity))
+  a = treedef.unflatten([leaf.value if isinstance(leaf, Quantity) else leaf for leaf in leaves])
+
+  # get unit
+  dims = [leaf.dim if isinstance(leaf, Quantity) else None for leaf in leaves]
+  if any(dims[0] != d for d in dims):
+    raise ValueError(f'Units do not match for asarray operation. Got {dims}')
+  dim = dims[0]
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-  if isinstance(a, Quantity):
-    if unit is not None:
-      fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.asarray(a.value, dtype=dtype, order=order), dim=a.dim)
-  elif isinstance(a, (jax.Array, np.ndarray)):
-    if unit is not None:
-      assert isinstance(unit, Unit)
-      return jnp.asarray(a, dtype=dtype, order=order) * unit
-    else:
-      return jnp.asarray(a, dtype=dtype, order=order)
-    # list[Quantity]
-  elif isinstance(a, Sequence):
-    leaves, tree = jax.tree.flatten(a, is_leaf=lambda x: isinstance(x, Quantity))
-    if all([isinstance(leaf, Quantity) for leaf in leaves]):
-      # check all elements have the same unit
-      if any(x.dim != leaves[0].dim for x in leaves):
-        raise ValueError('Units do not match for asarray operation.')
-      values = jax.tree.unflatten(tree, [x.value for x in a])
-      if unit is not None:
-        fail_for_dimension_mismatch(a[0], unit, error_message="a and unit have to have the same units.")
-      unit = a[0].dim
-      # Convert the values to a jnp.ndarray and create a Quantity object
-      return Quantity(jnp.asarray(values, dtype=dtype, order=order), dim=unit)
-    else:
-      values = jax.tree.unflatten(tree, leaves)
-      val = jnp.asarray(values, dtype=dtype, order=order)
-      if unit is not None:
-        return val * unit
-      else:
-        return val
-  else:
-    raise TypeError('Invalid input type for asarray.')
+    fail_for_dimension_mismatch(Unit(1., dim, register=False), unit,
+                                error_message="a and unit have to have the same units.")
+
+  # compute
+  r = jnp.asarray(a, dtype=dtype, order=order)
+
+  # returns
+  if dim is not None or dim == DIMENSIONLESS:
+    return Quantity(r, dim=dim)
+  if unit is not None:
+   return r * unit
+  return r
 
 
 array = asarray
