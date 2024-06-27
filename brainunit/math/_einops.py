@@ -877,9 +877,7 @@ def _einsum(
 ):
   operands = list(map(asarray, operands))
   if preferred_element_type is None:
-    preferred_element_type, output_weak_type = jax.dtypes.result_type(*operands, return_weak_type_flag=True)
-  else:
-    output_weak_type = False
+    preferred_element_type = jax.dtypes.result_type(*operands)
 
   for operand_indices, contracted_names_set, einstr in contractions:
     contracted_names = sorted(contracted_names_set)
