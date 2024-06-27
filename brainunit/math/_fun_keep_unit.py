@@ -438,10 +438,13 @@ def vsplit(
 # -------------------
 
 
-def _broadcat_fun(func, *args, **kwargs):
+def _broadcast_fun(func, *args, **kwargs):
   args, treedef = jax.tree.flatten(args)
   r = func(*args, **kwargs)
-  return treedef.unflatten(r)
+  r = treedef.unflatten(r)
+  if len(r) == 1:
+    return r[0]
+  return r
 
 
 # more
@@ -490,7 +493,7 @@ def atleast_1d(
   res : ndarray, Quantity
     An array or a quantity, or a tuple of arrays or quantities, each with `a.ndim >= 1`.
   """
-  return _broadcat_fun(jnp.atleast_1d, *arys)
+  return _broadcast_fun(jnp.atleast_1d, *arys)
 
 
 @set_module_as('brainunit.math')
@@ -510,7 +513,7 @@ def atleast_2d(
   res : ndarray, Quantity
     An array or a quantity, or a tuple of arrays or quantities, each with `a.ndim >= 2`.
   """
-  return _broadcat_fun(jnp.atleast_2d, *arys)
+  return _broadcast_fun(jnp.atleast_2d, *arys)
 
 
 @set_module_as('brainunit.math')
@@ -530,7 +533,7 @@ def atleast_3d(
   res : ndarray, Quantity
     An array or a quantity, or a tuple of arrays or quantities, each with `a.ndim >= 3`.
   """
-  return _broadcat_fun(jnp.atleast_3d, *arys)
+  return _broadcast_fun(jnp.atleast_3d, *arys)
 
 
 # array manipulation
