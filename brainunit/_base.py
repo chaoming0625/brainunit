@@ -26,6 +26,7 @@ from typing import Union, Optional, Sequence, Callable, Tuple, Any, List
 import jax
 import jax.numpy as jnp
 import numpy as np
+from jax import Array
 from jax.interpreters.partial_eval import DynamicJaxprTracer
 from jax.tree_util import register_pytree_node_class
 
@@ -1117,7 +1118,44 @@ class Quantity(object):
     Returns:
       The value of the array in the new unit.
     """
+    # check if self.value is bool
+    if isinstance(self.value, bool) or self.dtype == jnp.bool_:  # bool
+      return self.value
     return self.value / unit.value
+
+  def to_bool(self) -> bool:
+    """
+    Convert the value of the array to a bool.
+
+    Examples::
+
+    >>> a = jax.numpy.array([0, 1, 2, 3]) * mV
+    >>> a.to_bool()
+    array([False,  True,  True,  True])
+
+    Returns:
+      The value of the array in the new unit.
+    """
+    return self.astype(jnp.bool_).value
+
+  def to_dtype(self, dtype: jax.typing.DTypeLike) -> 'Array':
+    """
+    Convert the value of the array to a new dtype.
+
+    Examples::
+
+    >>> a = jax.numpy.array([1, 2, 3]) * mV
+    >>> a.to_dtype(jnp.int32)
+    array([1, 2, 3], dtype=int32)
+
+    Args:
+      dtype: The new dtype to convert the value of the array to.
+
+    Returns:
+      The value of the array in the new dtype.
+    """
+    return self.astype(dtype).value
+
 
   @staticmethod
   def with_units(value, *args, **keywords):

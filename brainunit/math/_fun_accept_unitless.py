@@ -1298,7 +1298,10 @@ def cov(
 
 
 @set_module_as('brainunit.math')
-def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+def bitwise_not(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
   """
   Compute the bit-wise NOT of an array, element-wise.
 
@@ -1316,7 +1319,10 @@ def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
 
 
 @set_module_as('brainunit.math')
-def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+def invert(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
   """
   Compute bit-wise inversion, or bit-wise NOT, element-wise.
 
