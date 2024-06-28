@@ -20,6 +20,7 @@ from typing import (Union, Optional, Tuple, Any)
 import jax
 import jax.numpy as jnp
 
+from ._fun_array_creation import asarray
 from .._base import (DIMENSIONLESS, Quantity, _return_check_unitless)
 from .._misc import set_module_as
 
@@ -35,7 +36,8 @@ __all__ = [
   'divmod', 'convolve',
 
   # linear algebra
-  'dot', 'vdot', 'inner', 'outer', 'kron', 'matmul', 'tensordot',
+  'dot', 'multi_dot', 'vdot', 'vecdot', 'inner', 'outer', 'kron', 'matmul', 'tensordot',
+  'matrix_power',
 ]
 
 
@@ -959,6 +961,96 @@ def dot(
 
 
 @set_module_as('brainunit.math')
+def multi_dot(
+    arrays: Sequence[jax.typing.ArrayLike | Quantity],
+    *,
+    precision: jax.lax.PrecisionLike = None
+) -> Union[jax.Array, Quantity]:
+  """
+  Efficiently compute matrix products between a sequence of arrays.
+
+  JAX internally uses the opt_einsum library to compute the most efficient
+  operation order.
+
+  Args:
+    arrays: sequence of arrays / quantities. All must be two-dimensional, except the first
+      and last which may be one-dimensional.
+    precision: either ``None`` (default), which means the default precision for
+      the backend, a :class:`~jax.lax.Precision` enum value (``Precision.DEFAULT``,
+      ``Precision.HIGH`` or ``Precision.HIGHEST``).
+
+  Returns:
+    an array representing the equivalent of ``reduce(jnp.matmul, arrays)``, but
+    evaluated in the optimal order.
+
+  This function exists because the cost of computing sequences of matmul operations
+  can differ vastly depending on the order in which the operations are evaluated.
+  For a single matmul, the number of floating point operations (flops) required to
+  compute a matrix product can be approximated this way:
+
+  >>> def approx_flops(x, y):
+  ...   # for 2D x and y, with x.shape[1] == y.shape[0]
+  ...   return 2 * x.shape[0] * x.shape[1] * y.shape[1]
+
+  Suppose we have three matrices that we'd like to multiply in sequence:
+
+  >>> import brainunit as bu
+  >>> key1, key2, key3 = jax.random.split(jax.random.key(0), 3)
+  >>> x = jax.random.normal(key1, shape=(200, 5)) * bu.mA
+  >>> y = jax.random.normal(key2, shape=(5, 100)) * bu.mV
+  >>> z = jax.random.normal(key3, shape=(100, 10)) * bu.ohm
+
+  Because of associativity of matrix products, there are two orders in which we might
+  evaluate the product ``x @ y @ z``, and both produce equivalent outputs up to floating
+  point precision:
+
+  >>> result1 = (x @ y) @ z
+  >>> result2 = x @ (y @ z)
+  >>> bu.math.allclose(result1, result2, atol=1E-4)
+  Array(True, dtype=bool)
+
+  But the computational cost of these differ greatly:
+
+  >>> print("(x @ y) @ z flops:", approx_flops(x, y) + approx_flops(x @ y, z))
+  (x @ y) @ z flops: 600000
+  >>> print("x @ (y @ z) flops:", approx_flops(y, z) + approx_flops(x, y @ z))
+  x @ (y @ z) flops: 30000
+
+  The second approach is about 20x more efficient in terms of estimated flops!
+
+  ``multi_dot`` is a function that will automatically choose the fastest
+  computational path for such problems:
+
+  >>> result3 = bu.math.multi_dot([x, y, z])
+  >>> bu.math.allclose(result1, result3, atol=1E-4)
+  Array(True, dtype=bool)
+
+  We can use JAX's :ref:`ahead-of-time-lowering` tools to estimate the total flops
+  of each approach, and confirm that ``multi_dot`` is choosing the more efficient
+  option:
+
+  >>> jax.jit(lambda x, y, z: (x @ y) @ z).lower(x, y, z).cost_analysis()['flops']
+  600000.0
+  >>> jax.jit(lambda x, y, z: x @ (y @ z)).lower(x, y, z).cost_analysis()['flops']
+  30000.0
+  >>> jax.jit(bu.math.multi_dot).lower([x, y, z]).cost_analysis()['flops']
+  30000.0
+  """
+  new_arrays = []
+  dim = DIMENSIONLESS
+  for arr in arrays:
+    arr = asarray(arr)
+    if isinstance(arr, Quantity):
+      dim = dim * arr.dim
+      arr = arr.value
+    new_arrays.append(arr)
+  r = jnp.linalg.multi_dot(new_arrays, precision=precision)
+  if dim == DIMENSIONLESS:
+    return r
+  return Quantity(r, dim=dim)
+
+
+@set_module_as('brainunit.math')
 def vdot(
     a: Union[jax.Array, Quantity],
     b: Union[jax.Array, Quantity],
@@ -999,11 +1091,64 @@ def vdot(
 
 
 @set_module_as('brainunit.math')
+def vecdot(
+    a: jax.typing.ArrayLike | Quantity,
+    b: jax.typing.ArrayLike | Quantity,
+    /, *,
+    axis: int = -1,
+    precision: jax.lax.PrecisionLike = None,
+    preferred_element_type: jax.typing.DTypeLike | None = None
+):
+  """Perform a conjugate multiplication of two batched vectors.
+
+  Args:
+    a: left-hand side array / Quantity.
+    b: right-hand side array / Quantity. Size of ``b[axis]`` must match size of ``a[axis]``,
+      and remaining dimensions must be broadcast-compatible.
+    axis: axis along which to compute the dot product (default: -1)
+    precision: either ``None`` (default), which means the default precision for
+      the backend, a :class:`~jax.lax.Precision` enum value (``Precision.DEFAULT``,
+      ``Precision.HIGH`` or ``Precision.HIGHEST``) or a tuple of two
+      such values indicating precision of ``a`` and ``b``.
+    preferred_element_type: either ``None`` (default), which means the default
+      accumulation type for the input types, or a datatype, indicating to
+      accumulate results to and return a result with that datatype.
+
+  Returns:
+    array containing the conjugate dot product of ``a`` and ``b`` along ``axis``.
+    The non-contracted dimensions are broadcast together.
+
+  Examples:
+    Vector conjugate-dot product of two 1D arrays:
+
+    >>> import brainunit as bu
+    >>> a = bu.math.array([1j, 2j, 3j]) * bu.ohm
+    >>> b = bu.math.array([4., 5., 6.]) * bu.mA
+    >>> bu.math.vecdot(a, b)
+    Array(0.-32.j, dtype=complex64) * mvolt
+
+    Batched vector dot product of two 2D arrays:
+
+    >>> a = bu.math.array([[1, 2, 3],
+    ...                   [4, 5, 6]]) * bu.ohm
+    >>> b = bu.math.array([[2, 3, 4]]) * bu.mA
+    >>> bu.math.vecdot(a, b, axis=-1)
+    Array([20, 47], dtype=float32) * mV
+  """
+  return _fun_change_unit_binary(jnp.vecdot,
+                                 lambda x, y: x * y,
+                                 a, b,
+                                 axis=axis,
+                                 precision=precision,
+                                 preferred_element_type=preferred_element_type)
+
+
+@set_module_as('brainunit.math')
 def inner(
     a: Union[jax.Array, Quantity],
     b: Union[jax.Array, Quantity],
     *,
-    precision: Any = None,
+    precision: jax.lax.PrecisionLike = None,
     preferred_element_type: Optional[jax.typing.DTypeLike] = None
 ) -> Union[jax.Array, Quantity]:
   """
@@ -1192,3 +1337,31 @@ def tensordot(
                                  axes=axes,
                                  precision=precision,
                                  preferred_element_type=preferred_element_type)
+
+
+@set_module_as('brainunit.math')
+def matrix_power(
+    a: Union[jax.typing.ArrayLike, Quantity],
+    n: int
+) -> Union[jax.typing.ArrayLike, Quantity]:
+  """
+  Raise a square matrix to the (integer) power `n`.
+
+  Parameters
+  ----------
+  a : array_like, Quantity
+    Matrix to be "powered".
+  n : int
+    The exponent can be any integer.
+
+  Returns
+  -------
+  out : ndarray, Quantity
+    The result of raising `a` to the power `n`.
+
+    This is a Quantity if the final unit is the product of the unit of `a` and itself, else an array.
+  """
+  if isinstance(a, Quantity):
+    return _return_check_unitless(Quantity(jnp.linalg.matrix_power(a.value, n), dim=a.dim ** n))
+  else:
+    return jnp.linalg.matrix_power(a, n)
