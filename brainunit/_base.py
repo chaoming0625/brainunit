@@ -149,6 +149,7 @@ def get_dim_for_display(d):
   else:
     return str(get_dim(d))
 
+
 def assert_quantity(q, values, unit=None):
   values = jnp.asarray(values)
   if unit is None:
@@ -158,6 +159,7 @@ def assert_quantity(q, values, unit=None):
     assert have_same_unit(q.dim, unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
     if not jnp.allclose(q.value, values, equal_nan=True):
       raise AssertionError(f"Values do not match: {q.value} != {values}")
+
 
 # SI dimensions (see table at the top of the file) and various descriptions,
 # each description maps to an index i, and the power of each dimension
@@ -1102,7 +1104,7 @@ class Quantity(object):
     raise NotImplementedError("Cannot set the unit of a Quantity object directly,"
                               "Please create a new Quantity object with the unit you want.")
 
-  def to_value(self, unit: 'Unit') -> jax.Array | numbers.Number:
+  def to_value(self, unit: 'Unit' = None) -> jax.Array | numbers.Number:
     """
     Convert the value of the array to a new unit.
 
@@ -1121,41 +1123,9 @@ class Quantity(object):
     # check if self.value is bool
     if isinstance(self.value, bool) or self.dtype == jnp.bool_:  # bool
       return self.value
+    if unit is None:
+      return self.value
     return self.value / unit.value
-
-  def to_bool(self) -> bool:
-    """
-    Convert the value of the array to a bool.
-
-    Examples::
-
-    >>> a = jax.numpy.array([0, 1, 2, 3]) * mV
-    >>> a.to_bool()
-    array([False,  True,  True,  True])
-
-    Returns:
-      The value of the array in the new unit.
-    """
-    return self.astype(jnp.bool_).value
-
-  def to_dtype(self, dtype: jax.typing.DTypeLike) -> 'Array':
-    """
-    Convert the value of the array to a new dtype.
-
-    Examples::
-
-    >>> a = jax.numpy.array([1, 2, 3]) * mV
-    >>> a.to_dtype(jnp.int32)
-    array([1, 2, 3], dtype=int32)
-
-    Args:
-      dtype: The new dtype to convert the value of the array to.
-
-    Returns:
-      The value of the array in the new dtype.
-    """
-    return self.astype(dtype).value
-
 
   @staticmethod
   def with_units(value, *args, **keywords):
@@ -3299,4 +3269,3 @@ def check_units(**au):
     return new_f
 
   return do_check_units
-
