@@ -1287,7 +1287,7 @@ def matmul(
 def tensordot(
     a: Union[jax.typing.ArrayLike, Quantity],
     b: Union[jax.typing.ArrayLike, Quantity],
-    axes: Union[int, Tuple[int, int]] = 2,
+    axes: int | Sequence[int] | Sequence[Sequence[int]] = 2,
     precision: Any = None,
     preferred_element_type: Optional[jax.typing.DTypeLike] = None
 ) -> Union[jax.Array, Quantity]:
