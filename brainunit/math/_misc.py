@@ -32,7 +32,7 @@ T = TypeVar("T")
 
 __all__ = [
   # constants
-  'e', 'pi', 'inf',
+  'e', 'pi', 'inf', 'nan', 'euler_gamma',
 
   # data types
   'dtype', 'finfo', 'iinfo',
@@ -56,9 +56,12 @@ def _removechars(s, chars):
 
 # constants
 # ---------
-e = jnp.e
-pi = jnp.pi
-inf = jnp.inf
+e = np.e
+pi = np.pi
+inf = np.inf
+nan = np.nan
+euler_gamma = np.euler_gamma
+
 
 # data types
 # ----------
