@@ -588,13 +588,13 @@ def asarray(
   a = treedef.unflatten([leaf.value if isinstance(leaf, Quantity) else leaf for leaf in leaves])
 
   # get unit
-  dims = [leaf.dim if isinstance(leaf, Quantity) else None for leaf in leaves]
+  dims = [leaf.dim if isinstance(leaf, Quantity) else DIMENSIONLESS for leaf in leaves]
   if any(dims[0] != d for d in dims):
     raise ValueError(f'Units do not match for asarray operation. Got {dims}')
   dim = dims[0]
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-    if dim is not None and dim != DIMENSIONLESS:
+    if dim != DIMENSIONLESS:
       fail_for_dimension_mismatch(Unit(1., dim, register=False), unit,
                                   error_message="a and unit have to have the same units.")
 
@@ -602,7 +602,7 @@ def asarray(
   r = jnp.asarray(a, dtype=dtype, order=order)
 
   # returns
-  if dim is not None or dim == DIMENSIONLESS:
+  if dim != DIMENSIONLESS:
     return Quantity(r, dim=dim)
   if unit is not None:
     return r * unit
