@@ -32,10 +32,16 @@ from .._misc import set_module_as
 Shape = Union[int, Sequence[int]]
 
 __all__ = [
-  # array creation
-  'full', 'full_like', 'eye', 'identity', 'diag', 'tri', 'tril', 'triu',
-  'empty', 'empty_like', 'ones', 'ones_like', 'zeros', 'zeros_like',
-  'array', 'asarray', 'arange', 'linspace', 'logspace', 'fill_diagonal',
+  # array creation(given shape)
+  'full',  'eye', 'identity',  'tri',
+  'empty',  'ones',  'zeros',
+
+  # array creation(given array)
+  'full_like', 'diag', 'tril', 'triu',
+  'empty_like', 'ones_like', 'zeros_like', 'fill_diagonal',
+
+  # array creation(misc)
+  'array', 'asarray', 'arange', 'linspace', 'logspace',
   'meshgrid', 'vander',
 
   # indexing funcs

@@ -47,6 +47,7 @@ __all__ = [
   'check_units',
   'is_scalar_type',
   'fail_for_dimension_mismatch',
+  'assert_quantity'
 ]
 
 _all_slice = slice(None, None, None)
@@ -147,6 +148,15 @@ def get_dim_for_display(d):
   else:
     return str(get_dim(d))
 
+def assert_quantity(q, values, unit=None):
+  values = jnp.asarray(values)
+  if unit is None:
+    assert jnp.allclose(q, values, equal_nan=True), f"Values do not match: {q.value} != {values}"
+    return
+  else:
+    assert have_same_unit(q.dim, unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
+    if not jnp.allclose(q.value, values, equal_nan=True):
+      raise AssertionError(f"Values do not match: {q.value} != {values}")
 
 # SI dimensions (see table at the top of the file) and various descriptions,
 # each description maps to an index i, and the power of each dimension

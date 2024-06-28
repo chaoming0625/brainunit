@@ -28,7 +28,7 @@ __all__ = [
   'arccos', 'arccosh', 'arcsin', 'arcsinh', 'arctan',
   'arctanh', 'cos', 'cosh', 'sin', 'sinc', 'sinh', 'tan',
   'tanh', 'deg2rad', 'rad2deg', 'degrees', 'radians', 'angle',
-  'corrcoef', 'correlate', 'cov',
+
 
   # math funcs only accept unitless (unary) can return Quantity
   'round', 'around', 'round_', 'rint',
@@ -37,6 +37,7 @@ __all__ = [
 
   # math funcs only accept unitless (binary)
   'hypot', 'arctan2', 'logaddexp', 'logaddexp2',
+  'corrcoef', 'correlate', 'cov',
 
   # Elementwise bit operations (unary)
   'bitwise_not', 'invert',

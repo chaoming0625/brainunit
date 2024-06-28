@@ -51,6 +51,21 @@ class TestArrayCreation(unittest.TestCase):
     self.assertEqual(q.shape, (3,))
     assert_quantity(q, result, second)
 
+  def test_empty(self):
+    result = bu.math.empty((2, 2))
+    self.assertEqual(result.shape, (2, 2))
+
+  def test_ones(self):
+    result = bu.math.ones((2, 2))
+    self.assertEqual(result.shape, (2, 2))
+    self.assertTrue(jnp.all(result == 1))
+
+  def test_zeros(self):
+    result = bu.math.zeros((2, 2))
+    self.assertEqual(result.shape, (2, 2))
+    self.assertTrue(jnp.all(result == 0))
+
+  # eye, iden, tri (unit, unitless)
   def test_eye(self):
     result = bu.math.eye(3)
     self.assertEqual(result.shape, (3, 3))
@@ -66,19 +81,7 @@ class TestArrayCreation(unittest.TestCase):
     self.assertEqual(result.shape, (3, 3))
     self.assertTrue(jnp.all(result == jnp.tri(3)))
 
-  def test_empty(self):
-    result = bu.math.empty((2, 2))
-    self.assertEqual(result.shape, (2, 2))
 
-  def test_ones(self):
-    result = bu.math.ones((2, 2))
-    self.assertEqual(result.shape, (2, 2))
-    self.assertTrue(jnp.all(result == 1))
-
-  def test_zeros(self):
-    result = bu.math.zeros((2, 2))
-    self.assertEqual(result.shape, (2, 2))
-    self.assertTrue(jnp.all(result == 0))
 
   def test_array(self):
     result = bu.math.array([1, 2, 3])
@@ -163,7 +166,7 @@ class TestArrayCreation(unittest.TestCase):
 
     result_q = bu.math.asarray([1, 2, 3], unit=bu.second)
     assert_quantity(result_q, jnp.asarray([1, 2, 3]), bu.second)
-
+    # TODO: list of list, scalar, error check
     a = bu.math.asarray([1 * bu.second, 2 * bu.second, 3 * bu.second], unit=bu.second)
     b = bu.math.asarray([1 * bu.second, 2 * bu.second, 3 * bu.second])
     assert bu.math.allclose(a, b)
@@ -231,6 +234,7 @@ class TestArrayCreation(unittest.TestCase):
     expected_q = jnp.meshgrid(jnp.array([1, 2, 3]), jnp.array([4, 5]))
     for r, e in zip(result_q, expected_q):
       assert_quantity(r, e, bu.second)
+    # TODO: unit and unitless
 
   def test_vander(self):
     array = jnp.array([1, 2, 3])
@@ -241,6 +245,7 @@ class TestArrayCreation(unittest.TestCase):
     q = jnp.array([1, 2, 3]) * bu.second
     result_q = bu.math.vander(q.to_value(bu.second))
     assert_quantity(result_q, jnp.vander(jnp.array([1, 2, 3])))
+    # TODO: error check
 
 
 class TestAttributeFunctions(unittest.TestCase):
@@ -300,7 +305,7 @@ class TestAttributeFunctions(unittest.TestCase):
     self.assertEqual(bu.math.size(q), 4)
     self.assertEqual(bu.math.size(q, 1), 2)
 
-
+# TODO: optimize test func list
 class TestMathFuncsKeepUnitUnary(unittest.TestCase):
 
   def test_real(self):
@@ -609,6 +614,7 @@ class TestMathFuncsKeepUnitUnary(unittest.TestCase):
     expected_q = jnp.diff(jnp.array([1, 2, 3])) * ms
     assert_quantity(result_q, expected_q.value, ms)
 
+  # TODO: move to ./.
   def test_modf(self):
     result = bu.math.modf(jnp.array([5.5, 7.3]))
     expected = jnp.modf(jnp.array([5.5, 7.3]))
@@ -647,6 +653,7 @@ class TestMathFuncsKeepUnitBinary(unittest.TestCase):
     expected_q = jnp.copysign(jnp.array([-1, 2]), jnp.array([1, -3])) * ms
     assert_quantity(result_q, expected_q.value, ms)
 
+  # TODO: move to remove unit
   def test_heaviside(self):
     result = bu.math.heaviside(jnp.array([-1, 2]), jnp.array([0.5, 0.5]))
     self.assertTrue(jnp.all(result == jnp.heaviside(jnp.array([-1, 2]), jnp.array([0.5, 0.5]))))
@@ -1341,6 +1348,7 @@ class TestMathFuncsRemoveUnitUnary(unittest.TestCase):
     expected_q = jnp.sign(jnp.array([-1.0, 2.0]))
     assert_quantity(result_q, expected_q, None)
 
+  # TODO: move to keep unit
   def test_histogram(self):
     array = jnp.array([1, 2, 1])
     result, _ = bu.math.histogram(array)
@@ -1419,7 +1427,7 @@ class TestMathFuncsRemoveUnitBinary(unittest.TestCase):
 
 
 class TestArrayManipulation(unittest.TestCase):
-
+  # TODO: use partial to reduce code duplication
   def test_reshape(self):
     array = jnp.array([1, 2, 3, 4])
     result = bu.math.reshape(array, (2, 2))
@@ -2246,7 +2254,7 @@ class TestConstants(unittest.TestCase):
     self.assertTrue(bu.math.pi == jnp.pi)
     self.assertTrue(bu.math.inf == jnp.inf)
 
-
+# TODO: move to change unit binary
 class TestLinearAlgebra(unittest.TestCase):
 
   def test_dot(self):
