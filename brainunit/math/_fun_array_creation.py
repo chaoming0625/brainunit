@@ -594,8 +594,9 @@ def asarray(
   dim = dims[0]
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-    fail_for_dimension_mismatch(Unit(1., dim, register=False), unit,
-                                error_message="a and unit have to have the same units.")
+    if dim is not None and dim != DIMENSIONLESS:
+      fail_for_dimension_mismatch(Unit(1., dim, register=False), unit,
+                                  error_message="a and unit have to have the same units.")
 
   # compute
   r = jnp.asarray(a, dtype=dtype, order=order)
@@ -604,7 +605,7 @@ def asarray(
   if dim is not None or dim == DIMENSIONLESS:
     return Quantity(r, dim=dim)
   if unit is not None:
-   return r * unit
+    return r * unit
   return r
 
 

@@ -2348,8 +2348,7 @@ def percentile(
   """
   assert not isinstance(q, Quantity), 'Percentile should be unitless.'
   return _fun_keep_unit_unary(
-    jnp.percentile, a, q=q, axis=axis,
-    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
+    jnp.percentile, a, q=q, axis=axis, method=method, keepdims=keepdims,
   )
 
 
@@ -2405,9 +2404,7 @@ def nanpercentile(
   """
   assert not isinstance(q, Quantity), 'Percentile should be unitless.'
   return _fun_keep_unit_unary(
-    jnp.nanpercentile, a, q=q,
-    axis=axis,
-    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
+    jnp.nanpercentile, a, q=q, axis=axis, method=method, keepdims=keepdims,
   )
 
 
@@ -2463,9 +2460,7 @@ def quantile(
   """
   assert not isinstance(q, Quantity), 'Percentile should be unitless.'
   return _fun_keep_unit_unary(
-    jnp.quantile, a, q=q,
-    axis=axis,
-    method=method, keepdims=keepdims
+    jnp.quantile, a, q=q, axis=axis, method=method, keepdims=keepdims
   )
 
 
