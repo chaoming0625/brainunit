@@ -26,15 +26,15 @@ from .._base import (DIMENSIONLESS,
                      Quantity,
                      Unit,
                      fail_for_dimension_mismatch,
-                     is_unitless, )
+                     is_unitless, DimensionMismatchError, )
 from .._misc import set_module_as
 
 Shape = Union[int, Sequence[int]]
 
 __all__ = [
   # array creation(given shape)
-  'full',  'eye', 'identity',  'tri',
-  'empty',  'ones',  'zeros',
+  'full', 'eye', 'identity', 'tri',
+  'empty', 'ones', 'zeros',
 
   # array creation(given array)
   'full_like', 'diag', 'tril', 'triu',
@@ -596,7 +596,7 @@ def asarray(
   # get unit
   dims = [leaf.dim if isinstance(leaf, Quantity) else None for leaf in leaves]
   if any(dims[0] != d for d in dims):
-    raise ValueError(f'Units do not match for asarray operation. Got {dims}')
+    raise DimensionMismatchError(f'Units do not match for asarray operation. Got {dims}')
   dim = dims[0]
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -610,7 +610,7 @@ def asarray(
   if dim is not None or dim == DIMENSIONLESS:
     return Quantity(r, dim=dim)
   if unit is not None:
-   return r * unit
+    return r * unit
   return r
 
 
@@ -698,6 +698,11 @@ def arange(
         dtype=dtype,
       ),
       dim=unit,
+    ) if unit != DIMENSIONLESS else jnp.arange(
+      start=start.value if isinstance(start, Quantity) else jnp.asarray(start),
+      stop=stop.value if isinstance(stop, Quantity) else jnp.asarray(stop),
+      step=step.value if isinstance(step, Quantity) else jnp.asarray(step),
+      dtype=dtype,
     )
   else:
     return Quantity(
@@ -708,7 +713,13 @@ def arange(
         dtype=dtype,
       ),
       dim=unit,
+    ) if unit != DIMENSIONLESS else jnp.arange(
+      start.value if isinstance(start, Quantity) else jnp.asarray(start),
+      stop=stop.value if isinstance(stop, Quantity) else jnp.asarray(stop),
+      step=step.value if isinstance(step, Quantity) else jnp.asarray(step),
+      dtype=dtype,
     )
+
 
 
 @set_module_as('brainunit.math')
@@ -758,7 +769,7 @@ def linspace(
   stop = stop.value if isinstance(stop, Quantity) else stop
 
   result = jnp.linspace(start, stop, num=num, endpoint=endpoint, retstep=retstep, dtype=dtype)
-  return Quantity(result, dim=unit)
+  return Quantity(result, dim=unit) if unit != DIMENSIONLESS else result
 
 
 @set_module_as('brainunit.math')
@@ -807,7 +818,7 @@ def logspace(
   stop = stop.value if isinstance(stop, Quantity) else stop
 
   result = jnp.logspace(start, stop, num=num, endpoint=endpoint, base=base, dtype=dtype)
-  return Quantity(result, dim=unit)
+  return Quantity(result, dim=unit) if unit != DIMENSIONLESS else result
 
 
 @set_module_as('brainunit.math')
