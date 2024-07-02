@@ -30,7 +30,7 @@ __all__ = [
   'cumproduct', 'var', 'nanvar', 'cbrt', 'square', 'sqrt',
 
   # math funcs change unit (binary)
-  'multiply', 'divide', 'power', 'cross', 'ldexp',
+  'multiply', 'divide', 'power', 'cross',
   'true_divide', 'floor_divide', 'float_power',
   'divmod', 'convolve',
 
@@ -643,38 +643,7 @@ def cross(
                                  axisa=axisa, axisb=axisb, axisc=axisc, axis=axis)
 
 
-@_add_chang_unit_func(lambda ux, uy: ux * 2 ** uy)
-@set_module_as('brainunit.math')
-def ldexp(
-    x: Union[Quantity, jax.typing.ArrayLike],
-    y: jax.typing.ArrayLike
-) -> Union[Quantity, jax.typing.ArrayLike]:
-  """
-  Returns x * 2**y, element-wise.
 
-  The mantissas `x` and twos exponents `y` are used to construct
-  floating point numbers ``x * 2**y``.
-
-  Parameters
-  ----------
-  x : array_like, Quantity
-    Array of multipliers.
-  y : array_like, int
-    Array of twos exponents.
-    If ``x.shape != y.shape``, they must be broadcastable to a common
-    shape (which becomes the shape of the output).
-
-  Returns
-  -------
-  out : ndarray, quantity or scalar
-    The result of ``x * 2**y``.
-    This is a scalar if both `x` and `y` are scalars.
-
-    This is a Quantity if the product of the square of the unit of `x` and the unit of `y` is not dimensionless.
-  """
-  return _fun_change_unit_binary(jnp.ldexp,
-                                 lambda ux, uy: ux * 2 ** uy,
-                                 x, y)
 
 
 @_add_chang_unit_func(lambda ux, uy: ux / uy)

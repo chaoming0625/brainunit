@@ -1,12 +1,11 @@
-import unittest
 import brainunit as bu
-import brainunit.math as bm
-import inspect
 import jax.numpy as jnp
 import pytest
 from absl.testing import parameterized
 
-from brainunit import second, meter, DimensionMismatchError, assert_quantity
+import brainunit as bu
+import brainunit.math as bm
+from brainunit import meter, DimensionMismatchError, assert_quantity
 
 fun_accept_unitless_unary = [
   'exp', 'exp2', 'expm1', 'log', 'log10', 'log1p', 'log2',
@@ -21,6 +20,9 @@ fun_accept_unitless_unary_2_results = [
 fun_accept_unitless_binary = [
   'hypot', 'arctan2', 'logaddexp', 'logaddexp2',
   'corrcoef', 'correlate', 'cov',
+]
+fun_accept_unitless_binary_ldexp = [
+  'ldexp',
 ]
 fun_accept_unitless_unary_can_return_quantity = [
   'round', 'around', 'round_', 'rint',
@@ -122,6 +124,31 @@ class TestFunAcceptUnitless(parameterized.TestCase):
 
       with pytest.raises(DimensionMismatchError):
         result = bm_fun(q1, q2, unit_to_scale=bu.second)
+
+  @parameterized.product(
+    value=[[(1.0, 2.0), (3, 4), ],
+            [(1.23, 2.34, 3.45), (4, 5, 6)]]
+  )
+  def test_func_accept_unitless_binary_ldexp(self, value):
+    value1, value2 = value
+    bm_fun_list = [getattr(bm, fun) for fun in fun_accept_unitless_binary_ldexp]
+    jnp_fun_list = [getattr(jnp, fun) for fun in fun_accept_unitless_binary_ldexp]
+
+    for bm_fun, jnp_fun in zip(bm_fun_list, jnp_fun_list):
+      print(f'fun: {bm_fun.__name__}')
+
+      result = bm_fun(jnp.array(value1), jnp.array(value2))
+      expected = jnp_fun(jnp.array(value1), jnp.array(value2))
+      assert_quantity(result, expected)
+
+      q1 = value1 * meter
+      q2 = value2 * meter
+      result = bm_fun(q1.to_value(meter), jnp.array(value2))
+      expected = jnp_fun(jnp.array(value1), jnp.array(value2))
+      assert_quantity(result, expected)
+
+      with pytest.raises(AssertionError):
+        result = bm_fun(q1, q2)
 
   @parameterized.product(
     value=[(1.123, 2.567, 3.891), (1.23, 2.34, 3.45)]

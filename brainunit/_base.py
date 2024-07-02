@@ -156,9 +156,13 @@ def assert_quantity(q, values, unit=None):
     assert jnp.allclose(q, values, equal_nan=True), f"Values do not match: {q.value} != {values}"
     return
   else:
-    assert have_same_unit(q.dim, unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
-    if not jnp.allclose(q.value, values, equal_nan=True):
-      raise AssertionError(f"Values do not match: {q.value} != {values}")
+    assert have_same_unit(get_dim(q), unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
+    if isinstance(q, Quantity):
+      if not jnp.allclose(q.value, values, equal_nan=True):
+        raise AssertionError(f"Values do not match: {q.value} != {values}")
+    else:
+      if not jnp.allclose(q, values, equal_nan=True):
+        raise AssertionError(f"Values do not match: {q.value} != {values}")
 
 
 # SI dimensions (see table at the top of the file) and various descriptions,

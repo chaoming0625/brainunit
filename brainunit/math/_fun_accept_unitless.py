@@ -37,7 +37,7 @@ __all__ = [
 
   # math funcs only accept unitless (binary)
   'hypot', 'arctan2', 'logaddexp', 'logaddexp2',
-  'corrcoef', 'correlate', 'cov',
+  'corrcoef', 'correlate', 'cov', 'ldexp',
 
   # Elementwise bit operations (unary)
   'bitwise_not', 'invert',
@@ -1292,6 +1292,39 @@ def cov(
     aweights=aweights, unit_to_scale=unit_to_scale
   )
 
+@set_module_as('brainunit.math')
+def ldexp(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: jax.typing.ArrayLike
+) -> Union[Quantity, jax.typing.ArrayLike]:
+  """
+  Returns x * 2**y, element-wise.
+
+  The mantissas `x` and twos exponents `y` are used to construct
+  floating point numbers ``x * 2**y``.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Array of multipliers.
+  y : array_like, int
+    Array of twos exponents.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+
+  Returns
+  -------
+  out : ndarray, quantity or scalar
+    The result of ``x * 2**y``.
+    This is a scalar if both `x` and `y` are scalars.
+
+    This is a Quantity if the product of the square of the unit of `x` and the unit of `y` is not dimensionless.
+  """
+  if isinstance(x, Quantity):
+    assert x.is_unitless, f'Expected unitless array, got {x}'
+    x = x.value
+  return jnp.ldexp(x, y)
+
 
 # Elementwise bit operations (unary)
 # ----------------------------------
@@ -1466,3 +1499,4 @@ def right_shift(
     Output array.
   """
   return _fun_unitless_binary(jnp.right_shift, x, y)
+
