@@ -1,4 +1,3 @@
-import brainunit as bu
 import jax.numpy as jnp
 import pytest
 from absl.testing import parameterized
@@ -127,7 +126,7 @@ class TestFunAcceptUnitless(parameterized.TestCase):
 
   @parameterized.product(
     value=[[(1.0, 2.0), (3, 4), ],
-            [(1.23, 2.34, 3.45), (4, 5, 6)]]
+           [(1.23, 2.34, 3.45), (4, 5, 6)]]
   )
   def test_func_accept_unitless_binary_ldexp(self, value):
     value1, value2 = value
