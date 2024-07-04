@@ -1007,7 +1007,6 @@ def nanargmax(
   """
   return _fun_remove_unit_unary(jnp.nanargmax,
                                 a,
-                                return_quantity=False,
                                 axis=axis,
                                 keepdims=keepdims)
 
@@ -1041,7 +1040,6 @@ def nanargmin(
   """
   return _fun_remove_unit_unary(jnp.nanargmin,
                                 a,
-                                return_quantity=False,
                                 axis=axis,
                                 keepdims=keepdims)
 
