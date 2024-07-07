@@ -26,6 +26,7 @@ from typing import Union, Optional, Sequence, Callable, Tuple, Any, List
 import jax
 import jax.numpy as jnp
 import numpy as np
+from jax import Array
 from jax.interpreters.partial_eval import DynamicJaxprTracer
 from jax.tree_util import register_pytree_node_class
 
@@ -47,6 +48,7 @@ __all__ = [
   'check_units',
   'is_scalar_type',
   'fail_for_dimension_mismatch',
+  'assert_quantity'
 ]
 
 _all_slice = slice(None, None, None)
@@ -146,6 +148,21 @@ def get_dim_for_display(d):
     return "1"
   else:
     return str(get_dim(d))
+
+
+def assert_quantity(q, values, unit=None):
+  values = jnp.asarray(values)
+  if unit is None:
+    assert jnp.allclose(q, values, equal_nan=True), f"Values do not match: {q} != {values}"
+    return
+  else:
+    assert have_same_unit(get_dim(q), unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
+    if isinstance(q, Quantity):
+      if not jnp.allclose(q.value, values, equal_nan=True):
+        raise AssertionError(f"Values do not match: {q.value} != {values}")
+    else:
+      if not jnp.allclose(q, values, equal_nan=True):
+        raise AssertionError(f"Values do not match: {q.value} != {values}")
 
 
 # SI dimensions (see table at the top of the file) and various descriptions,
@@ -1091,7 +1108,7 @@ class Quantity(object):
     raise NotImplementedError("Cannot set the unit of a Quantity object directly,"
                               "Please create a new Quantity object with the unit you want.")
 
-  def to_value(self, unit: 'Unit') -> jax.Array | numbers.Number:
+  def to_value(self, unit: 'Unit' = None) -> jax.Array | numbers.Number:
     """
     Convert the value of the array to a new unit.
 
@@ -1107,6 +1124,11 @@ class Quantity(object):
     Returns:
       The value of the array in the new unit.
     """
+    # check if self.value is bool
+    if isinstance(self.value, bool) or self.dtype == jnp.bool_:  # bool
+      return self.value
+    if unit is None:
+      return self.value
     return self.value / unit.value
 
   @staticmethod
@@ -3251,4 +3273,3 @@ def check_units(**au):
     return new_f
 
   return do_check_units
-

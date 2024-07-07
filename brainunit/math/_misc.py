@@ -15,25 +15,24 @@
 
 from __future__ import annotations
 
-import collections
 from collections.abc import Sequence
-from typing import (Callable, Union, Optional)
+from typing import (Union, TypeVar)
 
 import jax
 import jax.numpy as jnp
 import numpy as np
-import opt_einsum
 
 from .._base import (DIMENSIONLESS,
                      Quantity,
-                     fail_for_dimension_mismatch,
                      is_unitless,
-                     get_dim, )
+                     get_dim)
 from .._misc import set_module_as
+
+T = TypeVar("T")
 
 __all__ = [
   # constants
-  'e', 'pi', 'inf',
+  'e', 'pi', 'inf', 'nan', 'euler_gamma',
 
   # data types
   'dtype', 'finfo', 'iinfo',
@@ -44,17 +43,25 @@ __all__ = [
   'is_float', 'is_int', 'broadcast_shapes',
 
   # more
-  'einsum', 'gradient',
+  'gradient',
 
   # window funcs
   'bartlett', 'blackman', 'hamming', 'hanning', 'kaiser',
 ]
 
+
+def _removechars(s, chars):
+  return s.translate(str.maketrans(dict.fromkeys(chars)))
+
+
 # constants
 # ---------
-e = jnp.e
-pi = jnp.pi
-inf = jnp.inf
+e = np.e
+pi = np.pi
+inf = np.inf
+nan = np.nan
+euler_gamma = np.euler_gamma
+
 
 # data types
 # ----------
@@ -336,117 +343,6 @@ def is_int(array):
     A boolean value indicating if the array is an integer array.
   """
   return jnp.issubdtype(get_dtype(array), jnp.integer)
-
-
-def _default_poly_einsum_handler(*operands, **kwargs):
-  dummy = collections.namedtuple('dummy', ['shape', 'dtype'])
-  dummies = [dummy(tuple(d if type(d) is int else 8 for d in x.shape), x.dtype)
-             if hasattr(x, 'dtype') else x for x in operands]
-  mapping = {id(d): i for i, d in enumerate(dummies)}
-  out_dummies, contractions = opt_einsum.contract_path(*dummies, **kwargs)
-  contract_operands = [operands[mapping[id(d)]] for d in out_dummies]
-  return contract_operands, contractions
-
-
-def einsum(
-    subscripts: str,
-    /,
-    *operands: Union[Quantity, jax.Array],
-    out: None = None,
-    optimize: Union[str, bool] = "optimal",
-    precision: jax.lax.PrecisionLike = None,
-    preferred_element_type: Optional[jax.typing.DTypeLike] = None,
-    _dot_general: Callable[..., jax.Array] = jax.lax.dot_general,
-) -> Union[jax.Array, Quantity]:
-  """
-  Evaluates the Einstein summation convention on the operands.
-
-  Parameters
-  ----------
-  subscripts : str
-    string containing axes names separated by commas.
-  *operands : array_like, Quantity, optional
-    sequence of one or more arrays or quantities corresponding to the subscripts.
-  optimize : {False, True, 'optimal'}, optional
-    determine whether to optimize the order of computation. In JAX
-    this defaults to ``"optimize"`` which produces optimized expressions via
-    the opt_einsum_ package.
-  precision : either ``None`` (default),
-    which means the default precision for the backend
-    a :class:`~jax.lax.Precision` enum value (``Precision.DEFAULT``,
-    ``Precision.HIGH`` or ``Precision.HIGHEST``).
-  preferred_element_type : either ``None`` (default)
-    which means the default accumulation type for the input types,
-    or a datatype, indicating to accumulate results to and return a result with that datatype.
-  out : {None}, optional
-    This parameter is not supported in JAX.
-  _dot_general : callable, optional
-    optionally override the ``dot_general`` callable used by ``einsum``.
-    This parameter is experimental, and may be removed without warning at any time.
-
-  Returns
-  -------
-  output : Quantity or jax.Array
-    The calculation based on the Einstein summation convention.
-  """
-  operands = (subscripts, *operands)
-  if out is not None:
-    raise NotImplementedError("The 'out' argument to jnp.einsum is not supported.")
-  spec = operands[0] if isinstance(operands[0], str) else None
-  optimize = 'optimal' if optimize is True else optimize
-
-  # Allow handling of shape polymorphism
-  non_constant_dim_types = {
-    type(d) for op in operands if not isinstance(op, str)
-    for d in np.shape(op) if not jax.core.is_constant_dim(d)
-  }
-  if not non_constant_dim_types:
-    contract_path = opt_einsum.contract_path
-  else:
-    contract_path = _default_poly_einsum_handler
-
-  operands, contractions = contract_path(*operands, einsum_call=True, use_blas=True, optimize=optimize)
-
-  unit = None
-  for i in range(len(contractions) - 1):
-    if contractions[i][4] == 'False':
-      fail_for_dimension_mismatch(
-        Quantity([], dim=unit), operands[i + 1], 'einsum'
-      )
-    elif contractions[i][4] == 'DOT' or \
-        contractions[i][4] == 'TDOT' or \
-        contractions[i][4] == 'GEMM' or \
-        contractions[i][4] == 'OUTER/EINSUM':
-      if i == 0:
-        if isinstance(operands[i], Quantity) and isinstance(operands[i + 1], Quantity):
-          unit = operands[i].dim * operands[i + 1].dim
-        elif isinstance(operands[i], Quantity):
-          unit = operands[i].dim
-        elif isinstance(operands[i + 1], Quantity):
-          unit = operands[i + 1].dim
-      else:
-        if isinstance(operands[i + 1], Quantity):
-          unit = unit * operands[i + 1].dim
-  operands = [op.value if isinstance(op, Quantity) else op for op in operands]
-
-  r = jnp.einsum(subscripts,
-                 *operands,
-                 precision=precision,
-                 preferred_element_type=preferred_element_type,
-                 _dot_general=_dot_general)
-
-  # contractions = tuple((a, frozenset(b), c) for a, b, c, *_ in contractions)
-  #
-  # einsum = jax.jit(_einsum, static_argnums=(1, 2, 3, 4), inline=True)
-  # if spec is not None:
-  #   einsum = jax.named_call(einsum, name=spec)
-
-  # r = einsum(operands, contractions, precision,  # type: ignore[operator]
-  #            preferred_element_type, _dot_general)
-  if unit is not None:
-    return Quantity(r, dim=unit)
-  else:
-    return r
 
 
 @set_module_as('brainunit.math')

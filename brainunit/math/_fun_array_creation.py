@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import (Union, Optional, List)
+from typing import (Union, Optional, List, Any)
 
 import jax
 import jax.numpy as jnp
@@ -26,16 +26,22 @@ from .._base import (DIMENSIONLESS,
                      Quantity,
                      Unit,
                      fail_for_dimension_mismatch,
-                     is_unitless, )
+                     is_unitless, DimensionMismatchError, )
 from .._misc import set_module_as
 
 Shape = Union[int, Sequence[int]]
 
 __all__ = [
-  # array creation
-  'full', 'full_like', 'eye', 'identity', 'diag', 'tri', 'tril', 'triu',
-  'empty', 'empty_like', 'ones', 'ones_like', 'zeros', 'zeros_like',
-  'array', 'asarray', 'arange', 'linspace', 'logspace', 'fill_diagonal',
+  # array creation(given shape)
+  'full', 'eye', 'identity', 'tri',
+  'empty', 'ones', 'zeros',
+
+  # array creation(given array)
+  'full_like', 'diag', 'tril', 'triu',
+  'empty_like', 'ones_like', 'zeros_like', 'fill_diagonal',
+
+  # array creation(misc)
+  'array', 'asarray', 'arange', 'linspace', 'logspace',
   'meshgrid', 'vander',
 
   # indexing funcs
@@ -554,7 +560,7 @@ def zeros_like(
 
 @set_module_as('brainunit.math')
 def asarray(
-    a: Union[Quantity, jax.typing.ArrayLike, Sequence[Quantity], Sequence[jax.typing.ArrayLike]],
+    a: Any,
     dtype: Optional[jax.typing.DTypeLike] = None,
     order: Optional[str] = None,
     unit: Optional[Unit] = None,
@@ -583,40 +589,30 @@ def asarray(
   out : quantity or array
     Array interpretation of `a`. No copy is made if the input is already an array.
   """
+  # get leaves
+  leaves, treedef = jax.tree.flatten(a, is_leaf=lambda x: isinstance(x, Quantity))
+  a = treedef.unflatten([leaf.value if isinstance(leaf, Quantity) else leaf for leaf in leaves])
+
+  # get unit
+  dims = [leaf.dim if isinstance(leaf, Quantity) else DIMENSIONLESS for leaf in leaves]
+  if any(dims[0] != d for d in dims):
+    raise DimensionMismatchError(f'Units do not match for asarray operation. Got {dims}')
+  dim = dims[0]
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-  if isinstance(a, Quantity):
-    if unit is not None:
-      fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.asarray(a.value, dtype=dtype, order=order), dim=a.dim)
-  elif isinstance(a, (jax.Array, np.ndarray)):
-    if unit is not None:
-      assert isinstance(unit, Unit)
-      return jnp.asarray(a, dtype=dtype, order=order) * unit
-    else:
-      return jnp.asarray(a, dtype=dtype, order=order)
-    # list[Quantity]
-  elif isinstance(a, Sequence):
-    leaves, tree = jax.tree.flatten(a, is_leaf=lambda x: isinstance(x, Quantity))
-    if all([isinstance(leaf, Quantity) for leaf in leaves]):
-      # check all elements have the same unit
-      if any(x.dim != leaves[0].dim for x in leaves):
-        raise ValueError('Units do not match for asarray operation.')
-      values = jax.tree.unflatten(tree, [x.value for x in a])
-      if unit is not None:
-        fail_for_dimension_mismatch(a[0], unit, error_message="a and unit have to have the same units.")
-      unit = a[0].dim
-      # Convert the values to a jnp.ndarray and create a Quantity object
-      return Quantity(jnp.asarray(values, dtype=dtype, order=order), dim=unit)
-    else:
-      values = jax.tree.unflatten(tree, leaves)
-      val = jnp.asarray(values, dtype=dtype, order=order)
-      if unit is not None:
-        return val * unit
-      else:
-        return val
-  else:
-    raise TypeError('Invalid input type for asarray.')
+    if dim != DIMENSIONLESS:
+      fail_for_dimension_mismatch(Unit(1., dim, register=False), unit,
+                                  error_message="a and unit have to have the same units.")
+
+  # compute
+  r = jnp.asarray(a, dtype=dtype, order=order)
+
+  # returns
+  if dim != DIMENSIONLESS:
+    return Quantity(r, dim=dim)
+  if unit is not None:
+    return r * unit
+  return r
 
 
 array = asarray
@@ -703,6 +699,11 @@ def arange(
         dtype=dtype,
       ),
       dim=unit,
+    ) if unit != DIMENSIONLESS else jnp.arange(
+      start=start.value if isinstance(start, Quantity) else jnp.asarray(start),
+      stop=stop.value if isinstance(stop, Quantity) else jnp.asarray(stop),
+      step=step.value if isinstance(step, Quantity) else jnp.asarray(step),
+      dtype=dtype,
     )
   else:
     return Quantity(
@@ -713,7 +714,13 @@ def arange(
         dtype=dtype,
       ),
       dim=unit,
+    ) if unit != DIMENSIONLESS else jnp.arange(
+      start.value if isinstance(start, Quantity) else jnp.asarray(start),
+      stop=stop.value if isinstance(stop, Quantity) else jnp.asarray(stop),
+      step=step.value if isinstance(step, Quantity) else jnp.asarray(step),
+      dtype=dtype,
     )
+
 
 
 @set_module_as('brainunit.math')
@@ -763,7 +770,7 @@ def linspace(
   stop = stop.value if isinstance(stop, Quantity) else stop
 
   result = jnp.linspace(start, stop, num=num, endpoint=endpoint, retstep=retstep, dtype=dtype)
-  return Quantity(result, dim=unit)
+  return Quantity(result, dim=unit) if unit != DIMENSIONLESS else result
 
 
 @set_module_as('brainunit.math')
@@ -812,7 +819,7 @@ def logspace(
   stop = stop.value if isinstance(stop, Quantity) else stop
 
   result = jnp.logspace(start, stop, num=num, endpoint=endpoint, base=base, dtype=dtype)
-  return Quantity(result, dim=unit)
+  return Quantity(result, dim=unit) if unit != DIMENSIONLESS else result
 
 
 @set_module_as('brainunit.math')

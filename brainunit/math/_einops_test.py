@@ -13,10 +13,11 @@
 # limitations under the License.
 # ==============================================================================
 
+import jax.numpy as jnp
 import numpy as np
 import pytest
 
-import brainunit.math as bum
+import brainunit as bu
 from brainunit.math._einops import einrearrange, einreduce, einrepeat, _enumerate_directions
 from brainunit.math._einops_parsing import EinopsError
 
@@ -174,8 +175,8 @@ def test_reduction_imperatives():
       ["(a a2) ... -> (a2 a) ...", dict(a2=1), input],
     ]
     for pattern, axes_lengths, expected_result in test_cases:
-      result = einreduce(bum.from_numpy(input.copy()), pattern, reduction=reduction, **axes_lengths)
-      result = bum.as_numpy(result)
+      result = einreduce(bu.math.from_numpy(input.copy()), pattern, reduction=reduction, **axes_lengths)
+      result = bu.math.as_numpy(result)
       print(reduction, pattern, expected_result, result)
       assert np.allclose(result, expected_result), f"Failed at {pattern}"
 
@@ -184,10 +185,10 @@ def test_enumerating_directions():
   for shape in [[], [1], [1, 1, 1], [2, 3, 5, 7]]:
     x = np.arange(np.prod(shape)).reshape(shape)
     axes1 = _enumerate_directions(x)
-    axes2 = _enumerate_directions(bum.from_numpy(x))
+    axes2 = _enumerate_directions(bu.math.from_numpy(x))
     assert len(axes1) == len(axes2) == len(shape)
     for ax1, ax2 in zip(axes1, axes2):
-      ax2 = bum.as_numpy(ax2)
+      ax2 = bu.math.as_numpy(ax2)
       assert ax1.shape == ax2.shape
       assert np.allclose(ax1, ax2)
 
@@ -197,16 +198,16 @@ def test_concatenations_and_stacking():
     shapes = [[], [1], [1, 1], [2, 3, 5, 7], [1] * 6]
     for shape in shapes:
       arrays1 = [np.arange(i, i + np.prod(shape)).reshape(shape) for i in range(n_arrays)]
-      arrays2 = [bum.from_numpy(array) for array in arrays1]
+      arrays2 = [bu.math.from_numpy(array) for array in arrays1]
       result0 = np.asarray(arrays1)
       result1 = einrearrange(arrays1, "...->...")
       result2 = einrearrange(arrays2, "...->...")
       assert np.array_equal(result0, result1)
-      assert np.array_equal(result1, bum.as_numpy(result2))
+      assert np.array_equal(result1, bu.math.as_numpy(result2))
 
       result1 = einrearrange(arrays1, "b ... -> ... b")
       result2 = einrearrange(arrays2, "b ... -> ... b")
-      assert np.array_equal(result1, bum.as_numpy(result2))
+      assert np.array_equal(result1, bu.math.as_numpy(result2))
 
 
 def test_gradients_imperatives():
@@ -215,7 +216,7 @@ def test_gradients_imperatives():
     if reduction in ("any", "all"):
       continue  # non-differentiable ops
     x = np.arange(1, 1 + 2 * 3 * 4).reshape([2, 3, 4]).astype("float32")
-    y0 = bum.from_numpy(x)
+    y0 = bu.math.from_numpy(x)
     if not hasattr(y0, "grad"):
       continue
 
@@ -225,7 +226,7 @@ def test_gradients_imperatives():
     y4 = einreduce(y3, "... -> ", reduction=reduction)
 
     y4.backward()
-    grad = bum.as_numpy(y0.grad)
+    grad = bu.math.as_numpy(y0.grad)
 
 
 def test_tiling_imperatives():
@@ -237,9 +238,9 @@ def test_tiling_imperatives():
   ]
   for repeats in test_cases:
     expected = np.tile(input, repeats)
-    converted = bum.from_numpy(input)
+    converted = bu.math.from_numpy(input)
     repeated = np.tile(converted, repeats)
-    result = bum.as_numpy(repeated)
+    result = bu.math.as_numpy(repeated)
     assert np.array_equal(result, expected)
 
 
@@ -330,17 +331,182 @@ def test_reduction_imperatives_booleans():
     axes_out[axis] = "1"
     pattern = (" ".join(axes_in)) + " -> " + (" ".join(axes_out))
 
-    res_any = einreduce(bum.from_numpy(x_np), pattern, reduction="any")
-    res_all = einreduce(bum.from_numpy(x_np), pattern, reduction="all")
+    res_any = einreduce(bu.math.from_numpy(x_np), pattern, reduction="any")
+    res_all = einreduce(bu.math.from_numpy(x_np), pattern, reduction="all")
 
-    assert np.array_equal(expected_result_any, bum.as_numpy(res_any))
-    assert np.array_equal(expected_result_all, bum.as_numpy(res_all))
+    assert np.array_equal(expected_result_any, bu.math.as_numpy(res_any))
+    assert np.array_equal(expected_result_all, bu.math.as_numpy(res_all))
 
   # expected result: any/all
   expected_result_any = np.any(x_np, axis=(0, 1), keepdims=True)
   expected_result_all = np.all(x_np, axis=(0, 1), keepdims=True)
   pattern = "a b ... -> 1 1 ..."
-  res_any = einreduce(bum.from_numpy(x_np), pattern, reduction="any")
-  res_all = einreduce(bum.from_numpy(x_np), pattern, reduction="all")
-  assert np.array_equal(expected_result_any, bum.as_numpy(res_any))
-  assert np.array_equal(expected_result_all, bum.as_numpy(res_all))
+  res_any = einreduce(bu.math.from_numpy(x_np), pattern, reduction="any")
+  res_all = einreduce(bu.math.from_numpy(x_np), pattern, reduction="all")
+  assert np.array_equal(expected_result_any, bu.math.as_numpy(res_any))
+  assert np.array_equal(expected_result_all, bu.math.as_numpy(res_all))
+
+
+def assert_quantity(q, values, unit=None):
+  values = jnp.asarray(values)
+  if unit is None:
+    assert jnp.allclose(q, values), f"Values do not match: {q.value} != {values}"
+    return
+  else:
+    assert bu.have_same_unit(q.dim, unit), f"Dimension mismatch: ({q}) ({unit})"
+    if not jnp.allclose(q.value, values):
+      raise AssertionError(f"Values do not match: {q.value} != {values}")
+
+
+def test_einsum():
+  a = jnp.array([1, 2, 3])
+  b = jnp.array([4, 5])
+  result = bu.math.einsum('i,j->ij', a, b)
+  assert (jnp.all(result == jnp.einsum('i,j->ij', a, b)))
+
+  q1 = [1, 2, 3] * bu.second
+  q2 = [4, 5] * bu.volt
+  result_q = bu.math.einsum('i,j->ij', q1, q2)
+  expected_q = jnp.einsum('i,j->ij', jnp.array([1, 2, 3]), jnp.array([4, 5]))
+  assert_quantity(result_q, expected_q, bu.second * bu.volt)
+
+  q1 = [1, 2, 3] * bu.second
+  q2 = [1, 2, 3] * bu.second
+  result_q = bu.math.einsum('i,i->i', q1, q2)
+  expected_q = jnp.einsum('i,i->i', jnp.array([1, 2, 3]), jnp.array([1, 2, 3]))
+  assert_quantity(result_q, expected_q, bu.second2)
+
+  q1 = [1, 2, 3] * bu.second
+  q2 = [1, 2, 3] * bu.volt
+  q3 = [1, 2, 3] * bu.ampere
+  result_q = bu.math.einsum('i,i,i->i', q1, q2, q3)
+  expected_q = jnp.einsum('i,i,i->i', jnp.array([1, 2, 3]), jnp.array([1, 2, 3]), jnp.array([1, 2, 3]))
+  assert_quantity(result_q, expected_q, bu.second * bu.volt * bu.ampere)
+
+  # Case 'a,ab,abc->abc'
+  a = [1] * bu.meter
+  ab = [[1, 2]] * bu.meter2
+  abc = [[[1, 2, 3], [4, 5, 6]]] * bu.meter3
+  result = bu.math.einsum('a,ab,abc->abc', a, ab, abc)
+  expected = jnp.einsum('a,ab,abc->abc', jnp.array([1]), jnp.array([[1, 2]]), jnp.array([[[1, 2, 3], [4, 5, 6]]]))
+  assert_quantity(result, expected, bu.meter3 ** 2)
+
+  # Case 'ea,fb,gc,hd,abcd->efgh'
+  ea = [[1, 2]] * bu.meter
+  fb = [[3, 4]] * bu.meter
+  gc = [[5, 6]] * bu.meter
+  hd = [[7, 8]] * bu.meter
+  abcd = [[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]] * (bu.meter ** 4)
+  result = bu.math.einsum('ea,fb,gc,hd,abcd->efgh', ea, fb, gc, hd, abcd)
+  expected = jnp.einsum('ea,fb,gc,hd,abcd->efgh',
+                        jnp.array([[1, 2]]),
+                        jnp.array([[3, 4]]),
+                        jnp.array([[5, 6]]),
+                        jnp.array([[7, 8]]),
+                        jnp.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]]))
+  assert_quantity(result, expected, bu.meter ** 8)
+
+  # Case 'ab,ab,c->'
+  q1 = np.random.rand(2, 3) * bu.meter
+  q2 = np.random.rand(2, 3) * bu.second
+  q3 = np.random.rand(5) * bu.kilogram
+  result = bu.math.einsum('ab,ab,c->', q1, q2, q3)
+  expected = jnp.einsum('ab,ab,c->', q1.value, q2.value, q3.value)
+  assert_quantity(result, expected, bu.meter * bu.second * bu.kilogram)
+
+  # Case 'ab,cd,ef->abcdef'
+  q1 = np.random.rand(2, 3) * bu.meter
+  q2 = np.random.rand(4, 5) * bu.second
+  q3 = np.random.rand(6, 7) * bu.kilogram
+  result = bu.math.einsum('ab,cd,ef->abcdef', q1, q2, q3)
+  expected = jnp.einsum('ab,cd,ef->abcdef', q1.value, q2.value, q3.value)
+  assert_quantity(result, expected, bu.meter * bu.second * bu.kilogram)
+
+  # Case 'eb,cb,fb->cef'
+  q1 = np.random.rand(8, 2) * bu.meter
+  q2 = np.random.rand(6, 2) * bu.second
+  q3 = np.random.rand(5, 2) * bu.kilogram
+  result = bu.math.einsum('eb,cb,fb->cef', q1, q2, q3)
+  expected = jnp.einsum('eb,cb,fb->cef', q1.value, q2.value, q3.value)
+  assert_quantity(result, expected, bu.meter * bu.second * bu.kilogram)
+
+  # Case 'ab,ab'
+  q1 = np.random.rand(2, 3) * bu.meter
+  q2 = np.random.rand(2, 3) * bu.second
+  result = bu.math.einsum('ab,ab', q1, q2)
+  expected = jnp.einsum('ab,ab', q1.value, q2.value)
+  assert_quantity(result, expected, bu.meter * bu.second)
+
+  # Case 'aab,fa,df,ecc->bde'
+  q1 = np.random.rand(2, 2, 3) * bu.meter
+  q2 = np.random.rand(5, 2) * bu.second
+  q3 = np.random.rand(4, 5) * bu.kilogram
+  q4 = np.random.rand(2, 3, 3) * bu.ampere
+  result = bu.math.einsum('aab,fa,df,ecc->bde', q1, q2, q3, q4)
+  expected = jnp.einsum('aab,fa,df,ecc->bde', q1.value, q2.value, q3.value, q4.value)
+  print()
+  print(result)
+  print(expected)
+
+  assert_quantity(result, expected, bu.meter * bu.kilogram * bu.second * bu.ampere)
+
+
+def test_einsum2():
+  M = bu.math.arange(16).reshape(4, 4) * bu.ohm
+  x = bu.math.arange(4) * bu.mA
+  y = bu.math.array([5, 4, 3, 2]) * bu.mV
+  assert bu.math.allclose(bu.math.einsum('i,i', x, y), 16 * bu.uwatt)
+  assert bu.math.allclose(bu.math.vecdot(x, y), 16 * bu.uwatt)
+  assert bu.math.allclose(bu.math.einsum('i,i->', x, y), 16 * bu.uwatt)
+  assert bu.math.allclose(bu.math.einsum(x, (0,), y, (0,)), 16 * bu.uwatt)
+  assert bu.math.allclose(bu.math.einsum(x, (0,), y, (0,), ()), 16 * bu.uwatt)
+
+  assert bu.math.allclose(bu.math.einsum('ij,j->i', M, x), jnp.asarray([14., 38., 62., 86.]) * bu.mvolt)
+  assert bu.math.allclose(bu.math.matmul(M, x), jnp.asarray([14., 38., 62., 86.]) * bu.mvolt)
+  assert bu.math.allclose(bu.math.einsum('ij,j', M, x), jnp.asarray([14., 38., 62., 86.]) * bu.mvolt)
+  assert bu.math.allclose(bu.math.einsum(M, (0, 1), x, (1,), (0,)), jnp.asarray([14., 38., 62., 86.]) * bu.mvolt)
+  assert bu.math.allclose(bu.math.einsum(M, (0, 1), x, (1,)), jnp.asarray([14., 38., 62., 86.]) * bu.mvolt)
+
+  outer = bu.math.outer(x, y)
+  assert bu.math.allclose(bu.math.einsum("i,j->ij", x, y), outer)
+  assert bu.math.allclose(bu.math.einsum("i,j", x, y), outer)
+  assert bu.math.allclose(bu.math.einsum(x, (0,), y, (1,), (0, 1)), outer)
+  assert bu.math.allclose(bu.math.einsum(x, (0,), y, (1,)), outer)
+
+  d1_arr = bu.math.sum(x)
+  assert bu.math.allclose(bu.math.einsum("i->", x), d1_arr)
+  assert bu.math.allclose(bu.math.einsum(x, (0,), ()), d1_arr)
+
+  sum_ = M.sum(-1)
+  assert bu.math.allclose(bu.math.einsum("...j->...", M), sum_)
+  assert bu.math.allclose(bu.math.einsum(M, (..., 0), (...,)), sum_)
+
+  y = bu.math.array([[1, 2, 3], [4, 5, 6]]) * bu.mV
+  transpose = bu.math.einsum("ij->ji", y)
+  assert bu.math.allclose(bu.math.einsum("ji", y), transpose)
+  assert bu.math.allclose(bu.math.einsum(y, (1, 0)), transpose)
+  assert bu.math.allclose(bu.math.einsum(y, (0, 1), (1, 0)), transpose)
+  assert bu.math.allclose(bu.math.transpose(y), transpose)
+
+  diagonal = bu.math.diagonal(M)
+  assert bu.math.allclose(bu.math.einsum("ii->i", M), diagonal)
+
+  trace = bu.math.trace(M)
+  assert bu.math.allclose(bu.math.einsum("ii", M), trace)
+
+  x = bu.math.arange(30).reshape(2, 3, 5) * bu.mA
+  y = bu.math.arange(60).reshape(3, 4, 5) * bu.ohm
+  product = bu.math.einsum('ijk,jlk->il', x, y)
+  assert bu.math.allclose(bu.math.tensordot(x, y, axes=[(1, 2), (0, 2)]), product)
+  assert bu.math.allclose(bu.math.einsum('ijk,jlk', x, y), product)
+  assert bu.math.allclose(bu.math.einsum(x, (0, 1, 2), y, (1, 3, 2), (0, 3)), product)
+  assert bu.math.allclose(bu.math.einsum(x, (0, 1, 2), y, (1, 3, 2)), product)
+
+  w = bu.math.arange(5, 9).reshape(2, 2) * bu.mA
+  x = bu.math.arange(6).reshape(2, 3) * bu.ohm
+  y = bu.math.arange(-2, 4).reshape(3, 2) * bu.mV
+  z = bu.math.array([[2, 4, 6], [3, 5, 7]]) * bu.mA
+  dot = bu.math.einsum('ij,jk,kl,lm->im', w, x, y, z)
+  assert bu.math.allclose(bu.math.einsum(w, (0, 1), x, (1, 2), y, (2, 3), z, (3, 4)), dot)
+  assert bu.math.allclose(w @ x @ y @ z, dot)
+  assert bu.math.allclose(bu.math.multi_dot([w, x, y, z]), dot)

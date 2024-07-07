@@ -28,8 +28,7 @@ __all__ = [
   'arccos', 'arccosh', 'arcsin', 'arcsinh', 'arctan',
   'arctanh', 'cos', 'cosh', 'sin', 'sinc', 'sinh', 'tan',
   'tanh', 'deg2rad', 'rad2deg', 'degrees', 'radians', 'angle',
-  'percentile', 'nanpercentile', 'quantile', 'nanquantile',
-  'corrcoef', 'correlate', 'cov',
+
 
   # math funcs only accept unitless (unary) can return Quantity
   'round', 'around', 'round_', 'rint',
@@ -38,6 +37,7 @@ __all__ = [
 
   # math funcs only accept unitless (binary)
   'hypot', 'arctan2', 'logaddexp', 'logaddexp2',
+  'corrcoef', 'correlate', 'cov', 'ldexp',
 
   # Elementwise bit operations (unary)
   'bitwise_not', 'invert',
@@ -102,7 +102,7 @@ def _exprel_v1(x):  # This approximation has problems of the gradient vanishing 
   return jnp.where(small, 1.0, jnp.where(big, jnp.inf, origin))
 
 
-def _exprel_v2(x, *, level: int = 2):
+def _exprel_v2(x, *, order: int = 2):
   x = jnp.asarray(x)
   dtype = x.dtype
   assert jnp.issubdtype(dtype, jnp.floating), f'The input array must contain real numbers. Got {x}'
@@ -117,22 +117,22 @@ def _exprel_v2(x, *, level: int = 2):
   else:
     threshold = 1e-3
 
-  assert level in [0, 1, 2, 3], 'The approximation level should be 0, 1, 2, or 3.'
-  if level == 0:
+  assert order in [0, 1, 2, 3], 'The approximation order should be 0, 1, 2, or 3.'
+  if order == 0:
     return jax.numpy.where(jnp.abs(x) <= threshold, 1., jnp.expm1(x) / x)
-  elif level == 1:
+  elif order == 1:
     return jax.numpy.where(jnp.abs(x) <= threshold, 1. + x / 2., jnp.expm1(x) / x)
-  elif level == 2:
+  elif order == 2:
     return jax.numpy.where(jnp.abs(x) <= threshold, 1. + x / 2. + x * x / 6., jnp.expm1(x) / x)
-  elif level == 3:
+  elif order == 3:
     x2 = x * x
     return jax.numpy.where(jnp.abs(x) <= threshold, 1. + x / 2. + x2 / 6. + x2 * x / 24., jnp.expm1(x) / x)
   else:
-    raise ValueError(f'Unsupported approximation level {level}.')
+    raise ValueError(f'Unsupported approximation level {order}.')
 
 
 @set_module_as('brainunit.math')
-def exprel(x, *, level: int = 2):
+def exprel(x, *, order: int = 2):
   """
   Relative error exponential, ``(exp(x) - 1)/x``.
 
@@ -142,12 +142,12 @@ def exprel(x, *, level: int = 2):
 
   Args:
     x: ndarray. Input array. ``x`` must contain real numbers.
-    level: int. The approximation level of the function. The higher the level, the more accurate the result.
+    order: int. The approximation level of the function. The higher the level, the more accurate the result.
 
   Returns:
     ``(exp(x) - 1)/x``, computed element-wise.
   """
-  return _fun_accept_unitless_unary(_exprel_v2, x, level=level)
+  return _fun_accept_unitless_unary(_exprel_v2, x, order=order)
 
 
 @set_module_as('brainunit.math')
@@ -988,241 +988,6 @@ def modf(
   return _fun_accept_unitless_return_keep_unit(jnp.modf, x, unit_to_scale=unit_to_scale)
 
 
-@set_module_as('brainunit.math')
-def percentile(
-    a: Union[jax.Array, Quantity],
-    q: jax.typing.ArrayLike,
-    axis: Optional[Union[int, Tuple[int]]] = None,
-    method: str = 'linear',
-    keepdims: Optional[bool] = False,
-    unit_to_scale: Optional[Unit] = None,
-) -> jax.Array:
-  """
-  Compute the q-th percentile of the data along the specified axis.
-
-  Returns the q-th percentile(s) of the array elements.
-
-  Parameters
-  ----------
-  a : array_like, Quantity
-    Input array or Quantity.
-  q : array_like
-    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
-  method : str, optional
-    This parameter specifies the method to use for estimating the
-    percentile.  There are many different methods, some unique to NumPy.
-    See the notes for explanation.  The options sorted by their R type
-    as summarized in the H&F paper [1]_ are:
-
-    1. 'inverted_cdf'
-    2. 'averaged_inverted_cdf'
-    3. 'closest_observation'
-    4. 'interpolated_inverted_cdf'
-    5. 'hazen'
-    6. 'weibull'
-    7. 'linear'  (default)
-    8. 'median_unbiased'
-    9. 'normal_unbiased'
-
-    The first three methods are discontinuous.  NumPy further defines the
-    following discontinuous variations of the default 'linear' (7.) option:
-
-    * 'lower'
-    * 'higher',
-    * 'midpoint'
-    * 'nearest'
-  keepdims : bool, optional
-    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-
-  Returns
-  -------
-  out : jax.Array
-    Output array.
-  """
-  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
-  return _fun_accept_unitless_return_keep_unit(
-    jnp.percentile, a, q=q, axis=axis,
-    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
-  )
-
-
-@set_module_as('brainunit.math')
-def nanpercentile(
-    a: Union[jax.Array, Quantity],
-    q: jax.typing.ArrayLike,
-    axis: Optional[Union[int, Tuple[int]]] = None,
-    method: str = 'linear',
-    keepdims: Optional[bool] = False,
-    unit_to_scale: Optional[Unit] = None,
-) -> jax.Array:
-  """
-  Compute the q-th percentile of the data along the specified axis, while ignoring nan values.
-
-  Returns the q-th percentile(s) of the array elements, while ignoring nan values.
-
-  Parameters
-  ----------
-  a : array_like, Quantity
-    Input array or Quantity.
-  q : array_like, Quantity
-    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
-  method : str, optional
-    This parameter specifies the method to use for estimating the
-    percentile.  There are many different methods, some unique to NumPy.
-    See the notes for explanation.  The options sorted by their R type
-    as summarized in the H&F paper [1]_ are:
-
-    1. 'inverted_cdf'
-    2. 'averaged_inverted_cdf'
-    3. 'closest_observation'
-    4. 'interpolated_inverted_cdf'
-    5. 'hazen'
-    6. 'weibull'
-    7. 'linear'  (default)
-    8. 'median_unbiased'
-    9. 'normal_unbiased'
-
-    The first three methods are discontinuous.  NumPy further defines the
-    following discontinuous variations of the default 'linear' (7.) option:
-
-    * 'lower'
-    * 'higher',
-    * 'midpoint'
-    * 'nearest'
-  keepdims : bool, optional
-    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-
-  Returns
-  -------
-  out : jax.Array
-    Output array.
-  """
-  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
-  return _fun_accept_unitless_return_keep_unit(
-    jnp.nanpercentile, a, q=q,
-    axis=axis,
-    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
-  )
-
-
-@set_module_as('brainunit.math')
-def quantile(
-    a: Union[jax.Array, Quantity],
-    q: jax.typing.ArrayLike,
-    axis: Optional[Union[int, Tuple[int]]] = None,
-    method: str = 'linear',
-    keepdims: Optional[bool] = False,
-    unit_to_scale: Optional[Unit] = None,
-) -> jax.Array:
-  """
-  Compute the q-th percentile of the data along the specified axis.
-
-  Returns the q-th percentile(s) of the array elements.
-
-  Parameters
-  ----------
-  a : array_like, Quantity
-    Input array or Quantity.
-  q : array_like, Quantity
-    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
-  method : str, optional
-    This parameter specifies the method to use for estimating the
-    percentile.  There are many different methods, some unique to NumPy.
-    See the notes for explanation.  The options sorted by their R type
-    as summarized in the H&F paper [1]_ are:
-
-    1. 'inverted_cdf'
-    2. 'averaged_inverted_cdf'
-    3. 'closest_observation'
-    4. 'interpolated_inverted_cdf'
-    5. 'hazen'
-    6. 'weibull'
-    7. 'linear'  (default)
-    8. 'median_unbiased'
-    9. 'normal_unbiased'
-
-    The first three methods are discontinuous.  NumPy further defines the
-    following discontinuous variations of the default 'linear' (7.) option:
-
-    * 'lower'
-    * 'higher',
-    * 'midpoint'
-    * 'nearest'
-  keepdims : bool, optional
-    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-
-  Returns
-  -------
-  out : jax.Array
-    Output array.
-  """
-  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
-  return _fun_accept_unitless_return_keep_unit(
-    jnp.quantile, a, q=q,
-    axis=axis,
-    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
-  )
-
-
-@set_module_as('brainunit.math')
-def nanquantile(
-    a: Union[jax.Array, Quantity],
-    q: jax.typing.ArrayLike,
-    axis: Optional[Union[int, Tuple[int]]] = None,
-    method: str = 'linear',
-    keepdims: Optional[bool] = False,
-    unit_to_scale: Optional[Unit] = None,
-) -> jax.Array:
-  """
-  Compute the q-th percentile of the data along the specified axis, while ignoring nan values.
-
-  Returns the q-th percentile(s) of the array elements, while ignoring nan values.
-
-  Parameters
-  ----------
-  a : array_like, Quantity
-    Input array or Quantity.
-  q : array_like, Quantity
-    Percentile or sequence of percentiles to compute, which must be between 0 and 100 inclusive.
-  method : str, optional
-    This parameter specifies the method to use for estimating the
-    percentile.  There are many different methods, some unique to NumPy.
-    See the notes for explanation.  The options sorted by their R type
-    as summarized in the H&F paper [1]_ are:
-
-    1. 'inverted_cdf'
-    2. 'averaged_inverted_cdf'
-    3. 'closest_observation'
-    4. 'interpolated_inverted_cdf'
-    5. 'hazen'
-    6. 'weibull'
-    7. 'linear'  (default)
-    8. 'median_unbiased'
-    9. 'normal_unbiased'
-
-    The first three methods are discontinuous.  NumPy further defines the
-    following discontinuous variations of the default 'linear' (7.) option:
-
-    * 'lower'
-    * 'higher',
-    * 'midpoint'
-    * 'nearest'
-  keepdims : bool, optional
-    If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
-
-  Returns
-  -------
-  out : jax.Array
-    Output array.
-  """
-  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
-  return _fun_accept_unitless_return_keep_unit(
-    jnp.nanquantile, a, q=q,
-    axis=axis,
-    method=method, keepdims=keepdims, unit_to_scale=unit_to_scale
-  )
-
-
 # math funcs only accept unitless (binary)
 # ----------------------------------------
 
@@ -1527,13 +1292,49 @@ def cov(
     aweights=aweights, unit_to_scale=unit_to_scale
   )
 
+@set_module_as('brainunit.math')
+def ldexp(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: jax.typing.ArrayLike
+) -> Union[Quantity, jax.typing.ArrayLike]:
+  """
+  Returns x * 2**y, element-wise.
+
+  The mantissas `x` and twos exponents `y` are used to construct
+  floating point numbers ``x * 2**y``.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Array of multipliers.
+  y : array_like, int
+    Array of twos exponents.
+    If ``x.shape != y.shape``, they must be broadcastable to a common
+    shape (which becomes the shape of the output).
+
+  Returns
+  -------
+  out : ndarray, quantity or scalar
+    The result of ``x * 2**y``.
+    This is a scalar if both `x` and `y` are scalars.
+
+    This is a Quantity if the product of the square of the unit of `x` and the unit of `y` is not dimensionless.
+  """
+  if isinstance(x, Quantity):
+    assert x.is_unitless, f'Expected unitless array, got {x}'
+    x = x.value
+  return jnp.ldexp(x, y)
+
 
 # Elementwise bit operations (unary)
 # ----------------------------------
 
 
 @set_module_as('brainunit.math')
-def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+def bitwise_not(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
   """
   Compute the bit-wise NOT of an array, element-wise.
 
@@ -1551,7 +1352,10 @@ def bitwise_not(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
 
 
 @set_module_as('brainunit.math')
-def invert(x: Union[Quantity, jax.typing.ArrayLike]) -> jax.Array:
+def invert(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    unit_to_scale: Optional[Unit] = None,
+) -> jax.Array:
   """
   Compute bit-wise inversion, or bit-wise NOT, element-wise.
 
@@ -1695,3 +1499,4 @@ def right_shift(
     Output array.
   """
   return _fun_unitless_binary(jnp.right_shift, x, y)
+
