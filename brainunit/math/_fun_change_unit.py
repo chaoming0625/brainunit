@@ -52,15 +52,16 @@ def _fun_change_unit_unary(val_fun, unit_fun, x, *args, **kwargs):
     return _return_check_unitless(r)
   return val_fun(x, *args, **kwargs)
 
+
 def _add_chang_unit_func(
     change_unit_func: Callable
 ):
   def actual_decorator(func):
-
     func.change_unit_func = change_unit_func
     return func
 
   return actual_decorator
+
 
 @_add_chang_unit_func(lambda u: u ** -1)
 @set_module_as('brainunit.math')
@@ -248,6 +249,7 @@ def sqrt(
     This is a Quantity if the square root of the unit of `x` is not dimensionless.
   """
   return _fun_change_unit_unary(jnp.sqrt, lambda u: u ** 0.5, x)
+
 
 @_add_chang_unit_func(lambda u: u ** (1 / 3))
 @set_module_as('brainunit.math')
@@ -645,9 +647,6 @@ def cross(
                                  axisa=axisa, axisb=axisb, axisc=axisc, axis=axis)
 
 
-
-
-
 @_add_chang_unit_func(lambda ux, uy: ux / uy)
 @set_module_as('brainunit.math')
 def true_divide(
@@ -951,6 +950,7 @@ def dot(
                                  precision=precision,
                                  preferred_element_type=preferred_element_type)
 
+
 @_add_chang_unit_func(lambda x, y: x * y)
 @set_module_as('brainunit.math')
 def multi_dot(
@@ -1042,6 +1042,7 @@ def multi_dot(
   return Quantity(r, dim=dim)
 
 
+@_add_chang_unit_func(lambda ux, uy: ux * uy)
 @set_module_as('brainunit.math')
 def vdot(
     a: Union[jax.Array, Quantity],
@@ -1080,6 +1081,7 @@ def vdot(
                                  a, b,
                                  precision=precision,
                                  preferred_element_type=preferred_element_type)
+
 
 @_add_chang_unit_func(lambda x, y: x * y)
 @set_module_as('brainunit.math')
@@ -1135,6 +1137,7 @@ def vecdot(
                                  preferred_element_type=preferred_element_type)
 
 
+@_add_chang_unit_func(lambda x, y: x * y)
 @set_module_as('brainunit.math')
 def inner(
     a: Union[jax.Array, Quantity],
@@ -1174,6 +1177,7 @@ def inner(
                                  precision=precision,
                                  preferred_element_type=preferred_element_type)
 
+
 @_add_chang_unit_func(lambda x, y: x * y)
 @set_module_as('brainunit.math')
 def outer(
@@ -1207,6 +1211,7 @@ def outer(
                                  a, b,
                                  out=out)
 
+
 @_add_chang_unit_func(lambda x, y: x * y)
 @set_module_as('brainunit.math')
 def kron(
@@ -1233,6 +1238,7 @@ def kron(
   return _fun_change_unit_binary(jnp.kron,
                                  lambda x, y: x * y,
                                  a, b)
+
 
 @_add_chang_unit_func(lambda x, y: x * y)
 @set_module_as('brainunit.math')
@@ -1273,6 +1279,7 @@ def matmul(
                                  a, b,
                                  precision=precision,
                                  preferred_element_type=preferred_element_type)
+
 
 @_add_chang_unit_func(lambda x, y: x * y)
 @set_module_as('brainunit.math')

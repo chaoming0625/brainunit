@@ -102,7 +102,7 @@ def _exprel_v1(x):  # This approximation has problems of the gradient vanishing 
   return jnp.where(small, 1.0, jnp.where(big, jnp.inf, origin))
 
 
-def _exprel_v2(x, *, level: int = 2):
+def _exprel_v2(x, *, order: int = 2):
   x = jnp.asarray(x)
   dtype = x.dtype
   assert jnp.issubdtype(dtype, jnp.floating), f'The input array must contain real numbers. Got {x}'
@@ -117,22 +117,22 @@ def _exprel_v2(x, *, level: int = 2):
   else:
     threshold = 1e-3
 
-  assert level in [0, 1, 2, 3], 'The approximation level should be 0, 1, 2, or 3.'
-  if level == 0:
+  assert order in [0, 1, 2, 3], 'The approximation order should be 0, 1, 2, or 3.'
+  if order == 0:
     return jax.numpy.where(jnp.abs(x) <= threshold, 1., jnp.expm1(x) / x)
-  elif level == 1:
+  elif order == 1:
     return jax.numpy.where(jnp.abs(x) <= threshold, 1. + x / 2., jnp.expm1(x) / x)
-  elif level == 2:
+  elif order == 2:
     return jax.numpy.where(jnp.abs(x) <= threshold, 1. + x / 2. + x * x / 6., jnp.expm1(x) / x)
-  elif level == 3:
+  elif order == 3:
     x2 = x * x
     return jax.numpy.where(jnp.abs(x) <= threshold, 1. + x / 2. + x2 / 6. + x2 * x / 24., jnp.expm1(x) / x)
   else:
-    raise ValueError(f'Unsupported approximation level {level}.')
+    raise ValueError(f'Unsupported approximation level {order}.')
 
 
 @set_module_as('brainunit.math')
-def exprel(x, *, level: int = 2):
+def exprel(x, *, order: int = 2):
   """
   Relative error exponential, ``(exp(x) - 1)/x``.
 
@@ -142,12 +142,12 @@ def exprel(x, *, level: int = 2):
 
   Args:
     x: ndarray. Input array. ``x`` must contain real numbers.
-    level: int. The approximation level of the function. The higher the level, the more accurate the result.
+    order: int. The approximation level of the function. The higher the level, the more accurate the result.
 
   Returns:
     ``(exp(x) - 1)/x``, computed element-wise.
   """
-  return _fun_accept_unitless_unary(_exprel_v2, x, level=level)
+  return _fun_accept_unitless_unary(_exprel_v2, x, level=order)
 
 
 @set_module_as('brainunit.math')
