@@ -27,7 +27,7 @@ def get_class_funcs(module):
   return classes, functions, others
 
 
-def _write_module(module_name, filename, header=None, template=False):
+def _write_module(module_name, automodule, filename, header=None,  template=False):
   module = importlib.import_module(module_name)
   classes, functions, others = get_class_funcs(module)
 
@@ -37,8 +37,8 @@ def _write_module(module_name, filename, header=None, template=False):
     header = f'``{module_name}`` module'
   fout.write(header + '\n')
   fout.write('=' * len(header) + '\n\n')
-  fout.write(f'.. currentmodule:: {module_name} \n')
-  fout.write(f'.. automodule:: {module_name} \n\n')
+  fout.write(f'.. currentmodule:: {automodule} \n')
+  fout.write(f'.. automodule:: {automodule} \n\n')
 
   # write autosummary
   fout.write('.. autosummary::\n')
@@ -265,81 +265,62 @@ def _import(mod, klass=None, is_jax=False):
       return implemented_jax_funcs, ':obj:`{}.{{}}`'.format(mod)
 
 
-def _generate_comparison_rst(numpy_mod, brainpy_mod, jax_mod, klass=None, header=', , ', is_jax=False):
-  np_obj, np_fmt = _import(numpy_mod, klass)
-  np_funcs = _get_functions(np_obj)
-
-  bm_obj, bm_fmt = _import(brainpy_mod, klass)
-  bm_funcs = _get_functions(bm_obj)
-
-  jax_obj, jax_fmt = _import(jax_mod, klass, is_jax=is_jax)
-  jax_funcs = _get_functions(jax_obj)
-
-  buf = []
-  buf += [
-    '.. csv-table::',
-    '   :header: {}'.format(header),
-    '',
-  ]
-  for f in sorted(np_funcs):
-    np_cell = np_fmt.format(f)
-    bm_cell = bm_fmt.format(f) if f in bm_funcs else r'\-'
-    jax_cell = jax_fmt.format(f) if f in jax_funcs else r'\-'
-    line = '   {}, {}, {}'.format(np_cell, bm_cell, jax_cell)
-    buf.append(line)
-
-  unique_names = bm_funcs - np_funcs
-  for f in sorted(unique_names):
-    np_cell = r'\-'
-    bm_cell = bm_fmt.format(f) if f in bm_funcs else r'\-'
-    jax_cell = jax_fmt.format(f) if f in jax_funcs else r'\-'
-    line = '   {}, {}, {}'.format(np_cell, bm_cell, jax_cell)
-    buf.append(line)
-
-  buf += [
-    '',
-    '**Summary**\n',
-    '- Number of NumPy functions: {}\n'.format(len(np_funcs)),
-    '- Number of functions covered by ``brainpy.math``: {}\n'.format(len(bm_funcs & np_funcs)),
-    '- Number of functions unique in ``brainpy.math``: {}\n'.format(len(bm_funcs - np_funcs)),
-    '- Number of functions covered by ``jax.numpy``: {}\n'.format(len(jax_funcs & np_funcs)),
-  ]
-  return buf
-
-
-def _section(header, numpy_mod, brainpy_mod, jax_mod, klass=None, is_jax=False):
-  buf = [header, '-' * len(header), '', ]
-  header2 = 'NumPy, brainpy.math, jax.numpy'
-  buf += _generate_comparison_rst(numpy_mod, brainpy_mod, jax_mod, klass=klass, header=header2, is_jax=is_jax)
-  buf += ['']
-  return buf
-
-
 def main():
-  os.makedirs('apis/auto/', exist_ok=True)
+  os.makedirs('apis/', exist_ok=True)
 
-  module_and_name = [
-    ('_compat_numpy_array_creation', 'Array Creation'),
-    ('_compat_numpy_array_manipulation', 'Array Manipulation'),
-    ('_compat_numpy_funcs_accept_unitless', 'Functions Accepting Unitless'),
-    ('_compat_numpy_funcs_bit_operation', 'Functions with Bitwise Operations'),
-    ('_compat_numpy_funcs_change_unit', 'Functions Changing Unit'),
-    ('_compat_numpy_funcs_indexing', 'Indexing Functions'),
-    ('_compat_numpy_funcs_keep_unit', 'Functions Keeping Unit'),
-    ('_compat_numpy_funcs_logic', 'Logical Functions'),
-    ('_compat_numpy_funcs_match_unit', 'Functions Matching Unit'),
-    ('_compat_numpy_funcs_remove_unit', 'Functions Removing Unit'),
-    ('_compat_numpy_funcs_window', 'Window Functions'),
-    ('_compat_numpy_get_attribute', 'Get Attribute Functions'),
-    ('_compat_numpy_linear_algebra', 'Linear Algebra Functions'),
-    ('_compat_numpy_misc', 'More Functions'),
-  ]
+  _write_module(module_name='brainunit.math._einops',
+                automodule='brainunit.math',
+                filename='apis/brainunit.math.einops.rst',
+                header='Einstein Operations',
+                template=True)
 
-  _write_submodules(module_name='brainunit.math',
-                    filename='apis/brainunit.math.rst',
-                    header='``brainunit.math`` module',
-                    submodule_names=[k[0] for k in module_and_name],
-                    section_names=[k[1] for k in module_and_name])
+  _write_module(module_name='brainunit.math._fun_array_creation',
+                automodule='brainunit.math',
+                filename='apis/brainunit.math.array-creation.rst',
+                header='Array Creation Functions',
+                template=True)
+
+  _write_module(module_name='brainunit.math._fun_accept_unitless',
+                automodule='brainunit.math',
+                filename='apis/brainunit.math.unitless.rst',
+                header='Functions that Accepting Unitless',
+                template=True)
+
+  _write_module(module_name='brainunit.math._fun_change_unit',
+                automodule='brainunit.math',
+                filename='apis/brainunit.math.change-unit.rst',
+                header='Functions that Changing Unit',
+                template=True)
+
+  _write_module(module_name='brainunit.math._fun_keep_unit',
+                automodule='brainunit.math',
+                filename='apis/brainunit.math.keep-unit.rst',
+                header='Functions that Keeping Unit',
+                template=True)
+
+  _write_module(module_name='brainunit.math._fun_remove_unit',
+                automodule='brainunit.math',
+                filename='apis/brainunit.math.remove-unit.rst',
+                header='Functions that Removing Unit',
+                template=True)
+
+  _write_module(module_name='brainunit.math._misc',
+                automodule='brainunit.math',
+                filename='apis/brainunit.math.misc.rst',
+                header='Other Functions',
+                template=True)
+
+  # module_and_name = [
+  #   ('_einops', 'Einstein Operations'),
+  #   ('_fun_array_creation', 'Array Creation Functions'),
+  #   ('', ''),
+  # ]
+  #
+  # _write_submodules(module_name='brainunit.math',
+  #                   filename='apis/brainunit.math.rst',
+  #                   header='``brainunit.math`` module',
+  #                   submodule_names=[k[0] for k in module_and_name],
+  #                   section_names=[k[1] for k in module_and_name])
 
 
 if __name__ == '__main__':

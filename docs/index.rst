@@ -1,7 +1,7 @@
 ``brainunit`` documentation
 ===========================
 
-`brainunit <https://github.com/brainpy/brainunit>`_ provides physical units and unit-aware mathematical system in JAX for brain dynamics and AI4Science.
+`brainunit <https://github.com/chaoming0625/brainunit>`_ provides physical units and unit-aware mathematical system in JAX for brain dynamics and AI4Science.
 
 
 
@@ -42,15 +42,15 @@ See also the BDP ecosystem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-- `brainstate <https://github.com/brainpy/brainstate>`_: A ``State``-based transformation system for brain dynamics programming.
+- `brainstate <https://github.com/chaoming0625/brainstate>`_: A ``State``-based transformation system for brain dynamics programming.
 
-- `brainunit <https://github.com/brainpy/brainunit>`_: The unit system for brain dynamics programming.
+- `brainunit <https://github.com/chaoming0625/brainunit>`_: The unit system for brain dynamics programming.
 
-- `braintaichi <https://github.com/brainpy/braintaichi>`_: Leveraging Taichi Lang to customize brain dynamics operators.
+- `braintaichi <https://github.com/chaoming0625/braintaichi>`_: Leveraging Taichi Lang to customize brain dynamics operators.
 
-- `brainscale <https://github.com/brainpy/brainscale>`_: The scalable online learning framework for biological neural networks.
+- `brainscale <https://github.com/chaoming0625/brainscale>`_: The scalable online learning framework for biological neural networks.
 
-- `braintools <https://github.com/brainpy/braintools>`_: The toolbox for the brain dynamics simulation, training and analysis.
+- `braintools <https://github.com/chaoming0625/braintools>`_: The toolbox for the brain dynamics simulation, training and analysis.
 
 
 
