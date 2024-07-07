@@ -147,7 +147,7 @@ def exprel(x, *, order: int = 2):
   Returns:
     ``(exp(x) - 1)/x``, computed element-wise.
   """
-  return _fun_accept_unitless_unary(_exprel_v2, x, level=order)
+  return _fun_accept_unitless_unary(_exprel_v2, x, order=order)
 
 
 @set_module_as('brainunit.math')

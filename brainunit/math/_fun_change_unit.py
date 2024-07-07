@@ -44,8 +44,6 @@ __all__ = [
 # math funcs change unit (unary)
 # ------------------------------
 
-# TODO: add change_unit_func decorator
-
 def _fun_change_unit_unary(val_fun, unit_fun, x, *args, **kwargs):
   if isinstance(x, Quantity):
     r = Quantity(val_fun(x.value, *args, **kwargs), dim=unit_fun(x.dim))
@@ -53,18 +51,17 @@ def _fun_change_unit_unary(val_fun, unit_fun, x, *args, **kwargs):
   return val_fun(x, *args, **kwargs)
 
 
-def _add_chang_unit_func(
-    change_unit_func: Callable
+def unit_change(
+    unit_change_fun: Callable
 ):
   def actual_decorator(func):
-    func.change_unit_func = change_unit_func
-    return func
+    func._unit_change_fun = unit_change_fun
+    return set_module_as('brainunit.math')(func)
 
   return actual_decorator
 
 
-@_add_chang_unit_func(lambda u: u ** -1)
-@set_module_as('brainunit.math')
+@unit_change(lambda u: u ** -1)
 def reciprocal(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
@@ -89,8 +86,7 @@ def reciprocal(
   return _fun_change_unit_unary(jnp.reciprocal, lambda u: u ** -1, x)
 
 
-@_add_chang_unit_func(lambda u: u ** 2)
-@set_module_as('brainunit.math')
+@unit_change(lambda u: u ** 2)
 def var(
     a: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
@@ -158,8 +154,7 @@ def var(
                                 where=where)
 
 
-@_add_chang_unit_func(lambda u: u ** 2)
-@set_module_as('brainunit.math')
+@unit_change(lambda u: u ** 2)
 def nanvar(
     x: Union[Quantity, jax.typing.ArrayLike],
     axis: Optional[Union[int, Sequence[int]]] = None,
@@ -222,8 +217,7 @@ def nanvar(
                                 where=where)
 
 
-@_add_chang_unit_func(lambda u: u ** 0.5)
-@set_module_as('brainunit.math')
+@unit_change(lambda u: u ** 0.5)
 def sqrt(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
@@ -251,8 +245,7 @@ def sqrt(
   return _fun_change_unit_unary(jnp.sqrt, lambda u: u ** 0.5, x)
 
 
-@_add_chang_unit_func(lambda u: u ** (1 / 3))
-@set_module_as('brainunit.math')
+@unit_change(lambda u: u ** (1 / 3))
 def cbrt(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
@@ -277,8 +270,7 @@ def cbrt(
   return _fun_change_unit_unary(jnp.cbrt, lambda u: u ** (1 / 3), x)
 
 
-@_add_chang_unit_func(lambda u: u ** 2)
-@set_module_as('brainunit.math')
+@unit_change(lambda u: u ** 2)
 def square(
     x: Union[Quantity, jax.typing.ArrayLike]
 ) -> Union[Quantity, jax.Array]:
@@ -539,8 +531,7 @@ def _fun_change_unit_binary(val_fun, unit_fun, x, y, *args, **kwargs):
     return val_fun(x, y, *args, **kwargs)
 
 
-@_add_chang_unit_func(lambda ux, uy: ux * uy)
-@set_module_as('brainunit.math')
+@unit_change(lambda ux, uy: ux * uy)
 def multiply(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
@@ -567,8 +558,7 @@ def multiply(
                                  x, y)
 
 
-@_add_chang_unit_func(lambda ux, uy: ux / uy)
-@set_module_as('brainunit.math')
+@unit_change(lambda ux, uy: ux / uy)
 def divide(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
@@ -595,8 +585,7 @@ def divide(
                                  x, y)
 
 
-@_add_chang_unit_func(lambda ux, uy: ux * uy)
-@set_module_as('brainunit.math')
+@unit_change(lambda ux, uy: ux * uy)
 def cross(
     a: Union[Quantity, jax.typing.ArrayLike],
     b: Union[Quantity, jax.typing.ArrayLike],
@@ -647,8 +636,7 @@ def cross(
                                  axisa=axisa, axisb=axisb, axisc=axisc, axis=axis)
 
 
-@_add_chang_unit_func(lambda ux, uy: ux / uy)
-@set_module_as('brainunit.math')
+@unit_change(lambda ux, uy: ux / uy)
 def true_divide(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
@@ -720,8 +708,7 @@ def divmod(
     return jnp.divmod(x, y)
 
 
-@_add_chang_unit_func(lambda ux, uy: ux * uy)
-@set_module_as('brainunit.math')
+@unit_change(lambda ux, uy: ux * uy)
 def convolve(
     a: Union[Quantity, jax.typing.ArrayLike],
     v: Union[Quantity, jax.typing.ArrayLike],
@@ -828,8 +815,7 @@ def power(
     return jnp.power(x, y)
 
 
-@_add_chang_unit_func(lambda ux, uy: ux / uy)
-@set_module_as('brainunit.math')
+@unit_change(lambda ux, uy: ux / uy)
 def floor_divide(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike]
@@ -910,8 +896,7 @@ def float_power(
 # linear algebra
 # --------------
 
-@_add_chang_unit_func(lambda x, y: x * y)
-@set_module_as('brainunit.math')
+@unit_change(lambda x, y: x * y)
 def dot(
     a: Union[jax.Array, Quantity],
     b: Union[jax.Array, Quantity],
@@ -951,8 +936,7 @@ def dot(
                                  preferred_element_type=preferred_element_type)
 
 
-@_add_chang_unit_func(lambda x, y: x * y)
-@set_module_as('brainunit.math')
+@unit_change(lambda x, y: x * y)
 def multi_dot(
     arrays: Sequence[jax.typing.ArrayLike | Quantity],
     *,
@@ -1042,8 +1026,7 @@ def multi_dot(
   return Quantity(r, dim=dim)
 
 
-@_add_chang_unit_func(lambda ux, uy: ux * uy)
-@set_module_as('brainunit.math')
+@unit_change(lambda ux, uy: ux * uy)
 def vdot(
     a: Union[jax.Array, Quantity],
     b: Union[jax.Array, Quantity],
@@ -1083,8 +1066,7 @@ def vdot(
                                  preferred_element_type=preferred_element_type)
 
 
-@_add_chang_unit_func(lambda x, y: x * y)
-@set_module_as('brainunit.math')
+@unit_change(lambda x, y: x * y)
 def vecdot(
     a: jax.typing.ArrayLike | Quantity,
     b: jax.typing.ArrayLike | Quantity,
@@ -1137,8 +1119,7 @@ def vecdot(
                                  preferred_element_type=preferred_element_type)
 
 
-@_add_chang_unit_func(lambda x, y: x * y)
-@set_module_as('brainunit.math')
+@unit_change(lambda x, y: x * y)
 def inner(
     a: Union[jax.Array, Quantity],
     b: Union[jax.Array, Quantity],
@@ -1178,8 +1159,7 @@ def inner(
                                  preferred_element_type=preferred_element_type)
 
 
-@_add_chang_unit_func(lambda x, y: x * y)
-@set_module_as('brainunit.math')
+@unit_change(lambda x, y: x * y)
 def outer(
     a: Union[jax.Array, Quantity],
     b: Union[jax.Array, Quantity],
@@ -1212,8 +1192,7 @@ def outer(
                                  out=out)
 
 
-@_add_chang_unit_func(lambda x, y: x * y)
-@set_module_as('brainunit.math')
+@unit_change(lambda x, y: x * y)
 def kron(
     a: Union[jax.Array, Quantity],
     b: Union[jax.Array, Quantity]
@@ -1240,8 +1219,7 @@ def kron(
                                  a, b)
 
 
-@_add_chang_unit_func(lambda x, y: x * y)
-@set_module_as('brainunit.math')
+@unit_change(lambda x, y: x * y)
 def matmul(
     a: Union[jax.Array, Quantity],
     b: Union[jax.Array, Quantity],
@@ -1281,8 +1259,7 @@ def matmul(
                                  preferred_element_type=preferred_element_type)
 
 
-@_add_chang_unit_func(lambda x, y: x * y)
-@set_module_as('brainunit.math')
+@unit_change(lambda x, y: x * y)
 def tensordot(
     a: Union[jax.typing.ArrayLike, Quantity],
     b: Union[jax.typing.ArrayLike, Quantity],

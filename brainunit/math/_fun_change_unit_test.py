@@ -1,6 +1,8 @@
+import jax
 import jax.numpy as jnp
 from absl.testing import parameterized
 
+import brainunit as bu
 import brainunit.math as bm
 from brainunit import meter, second, assert_quantity, volt, get_dim
 
@@ -48,7 +50,7 @@ class TestFunChangeUnit(parameterized.TestCase):
       q = value * unit
       result = bm_fun(q)
       expected = jnp_fun(jnp.array(value))
-      assert_quantity(result, expected, unit=bm_fun.change_unit_func(unit))
+      assert_quantity(result, expected, unit=bm_fun._unit_change_fun(unit))
 
   @parameterized.product(
     value=[(1.0, 2.0), (1.23, 2.34, 3.45)],
@@ -117,7 +119,7 @@ class TestFunChangeUnit(parameterized.TestCase):
       q2 = value2 * unit2
       result = bm_fun(q1, q2)
       expected = jnp_fun(jnp.array(value1), jnp.array(value2))
-      assert_quantity(result, expected, unit=bm_fun.change_unit_func(get_dim(unit1), get_dim(unit2)))
+      assert_quantity(result, expected, unit=bm_fun._unit_change_fun(get_dim(unit1), get_dim(unit2)))
 
   @parameterized.product(
     value=[((1.123, 2.567, 3.891), (1.23, 2.34, 3.45)),
@@ -167,7 +169,7 @@ class TestFunChangeUnit(parameterized.TestCase):
       q2 = value2 * unit2
       result = bm_fun(q1, q2)
       expected = jnp_fun(jnp.array(value1), jnp.array(value2))
-      assert_quantity(result, expected, unit=bm_fun.change_unit_func(get_dim(unit1), get_dim(unit2)))
+      assert_quantity(result, expected, unit=bm_fun._unit_change_fun(get_dim(unit1), get_dim(unit2)))
 
   @parameterized.product(
     value=[(((1, 2), (3, 4)), ((1, 2), (3, 4))), ],
@@ -190,4 +192,18 @@ class TestFunChangeUnit(parameterized.TestCase):
       q2 = value2 * unit2
       result = bm_fun(q1, q2)
       expected = jnp_fun(jnp.array(value1), jnp.array(value2))
-      assert_quantity(result, expected, unit=bm_fun.change_unit_func(get_dim(unit1), get_dim(unit2)))
+      assert_quantity(result, expected, unit=bm_fun._unit_change_fun(get_dim(unit1), get_dim(unit2)))
+
+  def test_multi_dot(self):
+    key1, key2, key3 = jax.random.split(jax.random.key(0), 3)
+    x = jax.random.normal(key1, shape=(200, 5)) * bu.mA
+    y = jax.random.normal(key2, shape=(5, 100)) * bu.mV
+    z = jax.random.normal(key3, shape=(100, 10)) * bu.ohm
+    result1 = (x @ y) @ z
+    result2 = x @ (y @ z)
+    assert bu.math.allclose(result1, result2, atol=1E-4)
+    result3 = bu.math.multi_dot([x, y, z])
+    assert bu.math.allclose(result1, result3, atol=1E-4)
+    assert jax.jit(lambda x, y, z: (x @ y) @ z).lower(x, y, z).cost_analysis()['flops'] == 600000.0
+    assert jax.jit(lambda x, y, z: x @ (y @ z)).lower(x, y, z).cost_analysis()['flops'] == 30000.0
+    assert jax.jit(bu.math.multi_dot).lower([x, y, z]).cost_analysis()['flops'] == 30000.0
