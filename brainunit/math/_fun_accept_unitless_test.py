@@ -36,7 +36,7 @@ fun_elementwise_bit_operation_binary = [
 
 
 class TestFunAcceptUnitless(parameterized.TestCase):
-  def __init__(self, *args, platform='cpu', **kwargs):
+  def __init__(self, *args, **kwargs):
     super(TestFunAcceptUnitless, self).__init__(*args, **kwargs)
 
     print()
@@ -45,26 +45,29 @@ class TestFunAcceptUnitless(parameterized.TestCase):
     value=[(1.0, 2.0), (1.23, 2.34, 3.45)]
   )
   def test_fun_accept_unitless_unary_1(self, value):
-    bm_fun_list = [getattr(bm, fun) for fun in fun_accept_unitless_unary]
-    jnp_fun_list = [getattr(jnp, fun) for fun in fun_accept_unitless_unary]
+    for fun_name in fun_accept_unitless_unary:
+      fun = getattr(bu.math, fun_name)
+      jnp_fun = getattr(jnp, fun_name)
+      print(f'fun: {fun}')
 
-    for bm_fun, jnp_fun in zip(bm_fun_list, jnp_fun_list):
-      print(f'fun: {bm_fun.__name__}')
-
-      result = bm_fun(jnp.array(value))
+      result = fun(jnp.array(value))
       expected = jnp_fun(jnp.array(value))
       assert_quantity(result, expected)
 
-      q = value * meter
-      result = bm_fun(q, unit_to_scale=bu.dametre)
-      expected = jnp_fun(jnp.array(value) / bu.dametre.value)
-      assert_quantity(result, expected)
+      for unit, unit2scale in [(bu.ms, bu.second),
+                               (bu.mV, bu.volt),
+                               (bu.mV, bu.mV),
+                               (bu.nA, bu.amp)]:
+        q = value * unit
+        result = fun(q, unit_to_scale=unit2scale)
+        expected = jnp_fun(q / unit2scale)
+        assert_quantity(result, expected)
 
-      with pytest.raises(AssertionError):
-        result = bm_fun(q)
+        with pytest.raises(AssertionError):
+          result = fun(q)
 
-      with pytest.raises(DimensionMismatchError):
-        result = bm_fun(q, unit_to_scale=bu.second)
+        with pytest.raises(DimensionMismatchError):
+          result = fun(q, unit_to_scale=bu.nS)
 
   @parameterized.product(
     value=[(1.123, 2.567, 3.891), (1.23, 2.34, 3.45)]

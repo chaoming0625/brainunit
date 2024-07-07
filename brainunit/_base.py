@@ -153,7 +153,7 @@ def get_dim_for_display(d):
 def assert_quantity(q, values, unit=None):
   values = jnp.asarray(values)
   if unit is None:
-    assert jnp.allclose(q, values, equal_nan=True), f"Values do not match: {q.value} != {values}"
+    assert jnp.allclose(q, values, equal_nan=True), f"Values do not match: {q} != {values}"
     return
   else:
     assert have_same_unit(get_dim(q), unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
