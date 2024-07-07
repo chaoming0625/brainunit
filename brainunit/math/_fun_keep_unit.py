@@ -478,6 +478,39 @@ def broadcast_arrays(
 
 
 @set_module_as('brainunit.math')
+def broadcast_to(
+    array: Union[Quantity, jax.typing.ArrayLike],
+    shape: Tuple[int, ...]
+) -> Quantity | jax.Array:
+  """
+  Broadcast an array to a new shape.
+
+  Parameters
+  ----------
+  array : array_like
+      The array to broadcast.
+  shape : tuple or int
+      The shape of the desired array. A single integer ``i`` is interpreted
+      as ``(i,)``.
+
+  Returns
+  -------
+  broadcast : array
+      A readonly view on the original array with the given shape. It is
+      typically not contiguous. Furthermore, more than one element of a
+      broadcasted array may refer to a single memory location.
+
+  Raises
+  ------
+  ValueError
+      If the array is not compatible with the new shape according to NumPy's
+      broadcasting rules.
+
+  """
+  return _fun_keep_unit_unary(jnp.broadcast_to, array, shape=shape)
+
+
+@set_module_as('brainunit.math')
 def atleast_1d(
     *arys: Union[jax.Array, Quantity]
 ) -> Union[Quantity | jax.Array | Sequence[jax.Array | Quantity]]:
