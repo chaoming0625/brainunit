@@ -10,10 +10,10 @@
 
    brainunit.math.array-creation.rst
    brainunit.math.change-unit.rst
-   brainunit.math.einops.rst
    brainunit.math.keep-unit.rst
-   brainunit.math.misc.rst
    brainunit.math.remove-unit.rst
    brainunit.math.unitless.rst
+   brainunit.math.einops.rst
+   brainunit.math.misc.rst
 
 
