@@ -1,4 +1,3 @@
-# Contributing to BrainPy
+# Contributing to ``BrainUnit``
 
-For information on how to contribute to BrainPy, see
-[Contributing to BrainPy](https://brainpy.readthedocs.io/en/latest/tutorial_advanced/contributing.html).
+For information on how to contribute to BrainUnit, see

@@ -49,28 +49,28 @@ packages = find_packages(
 setup(
   name='brainunit',
   version=version,
-  description='The Unit System for Brain Dynamics Programming',
+  description='Physical Units and Unit-aware Mathematical System in JAX',
   long_description=README,
   long_description_content_type="text/markdown",
-  author='BrainPy Team',
+  author='BrainUnit Developers',
   author_email='chao.brain@qq.com',
   packages=packages,
   python_requires='>=3.9',
   install_requires=['numpy>=1.15', 'jax'],
-  url='https://github.com/brainpy/brainunit',
+  url='https://github.com/chaoming0625/brainunit',
   project_urls={
-    "Bug Tracker": "https://github.com/brainpy/brainunit/issues",
+    "Bug Tracker": "https://github.com/chaoming0625/brainunit/issues",
     "Documentation": "https://brainunit.readthedocs.io/",
-    "Source Code": "https://github.com/brainpy/brainunit",
+    "Source Code": "https://github.com/chaoming0625/brainunit",
   },
   extras_require={
     'cpu': ['jaxlib'],
     'cuda12': ['jaxlib[cuda12_pip]', ],
     'tpu': ['jaxlib[tpu]'],
   },
-  keywords=('computational neuroscience, '
-            'brain-inspired computation, '
-            'brain dynamics programming'),
+  keywords=('physical unit, '
+            'physical quantity, '
+            'brain modeling'),
   classifiers=[
     'Natural Language :: English',
     'Operating System :: OS Independent',
