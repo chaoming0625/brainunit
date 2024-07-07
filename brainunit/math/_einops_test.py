@@ -359,10 +359,10 @@ def assert_quantity(q, values, unit=None):
 
 
 def test_einsum():
-  # a = jnp.array([1, 2, 3])
-  # b = jnp.array([4, 5])
-  # result = bu.math.einsum('i,j->ij', a, b)
-  # assert (jnp.all(result == jnp.einsum('i,j->ij', a, b)))
+  a = jnp.array([1, 2, 3])
+  b = jnp.array([4, 5])
+  result = bu.math.einsum('i,j->ij', a, b)
+  assert (jnp.all(result == jnp.einsum('i,j->ij', a, b)))
 
   q1 = [1, 2, 3] * bu.second
   q2 = [4, 5] * bu.volt
@@ -449,3 +449,64 @@ def test_einsum():
   print(expected)
 
   assert_quantity(result, expected, bu.meter * bu.kilogram * bu.second * bu.ampere)
+
+
+def test_einsum2():
+  M = bu.math.arange(16).reshape(4, 4) * bu.ohm
+  x = bu.math.arange(4) * bu.mA
+  y = bu.math.array([5, 4, 3, 2]) * bu.mV
+  assert bu.math.allclose(bu.math.einsum('i,i', x, y), 16 * bu.uwatt)
+  assert bu.math.allclose(bu.math.vecdot(x, y), 16 * bu.uwatt)
+  assert bu.math.allclose(bu.math.einsum('i,i->', x, y), 16 * bu.uwatt)
+  assert bu.math.allclose(bu.math.einsum(x, (0,), y, (0,)), 16 * bu.uwatt)
+  assert bu.math.allclose(bu.math.einsum(x, (0,), y, (0,), ()), 16 * bu.uwatt)
+
+  assert bu.math.allclose(bu.math.einsum('ij,j->i', M, x), jnp.asarray([14., 38., 62., 86.]) * bu.mvolt)
+  assert bu.math.allclose(bu.math.matmul(M, x), jnp.asarray([14., 38., 62., 86.]) * bu.mvolt)
+  assert bu.math.allclose(bu.math.einsum('ij,j', M, x), jnp.asarray([14., 38., 62., 86.]) * bu.mvolt)
+  assert bu.math.allclose(bu.math.einsum(M, (0, 1), x, (1,), (0,)), jnp.asarray([14., 38., 62., 86.]) * bu.mvolt)
+  assert bu.math.allclose(bu.math.einsum(M, (0, 1), x, (1,)), jnp.asarray([14., 38., 62., 86.]) * bu.mvolt)
+
+  outer = bu.math.outer(x, y)
+  assert bu.math.allclose(bu.math.einsum("i,j->ij", x, y), outer)
+  assert bu.math.allclose(bu.math.einsum("i,j", x, y), outer)
+  assert bu.math.allclose(bu.math.einsum(x, (0,), y, (1,), (0, 1)), outer)
+  assert bu.math.allclose(bu.math.einsum(x, (0,), y, (1,)), outer)
+
+  d1_arr = bu.math.sum(x)
+  assert bu.math.allclose(bu.math.einsum("i->", x), d1_arr)
+  assert bu.math.allclose(bu.math.einsum(x, (0,), ()), d1_arr)
+
+  sum_ = M.sum(-1)
+  assert bu.math.allclose(bu.math.einsum("...j->...", M), sum_)
+  assert bu.math.allclose(bu.math.einsum(M, (..., 0), (...,)), sum_)
+
+  y = bu.math.array([[1, 2, 3], [4, 5, 6]]) * bu.mV
+  transpose = bu.math.einsum("ij->ji", y)
+  assert bu.math.allclose(bu.math.einsum("ji", y), transpose)
+  assert bu.math.allclose(bu.math.einsum(y, (1, 0)), transpose)
+  assert bu.math.allclose(bu.math.einsum(y, (0, 1), (1, 0)), transpose)
+  assert bu.math.allclose(bu.math.transpose(y), transpose)
+
+  diagonal = bu.math.diagonal(M)
+  assert bu.math.allclose(bu.math.einsum("ii->i", M), diagonal)
+
+  trace = bu.math.trace(M)
+  assert bu.math.allclose(bu.math.einsum("ii", M), trace)
+
+  x = bu.math.arange(30).reshape(2, 3, 5) * bu.mA
+  y = bu.math.arange(60).reshape(3, 4, 5) * bu.ohm
+  product = bu.math.einsum('ijk,jlk->il', x, y)
+  assert bu.math.allclose(bu.math.tensordot(x, y, axes=[(1, 2), (0, 2)]), product)
+  assert bu.math.allclose(bu.math.einsum('ijk,jlk', x, y), product)
+  assert bu.math.allclose(bu.math.einsum(x, (0, 1, 2), y, (1, 3, 2), (0, 3)), product)
+  assert bu.math.allclose(bu.math.einsum(x, (0, 1, 2), y, (1, 3, 2)), product)
+
+  w = bu.math.arange(5, 9).reshape(2, 2) * bu.mA
+  x = bu.math.arange(6).reshape(2, 3) * bu.ohm
+  y = bu.math.arange(-2, 4).reshape(3, 2) * bu.mV
+  z = bu.math.array([[2, 4, 6], [3, 5, 7]]) * bu.mA
+  dot = bu.math.einsum('ij,jk,kl,lm->im', w, x, y, z)
+  assert bu.math.allclose(bu.math.einsum(w, (0, 1), x, (1, 2), y, (2, 3), z, (3, 4)), dot)
+  assert bu.math.allclose(w @ x @ y @ z, dot)
+  assert bu.math.allclose(bu.math.multi_dot([w, x, y, z]), dot)

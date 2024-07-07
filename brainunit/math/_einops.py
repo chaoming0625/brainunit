@@ -730,27 +730,27 @@ def einshape(
   Returns:
       dict, maps axes names to their lengths
   """
-  shape = _get_shape(x)
+  _shape = _get_shape(x)
   exp = ParsedExpression(pattern, allow_underscore=True)
   if exp.has_composed_axes():
-    raise RuntimeError(f"Can't parse shape with composite axes: {pattern} {shape}")
-  if len(shape) != len(exp.composition):
+    raise RuntimeError(f"Can't parse shape with composite axes: {pattern} {_shape}")
+  if len(_shape) != len(exp.composition):
     if exp.has_ellipsis:
-      if len(shape) < len(exp.composition) - 1:
-        raise RuntimeError(f"Can't parse shape with this number of dimensions: {pattern} {shape}")
+      if len(_shape) < len(exp.composition) - 1:
+        raise RuntimeError(f"Can't parse shape with this number of dimensions: {pattern} {_shape}")
     else:
-      raise RuntimeError(f"Can't parse shape with different number of dimensions: {pattern} {shape}")
+      raise RuntimeError(f"Can't parse shape with different number of dimensions: {pattern} {_shape}")
   if exp.has_ellipsis:
     ellipsis_idx = exp.composition.index(_ellipsis)
     composition = (
         exp.composition[:ellipsis_idx]
-        + ["_"] * (len(shape) - len(exp.composition) + 1)
+        + ["_"] * (len(_shape) - len(exp.composition) + 1)
         + exp.composition[ellipsis_idx + 1:]
     )
   else:
     composition = exp.composition
   result = {}
-  for (axis_name,), axis_length in zip(composition, shape):  # type: ignore
+  for (axis_name,), axis_length in zip(composition, _shape):  # type: ignore
     if axis_name != "_":
       result[axis_name] = axis_length
   return result
@@ -934,7 +934,7 @@ def _einsum(
 
       lhs_batch, rhs_batch = jax.util.unzip2((lhs_names.find(n), rhs_names.find(n)) for n in batch_names)
 
-      # NOTE(mattjj): this can fail non-deterministically in python3, maybe
+      # NOTE: this can fail non-deterministically in python3, maybe
       # due to opt_einsum
       assert jax.config.jax_dynamic_shapes or all(
         name in lhs_names and name in rhs_names and
@@ -1001,6 +1001,7 @@ def _default_poly_einsum_handler(*operands, **kwargs):
   return contract_operands, contractions
 
 
+@set_module_as('brainunit.math')
 def einsum(
     subscripts,
     /,
@@ -1009,9 +1010,7 @@ def einsum(
     precision: jax.lax.PrecisionLike = None,
     preferred_element_type: jax.typing.DTypeLike | None = None,
 ) -> jax.Array:
-  """Einstein summation
-
-  JAX implementation of :func:`numpy.einsum`.
+  """Einstein summation for arrays and quantities.
 
   ``einsum`` is a powerful and generic API for computing various reductions,
   inner products, outer products, axis reorderings, and combinations thereof
@@ -1021,199 +1020,194 @@ def einsum(
 
   Args:
     subscripts: string containing axes names separated by commas.
-    *operands: sequence of one or more arrays corresponding to the subscripts.
+    *operands: sequence of one or more arrays / quantities corresponding to the subscripts.
     optimize: specify how to optimize the order of computation. In JAX this defaults
       to ``"optimal"`` which produces optimized expressions via the opt_einsum_
       package. Other options are ``True`` (same as ``"optimal"``), ``False``
       (unoptimized), or any string supported by ``opt_einsum``, which
-      includes ``"auto"``, ``"greedy"``, ``"eager"``, and others. It may also
-      be a pre-computed path (see :func:`~jax.numpy.einsum_path`).
+      includes ``"auto"``, ``"greedy"``, ``"eager"``, and others.
     precision: either ``None`` (default), which means the default precision for
       the backend, a :class:`~jax.lax.Precision` enum value (``Precision.DEFAULT``,
       ``Precision.HIGH`` or ``Precision.HIGHEST``).
     preferred_element_type: either ``None`` (default), which means the default
       accumulation type for the input types, or a datatype, indicating to
       accumulate results to and return a result with that datatype.
-    out: unsupported by JAX
-    _dot_general: optionally override the ``dot_general`` callable used by ``einsum``.
-      This parameter is experimental, and may be removed without warning at any time.
 
   Returns:
     array containing the result of the einstein summation.
-
-  See also:
-    :func:`jax.numpy.einsum_path`
 
   Examples:
     The mechanics of ``einsum`` are perhaps best demonstrated by example. Here we
     show how to use ``einsum`` to compute a number of quantities from one or more
     arrays. For more discussion and examples of ``einsum``, see the documentation
     of :func:`numpy.einsum`.
-
-    >>> M = jnp.arange(16).reshape(4, 4)
-    >>> x = jnp.arange(4)
-    >>> y = jnp.array([5, 4, 3, 2])
+    
+    
+    >>> import brainunit as bu
+    >>> M = bu.math.arange(16).reshape(4, 4) * bu.ohm
+    >>> x = bu.math.arange(4) * bu.mA
+    >>> y = bu.math.array([5, 4, 3, 2]) * bu.mV
 
     **Vector product**
 
-    >>> jnp.einsum('i,i', x, y)
-    Array(16, dtype=int32)
-    >>> jnp.vecdot(x, y)
-    Array(16, dtype=int32)
+    >>> bu.math.einsum('i,i', x, y)
+    16.0 uW
+    >>> bu.math.vecdot(x, y)
+    16.0 uW
 
     Here are some alternative ``einsum`` calling conventions to compute the same
     result:
 
-    >>> jnp.einsum('i,i->', x, y)  # explicit form
-    Array(16, dtype=int32)
-    >>> jnp.einsum(x, (0,), y, (0,))  # implicit form via indices
-    Array(16, dtype=int32)
-    >>> jnp.einsum(x, (0,), y, (0,), ())  # explicit form via indices
-    Array(16, dtype=int32)
+    >>> bu.math.einsum('i,i->', x, y)  # explicit form
+    16.0 uW
+    >>> bu.math.einsum(x, (0,), y, (0,))  # implicit form via indices
+    16.0 uW
+    >>> bu.math.einsum(x, (0,), y, (0,), ())  # explicit form via indices
+    16.0 uW
 
     **Matrix product**
 
-    >>> jnp.einsum('ij,j->i', M, x)  # explicit form
-    Array([14, 38, 62, 86], dtype=int32)
-    >>> jnp.matmul(M, x)
-    Array([14, 38, 62, 86], dtype=int32)
+    >>> bu.math.einsum('ij,j->i', M, x)  # explicit form
+    ArrayImpl([14., 38., 62., 86.], dtype=float32) * mvolt
+    >>> bu.math.matmul(M, x)
+    Array([14, 38, 62, 86], dtype=float32) * mvolt
 
     Here are some alternative ``einsum`` calling conventions to compute the same
     result:
 
-    >>> jnp.einsum('ij,j', M, x) # implicit form
-    Array([14, 38, 62, 86], dtype=int32)
-    >>> jnp.einsum(M, (0, 1), x, (1,), (0,)) # explicit form via indices
-    Array([14, 38, 62, 86], dtype=int32)
-    >>> jnp.einsum(M, (0, 1), x, (1,))  # implicit form via indices
-    Array([14, 38, 62, 86], dtype=int32)
+    >>> bu.math.einsum('ij,j', M, x) # implicit form
+    Array([14, 38, 62, 86], dtype=float32) * mvolt
+    >>> bu.math.einsum(M, (0, 1), x, (1,), (0,)) # explicit form via indices
+    Array([14, 38, 62, 86], dtype=float32)
+    >>> bu.math.einsum(M, (0, 1), x, (1,))  # implicit form via indices
+    Array([14, 38, 62, 86], dtype=float32) * mvolt
 
     **Outer product**
 
-    >>> jnp.einsum("i,j->ij", x, y)
+    >>> bu.math.einsum("i,j->ij", x, y)
     Array([[ 0,  0,  0,  0],
            [ 5,  4,  3,  2],
            [10,  8,  6,  4],
-           [15, 12,  9,  6]], dtype=int32)
-    >>> jnp.outer(x, y)
+           [15, 12,  9,  6]], dtype=float32) * uwatt
+    >>> bu.math.outer(x, y)
     Array([[ 0,  0,  0,  0],
            [ 5,  4,  3,  2],
            [10,  8,  6,  4],
-           [15, 12,  9,  6]], dtype=int32)
+           [15, 12,  9,  6]], dtype=float32) * uwatt
 
     Some other ways of computing outer products:
 
-    >>> jnp.einsum("i,j", x, y)  # implicit form
+    >>> bu.math.einsum("i,j", x, y)  # implicit form
     Array([[ 0,  0,  0,  0],
            [ 5,  4,  3,  2],
            [10,  8,  6,  4],
-           [15, 12,  9,  6]], dtype=int32)
-    >>> jnp.einsum(x, (0,), y, (1,), (0, 1))  # explicit form via indices
+           [15, 12,  9,  6]], dtype=float32) * uwatt
+    >>> bu.math.einsum(x, (0,), y, (1,), (0, 1))  # explicit form via indices
     Array([[ 0,  0,  0,  0],
            [ 5,  4,  3,  2],
            [10,  8,  6,  4],
-           [15, 12,  9,  6]], dtype=int32)
-    >>> jnp.einsum(x, (0,), y, (1,))  # implicit form via indices
+           [15, 12,  9,  6]], dtype=float32) * uwatt
+    >>> bu.math.einsum(x, (0,), y, (1,))  # implicit form via indices
     Array([[ 0,  0,  0,  0],
            [ 5,  4,  3,  2],
            [10,  8,  6,  4],
-           [15, 12,  9,  6]], dtype=int32)
+           [15, 12,  9,  6]], dtype=float32) * uwatt
 
     **1D array sum**
 
-    >>> jnp.einsum("i->", x)  # requires explicit form
-    Array(6, dtype=int32)
-    >>> jnp.einsum(x, (0,), ())  # explicit form via indices
-    Array(6, dtype=int32)
-    >>> jnp.sum(x)
-    Array(6, dtype=int32)
+    >>> bu.math.einsum("i->", x)  # requires explicit form
+    Array(6, dtype=float32) * mA
+    >>> bu.math.einsum(x, (0,), ())  # explicit form via indices
+    Array(6, dtype=float32) * mA
+    >>> bu.math.sum(x)
+    Array(6, dtype=float32) * mA
 
     **Sum along an axis**
 
-    >>> jnp.einsum("...j->...", M)  # requires explicit form
-    Array([ 6, 22, 38, 54], dtype=int32)
-    >>> jnp.einsum(M, (..., 0), (...,))  # explicit form via indices
-    Array([ 6, 22, 38, 54], dtype=int32)
+    >>> bu.math.einsum("...j->...", M)  # requires explicit form
+    Array([ 6, 22, 38, 54], dtype=float32) * ohm
+    >>> bu.math.einsum(M, (..., 0), (...,))  # explicit form via indices
+    Array([ 6, 22, 38, 54], dtype=float32) * ohm
     >>> M.sum(-1)
-    Array([ 6, 22, 38, 54], dtype=int32)
+    Array([ 6, 22, 38, 54], dtype=float32) * ohm
 
     **Matrix transpose**
 
-    >>> y = jnp.array([[1, 2, 3],
-    ...                [4, 5, 6]])
-    >>> jnp.einsum("ij->ji", y)  # explicit form
+    >>> y = bu.math.array([[1, 2, 3],
+    ...                    [4, 5, 6]]) * bu.mV
+    >>> bu.math.einsum("ij->ji", y)  # explicit form
     Array([[1, 4],
            [2, 5],
-           [3, 6]], dtype=int32)
-    >>> jnp.einsum("ji", y)  # implicit form
+           [3, 6]], dtype=float32) * mV
+    >>> bu.math.einsum("ji", y)  # implicit form
     Array([[1, 4],
            [2, 5],
-           [3, 6]], dtype=int32)
-    >>> jnp.einsum(y, (1, 0))  # implicit form via indices
+           [3, 6]], dtype=float32) * mV
+    >>> bu.math.einsum(y, (1, 0))  # implicit form via indices
     Array([[1, 4],
            [2, 5],
-           [3, 6]], dtype=int32)
-    >>> jnp.einsum(y, (0, 1), (1, 0))  # explicit form via indices
+           [3, 6]], dtype=float32) * mV
+    >>> bu.math.einsum(y, (0, 1), (1, 0))  # explicit form via indices
     Array([[1, 4],
            [2, 5],
-           [3, 6]], dtype=int32)
-    >>> jnp.transpose(y)
+           [3, 6]], dtype=float32) * mV
+    >>> bu.math.transpose(y)
     Array([[1, 4],
            [2, 5],
-           [3, 6]], dtype=int32)
+           [3, 6]], dtype=float32) * mV
 
     **Matrix diagonal**
 
-    >>> jnp.einsum("ii->i", M)
-    Array([ 0,  5, 10, 15], dtype=int32)
-    >>> jnp.diagonal(M)
-    Array([ 0,  5, 10, 15], dtype=int32)
+    >>> bu.math.einsum("ii->i", M)
+    Array([ 0,  5, 10, 15], dtype=float32) * ohm
+    >>> bu.math.diagonal(M)
+    Array([ 0,  5, 10, 15], dtype=float32) * ohm
 
     **Matrix trace**
 
-    >>> jnp.einsum("ii", M)
-    Array(30, dtype=int32)
-    >>> jnp.trace(M)
-    Array(30, dtype=int32)
+    >>> bu.math.einsum("ii", M)
+    Array(30, dtype=float32) * ohm
+    >>> bu.math.trace(M)
+    Array(30, dtype=float32) * ohm
 
     **Tensor products**
 
-    >>> x = jnp.arange(30).reshape(2, 3, 5)
-    >>> y = jnp.arange(60).reshape(3, 4, 5)
-    >>> jnp.einsum('ijk,jlk->il', x, y)  # explicit form
+    >>> x = bu.math.arange(30).reshape(2, 3, 5) * bu.mA
+    >>> y = bu.math.arange(60).reshape(3, 4, 5) * bu.ohm
+    >>> bu.math.einsum('ijk,jlk->il', x, y)  # explicit form
     Array([[ 3340,  3865,  4390,  4915],
-           [ 8290,  9940, 11590, 13240]], dtype=int32)
-    >>> jnp.tensordot(x, y, axes=[(1, 2), (0, 2)])
+           [ 8290,  9940, 11590, 13240]], dtype=float32) * volt
+    >>> bu.math.tensordot(x, y, axes=((1, 2), (0, 2)))
     Array([[ 3340,  3865,  4390,  4915],
-           [ 8290,  9940, 11590, 13240]], dtype=int32)
-    >>> jnp.einsum('ijk,jlk', x, y)  # implicit form
+           [ 8290,  9940, 11590, 13240]], dtype=float32) * volt
+    >>> bu.math.einsum('ijk,jlk', x, y)  # implicit form
     Array([[ 3340,  3865,  4390,  4915],
-           [ 8290,  9940, 11590, 13240]], dtype=int32)
-    >>> jnp.einsum(x, (0, 1, 2), y, (1, 3, 2), (0, 3))  # explicit form via indices
+           [ 8290,  9940, 11590, 13240]], dtype=float32) * volt
+    >>> bu.math.einsum(x, (0, 1, 2), y, (1, 3, 2), (0, 3))  # explicit form via indices
     Array([[ 3340,  3865,  4390,  4915],
-           [ 8290,  9940, 11590, 13240]], dtype=int32)
-    >>> jnp.einsum(x, (0, 1, 2), y, (1, 3, 2))  # implicit form via indices
+           [ 8290,  9940, 11590, 13240]], dtype=float32) * volt
+    >>> bu.math.einsum(x, (0, 1, 2), y, (1, 3, 2))  # implicit form via indices
     Array([[ 3340,  3865,  4390,  4915],
-           [ 8290,  9940, 11590, 13240]], dtype=int32)
+           [ 8290,  9940, 11590, 13240]], dtype=float32) * volt
 
     **Chained dot products**
 
-    >>> w = jnp.arange(5, 9).reshape(2, 2)
-    >>> x = jnp.arange(6).reshape(2, 3)
-    >>> y = jnp.arange(-2, 4).reshape(3, 2)
-    >>> z = jnp.array([[2, 4, 6], [3, 5, 7]])
-    >>> jnp.einsum('ij,jk,kl,lm->im', w, x, y, z)
+    >>> w = bu.math.arange(5, 9).reshape(2, 2) * bu.mA
+    >>> x = bu.math.arange(6).reshape(2, 3) * bu.ohm
+    >>> y = bu.math.arange(-2, 4).reshape(3, 2) * bu.mV
+    >>> z = bu.math.array([[2, 4, 6], [3, 5, 7]]) * bu.mA
+    >>> bu.math.einsum('ij,jk,kl,lm->im', w, x, y, z)
     Array([[ 481,  831, 1181],
-           [ 651, 1125, 1599]], dtype=int32)
-    >>> jnp.einsum(w, (0, 1), x, (1, 2), y, (2, 3), z, (3, 4))  # implicit, via indices
+           [ 651, 1125, 1599]], dtype=float32) * metre ** 4 * kilogram ** 2 * second ** -6 * amp ** -1
+    >>> bu.math.einsum(w, (0, 1), x, (1, 2), y, (2, 3), z, (3, 4))  # implicit, via indices
     Array([[ 481,  831, 1181],
-           [ 651, 1125, 1599]], dtype=int32)
+           [ 651, 1125, 1599]], dtype=float32) * metre ** 4 * kilogram ** 2 * second ** -6 * amp ** -1
     >>> w @ x @ y @ z  # direct chain of matmuls
     Array([[ 481,  831, 1181],
-           [ 651, 1125, 1599]], dtype=int32)
-    >>> jnp.linalg.multi_dot([w, x, y, z])
+           [ 651, 1125, 1599]], dtype=float32) * metre ** 4 * kilogram ** 2 * second ** -6 * amp ** -1
+    >>> bu.math.multi_dot([w, x, y, z])
     Array([[ 481,  831, 1181],
-           [ 651, 1125, 1599]], dtype=int32)
+           [ 651, 1125, 1599]], dtype=float32) * metre ** 4 * kilogram ** 2 * second ** -6 * amp ** -1
 
   .. _opt_einsum: https://github.com/dgasmith/opt_einsum
   """
@@ -1236,10 +1230,10 @@ def einsum(
   operands, contractions = contract_path(*operands, einsum_call=True, use_blas=True, optimize=path_type)
   contractions = tuple((a, frozenset(b), c) for a, b, c, *_ in contractions)
 
-  einsum = jax.jit(_einsum, static_argnums=(1, 2, 3), inline=True)
+  f_einsum = jax.jit(_einsum, static_argnums=(1, 2, 3), inline=True)
   if spec is not None:
-    einsum = jax.named_call(einsum, name=spec)
-  return einsum(operands,
-                contractions,
-                precision,
-                preferred_element_type)
+    f_einsum = jax.named_call(f_einsum, name=spec)
+  return f_einsum(operands,
+                  contractions,
+                  precision,
+                  preferred_element_type)
