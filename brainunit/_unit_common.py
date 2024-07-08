@@ -2093,7 +2093,6 @@ __all__ = [
   "Mlitre",
   "klitre",
   "Ylitre",
-  "celsius"  # Dummy object raising an error
 ]
 
 with turn_off_auto_unit_register():
@@ -4397,46 +4396,6 @@ with turn_off_auto_unit_register():
   klitre = Unit.create_scaled_unit(litre, "k")
   Ylitre = Unit.create_scaled_unit(litre, "Y")
 
-
-class _Celsius:
-  """
-    A dummy object to raise errors when ``celsius`` is used. The use of
-    `celsius` can lead to ambiguities when mixed with temperatures in `kelvin`,
-    so its use is no longer supported. See github issue #817 for details.
-    """
-  error_text = (
-    "The unit 'celsius' is no longer supported to avoid"
-    "ambiguities when mixed with absolute temperatures defined"
-    "in Kelvin. Directly use 'kelvin' when you are only"
-    "interested in temperature differences, and add the"
-    "'zero_celsius' constant from the brainpy._src.math.units.constants"
-    "module if you want to convert a temperature from Celsius to"
-    "Kelvin."
-  )
-
-  def __mul__(self, other):
-    raise TypeError(_Celsius.error_text)
-
-  def __rmul__(self, other):
-    raise TypeError(_Celsius.error_text)
-
-  def __div__(self, other):
-    raise TypeError(_Celsius.error_text)
-
-  def __rdiv__(self, other):
-    raise TypeError(_Celsius.error_text)
-
-  def __pow__(self, other):
-    raise TypeError(_Celsius.error_text)
-
-  def __eq__(self, other):
-    raise TypeError(_Celsius.error_text)
-
-  def __neq__(self, other):
-    raise TypeError(_Celsius.error_text)
-
-
-celsius = _Celsius()
 
 base_units = [
   katal,

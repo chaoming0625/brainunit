@@ -564,7 +564,7 @@ def asarray(
     dtype: Optional[jax.typing.DTypeLike] = None,
     order: Optional[str] = None,
     unit: Optional[Unit] = None,
-) -> Union[Quantity, jax.Array]:
+) -> Quantity | jax.Array | None:
   """
   Convert the input to a quantity or array.
 
@@ -589,6 +589,9 @@ def asarray(
   out : quantity or array
     Array interpretation of `a`. No copy is made if the input is already an array.
   """
+  if a is None:
+    return a
+
   # get leaves
   leaves, treedef = jax.tree.flatten(a, is_leaf=lambda x: isinstance(x, Quantity))
   a = treedef.unflatten([leaf.value if isinstance(leaf, Quantity) else leaf for leaf in leaves])

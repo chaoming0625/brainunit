@@ -123,7 +123,8 @@ def _short_str(arr):
   error messages.
   """
   arr = arr.value if isinstance(arr, Quantity) else arr
-  arr = np.asanyarray(arr)
+  if not isinstance(arr, (jax.core.Tracer, jax.core.ShapedArray, jax.ShapeDtypeStruct)):
+    arr = np.asanyarray(arr)
   with change_printoption(edgeitems=2, threshold=5):
     arr_string = str(arr)
   return arr_string
@@ -668,10 +669,10 @@ def fail_for_dimension_mismatch(
     #     failing # with a DimensionMismatchError. Note that 3*mV == 0*second
     #     is not allowed, though.
 
-    if (dim1 is DIMENSIONLESS and jnp.all(obj1 == 0)) or (
-        dim2 is DIMENSIONLESS and jnp.all(obj2 == 0)
-    ):
-      return dim1, dim2
+    # if (dim1 is DIMENSIONLESS and jnp.all(obj1 == 0)) or (
+    #     dim2 is DIMENSIONLESS and jnp.all(obj2 == 0)
+    # ):
+    #   return dim1, dim2
 
     # We do another check here, this should allow Brian1 units to pass as
     # having the same dimensions as a Brian2 unit
