@@ -608,16 +608,18 @@ def test_addition_subtraction():
     with pytest.raises(DimensionMismatchError):
       np.array([5], dtype=np.float64) - q
 
+
     # Check that operations with 0 work
-    assert_quantity(q + 0, q.value, volt)
-    assert_quantity(0 + q, q.value, volt)
-    assert_quantity(q - 0, q.value, volt)
-    # Doesn't support 0 - Quantity
-    # assert_quantity(0 - q, -q.value, volt)
-    assert_quantity(q + np.float64(0), q.value, volt)
-    assert_quantity(np.float64(0) + q, q.value, volt)
-    assert_quantity(q - np.float64(0), q.value, volt)
-    # assert_quantity(np.float64(0) - q, -q.value, volt)
+    with pytest.raises(DimensionMismatchError):
+      assert_quantity(q + 0, q.value, volt)
+      assert_quantity(0 + q, q.value, volt)
+      assert_quantity(q - 0, q.value, volt)
+      # Doesn't support 0 - Quantity
+      # assert_quantity(0 - q, -q.value, volt)
+      assert_quantity(q + np.float64(0), q.value, volt)
+      assert_quantity(np.float64(0) + q, q.value, volt)
+      assert_quantity(q - np.float64(0), q.value, volt)
+      # assert_quantity(np.float64(0) - q, -q.value, volt)
 
     # # using unsupported objects should fail
     # with pytest.raises(TypeError):
