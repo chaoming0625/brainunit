@@ -33,7 +33,7 @@ __all__ = [
   'split', 'array_split', 'dsplit', 'hsplit', 'vsplit',
 
   # broadcasting arrays
-  'atleast_1d', 'atleast_2d', 'atleast_3d', 'broadcast_arrays',
+  'atleast_1d', 'atleast_2d', 'atleast_3d', 'broadcast_arrays', 'broadcast_to',
 
   # array manipulation
   'reshape', 'moveaxis', 'transpose', 'swapaxes', 'tile', 'repeat',
