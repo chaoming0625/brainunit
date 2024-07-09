@@ -26,6 +26,7 @@ Functions that Keeping Unit
    atleast_2d
    atleast_3d
    broadcast_arrays
+   broadcast_to
    reshape
    moveaxis
    transpose
