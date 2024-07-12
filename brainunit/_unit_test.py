@@ -608,7 +608,6 @@ def test_addition_subtraction():
     with pytest.raises(DimensionMismatchError):
       np.array([5], dtype=np.float64) - q
 
-
     # Check that operations with 0 work
     with pytest.raises(DimensionMismatchError):
       assert_quantity(q + 0, q.value, volt)
@@ -1473,3 +1472,123 @@ def test_jit_array2():
     return b
 
   f(a)
+
+
+def test_set_default_magnitude_1():
+  bu.set_default_magnitude(-3)
+  # from brainunit import second, ms
+  q1 = 3 * bu.second
+  q2 = 3 * bu.ms
+
+  assert q1.to_value() == 3e3
+  assert q2.to_value() == 3.
+
+  bu.set_default_magnitude(0)
+  # from brainunit import second, ms
+  q1 = 3 * bu.second
+  q2 = 3 * bu.ms
+  assert q1.to_value() == 3.
+  assert q2.to_value() == 3e-3
+
+  bu.set_default_magnitude(3)
+  # from brainunit import second, ms
+  q1 = 3 * bu.second
+  q2 = 3 * bu.ms
+  assert q1.to_value() == 3e-3
+  assert q2.to_value() == 3e-6
+
+def test_set_default_magnitude_2():
+  bu.set_default_magnitude(-3)
+  # from brainunit import second, ms, meter, kmeter
+  q1 = 3 * bu.second * bu.meter
+  q2 = 3 * bu.ms * bu.kmeter
+
+  value = str(q1)
+
+  assert q1.to_value() == 3e6
+  assert q2.to_value() == 3e6
+
+  bu.set_default_magnitude(0)
+  # from brainunit import second, ms, meter, kmeter
+  q1 = 3 * bu.second * bu.meter
+  q2 = 3 * bu.ms * bu.kmeter
+  assert q1.to_value() == 3.
+  assert q2.to_value() == 3.
+
+  bu.set_default_magnitude(3)
+  # from brainunit import second, ms, meter, kmeter
+  q1 = 3 * bu.second * bu.meter
+  q2 = 3 * bu.ms * bu.kmeter
+  assert q1.to_value() == 3e-6
+  assert q2.to_value() == 3e-6
+
+def test_set_default_magnitude_3():
+  bu.set_default_magnitude({'s': 'm'})
+  from brainunit import second, ms, meter, kmeter
+  q1 = 3 * bu.second * bu.meter
+  q2 = 3 * bu.ms * bu.kmeter
+
+  assert q1.to_value() == 3e3
+  assert q2.to_value() == 3e3
+
+  bu.set_default_magnitude(0)
+  # from brainunit import second, ms, meter, kmeter
+  q1 = 3 * bu.second * bu.meter
+  q2 = 3 * bu.ms * bu.kmeter
+  assert q1.to_value() == 3.
+  assert q2.to_value() == 3.
+
+  bu.set_default_magnitude({'s': 3})
+  # from brainunit import second, ms, meter, kmeter
+  q1 = 3 * bu.second * bu.meter
+  q2 = 3 * bu.ms * bu.kmeter
+  assert q1.to_value() == 3e-3
+  assert q2.to_value() == 3e-3
+
+def test_set_default_magnitude_4():
+  # volt: m=2, kg=1, s=-3, A=-1
+  bu.set_default_magnitude(-3)
+  # from brainunit import volt, mV
+  q1 = 3 * bu.volt
+  q2 = 3 * bu.mV
+
+  assert q1.to_value() == 3e-3
+  assert q2.to_value() == 3e-6
+
+  bu.set_default_magnitude(0)
+  # from brainunit import volt, mV
+  q1 = 3 * bu.volt
+  q2 = 3 * bu.mV
+  assert q1.to_value() == 3.
+  assert q2.to_value() == 3e-3
+
+  bu.set_default_magnitude(3)
+  # from brainunit import volt, mV
+  q1 = 3 * bu.volt
+  q2 = 3 * bu.mV
+  assert q1.to_value() == 3e3
+  assert q2.to_value() == 3
+
+# def test_set_default_magnitude_5():
+#   # volt: m=2, kg=1, s=-3, A=-1 --> (if set to milivolt) _default_magnitude = {'m': -1.5, 'kg': -3, 's': -1, 'A': -3} (WRONG!)
+#   bu.set_default_magnitude(-3, unit=bu.volt)
+#   from brainunit import volt, mV
+#   q1 = 3 * volt
+#   q2 = 3 * mV
+#
+#   assert q1.to_value() == 3e3
+#   assert q2.to_value() == 3
+#
+#   bu.set_default_magnitude(0)
+#   from brainunit import volt, mV
+#   q1 = 3 * volt
+#   q2 = 3 * mV
+#   assert q1.to_value() == 3.
+#   assert q2.to_value() == 3e-3
+#
+#   bu.set_default_magnitude(3)
+#   from brainunit import volt, mV
+#   q1 = 3 * volt
+#   q2 = 3 * mV
+#   assert q1.to_value() == 3e-3
+#   assert q2.to_value() == 3e-6

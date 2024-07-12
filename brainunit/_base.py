@@ -48,13 +48,24 @@ __all__ = [
   'check_units',
   'is_scalar_type',
   'fail_for_dimension_mismatch',
-  'assert_quantity'
+  'assert_quantity',
 ]
 
 _all_slice = slice(None, None, None)
 _unit_checking = True
 _allow_python_scalar_value = False
 _auto_register_unit = True
+
+# for setting the default magnitude of the unit
+_default_magnitude = {
+  "m": 0,
+  "kg": 0,
+  "s": 0,
+  "A": 0,
+  "K": 0,
+  "mol": 0,
+  "cd": 0,
+}
 
 
 @contextmanager
@@ -584,6 +595,31 @@ def get_dim(obj) -> Dimension:
       raise TypeError(f"Object of type {type(obj)} does not have dimensions")
 
 
+def get_unit(obj) -> Unit:
+  """
+  Return the unit of any object that has them.
+
+  Parameters
+  ----------
+  obj : `object`
+      The object to check.
+
+  Returns
+  -------
+  unit : Unit
+      The physical unit of the `obj`.
+  """
+  try:
+    return obj.unit
+  except AttributeError:
+    if isinstance(obj, (numbers.Number, jax.Array, np.number, np.ndarray)):
+      return Unit(1, name='1', dispname='1')
+    try:
+      return Quantity(obj).unit
+    except TypeError:
+      raise TypeError(f"Object of type {type(obj)} does not have a unit")
+
+
 def have_same_unit(obj1, obj2) -> bool:
   """Test if two values have the same dimensions.
 
@@ -969,12 +1005,15 @@ def process_list_with_units(value):
 
 def _get_dim(dim: Dimension, unit: 'Unit'):
   if dim != DIMENSIONLESS and unit is not None:
-    raise ValueError("Cannot specify both a dimension and a unit")
+    return None, dim
   if dim == DIMENSIONLESS:
     if unit is None:
       return None, DIMENSIONLESS
     else:
-      return unit.value, unit.dim
+      try:
+        return unit.value, unit.dim
+      except:
+        return None, unit.dim
   else:
     return None, dim
 
@@ -987,7 +1026,7 @@ class Quantity(object):
 
   """
   __module__ = "brainunit"
-  __slots__ = ('_value', '_dim')
+  __slots__ = ('_value', '_dim', '_unit')
   _value: Union[jax.Array, numbers.Number]
   _dim: Dimension
   __array_priority__ = 1000
@@ -1005,6 +1044,8 @@ class Quantity(object):
     if isinstance(value, numbers.Number):
       self._dim = dim
       self._value = (value if scale is None else (value * scale))
+      if dim is not DIMENSIONLESS:
+        self._unit = unit
       return
 
     if isinstance(value, (list, tuple)):
@@ -1023,6 +1064,7 @@ class Quantity(object):
     # array value
     if isinstance(value, Quantity):
       self._dim = value.dim
+      self._unit = Unit(1, name='1', dispname='1') if unit is None else unit
       self._value = jnp.array(value.value, dtype=dtype)
       return
 
@@ -1043,6 +1085,12 @@ class Quantity(object):
 
     # dimension
     self._dim = dim
+
+    # unit
+    if unit is None:
+      self._unit = Unit(1, name='1', dispname='1')
+    else:
+      self._unit = unit
 
   @property
   def value(self) -> jax.Array | numbers.Number:
@@ -1101,7 +1149,8 @@ class Quantity(object):
 
   @property
   def unit(self) -> 'Unit':
-    return Unit(1., self.dim, register=False)
+    return self._unit
+    # return Unit(1., self.dim, register=False)
 
   @unit.setter
   def unit(self, *args):
@@ -1214,14 +1263,14 @@ class Quantity(object):
         The best unit for this `Array`.
     """
     if self.is_unitless:
-      return Unit(1)
+      return Unit(1, name='1', dispname='1')
     if len(regs):
       for r in regs:
         try:
           return r[self]
         except KeyError:
           pass
-      return Quantity(1, dim=self.dim)
+      return self.unit
     else:
       return self.get_best_unit(standard_unit_register, user_unit_register, additional_unit_register)
 
@@ -1556,6 +1605,7 @@ class Quantity(object):
     """
     other = _to_quantity(other)
     other_dim = None
+    other_unit = None
 
     if fail_for_mismatch:
       if inplace:
@@ -1568,9 +1618,13 @@ class Quantity(object):
     if other_dim is None:
       other_dim = get_dim(other)
 
+    if other_unit is None:
+      other_unit = get_unit(other)
+
     new_dim = unit_operation(self.dim, other_dim)
+    new_unit = unit_operation(self.unit, other_unit)
     result = value_operation(self.value, other.value)
-    r = Quantity(result, dim=new_dim)
+    r = Quantity(result, dim=new_dim, unit=new_unit)
     if inplace:
       self.update_value(r.value)
       return self
@@ -2688,10 +2742,17 @@ class Unit(Quantity):
     # Whether this unit is a combination of other units
     self.iscompound = iscompound
 
-    super().__init__(value, dtype=dtype, dim=dim)
+    if dim == DIMENSIONLESS:
+      super().__init__(value, dtype=dtype, dim=dim)
+    else:
+      super().__init__(value, dtype=dtype, dim=dim, unit=self)
 
     if _auto_register_unit and register:
       register_new_unit(self)
+
+  @property
+  def unit(self) -> 'Unit':
+    return self
 
   @staticmethod
   def create(unit: Dimension, name: str, dispname: str, scale: int = 0):
@@ -2717,6 +2778,8 @@ class Unit(Quantity):
     """
     name = str(name)
     dispname = str(dispname)
+
+    scale = calculate_scale(unit=unit, scale=scale)
 
     u = Unit(
       10.0 ** scale,
@@ -3274,3 +3337,37 @@ def check_units(**au):
     return new_f
 
   return do_check_units
+
+
+def calculate_scale(
+    unit: Dimension,
+    scale: int = 0
+) -> int:
+  """
+  Calculate the scale for a unit.
+
+  Parameters
+  ----------
+  unit : Dimension
+      The unit to determine the scale for.
+
+  Returns
+  -------
+  scale : int
+      The scale for the unit.
+
+  Examples
+  --------
+  >>> set_default_magnitude({'m': -3, 'kg': -9})
+  >>> calculate_scale(get_or_create_dimension(m=1))
+  -3
+  >>> calculate_scale(get_or_create_dimension(kg=1))
+  -9
+  >>> calculate_scale(get_or_create_dimension(m=1, kg=1))
+  -12
+  >>> calculate_scale(get_or_create_dimension(m=2, kg=-1))
+  3
+  """
+  for dim, magnitude in zip(unit._dims, _default_magnitude.values()):
+    scale -= dim * magnitude
+  return scale
