@@ -1497,6 +1497,7 @@ def test_set_default_magnitude_1():
   assert q1.to_value() == 3e-3
   assert q2.to_value() == 3e-6
 
+
 def test_set_default_magnitude_2():
   bu.set_default_magnitude(-3)
   # from brainunit import second, ms, meter, kmeter
@@ -1522,6 +1523,7 @@ def test_set_default_magnitude_2():
   assert q1.to_value() == 3e-6
   assert q2.to_value() == 3e-6
 
+
 def test_set_default_magnitude_3():
   bu.set_default_magnitude({'s': 'm'})
   from brainunit import second, ms, meter, kmeter
@@ -1544,6 +1546,7 @@ def test_set_default_magnitude_3():
   q2 = 3 * bu.ms * bu.kmeter
   assert q1.to_value() == 3e-3
   assert q2.to_value() == 3e-3
+
 
 def test_set_default_magnitude_4():
   # volt: m=2, kg=1, s=-3, A=-1

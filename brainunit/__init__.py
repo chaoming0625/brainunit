@@ -57,7 +57,6 @@ def set_default_magnitude(
   >>> set_default_magnitude(-9) # Alternatively, use an integer to represent the exponent of 10
   >>> set_default_magnitude({'m': -3, 'kg': -9}) # Set the default magnitude for 'metre' to 'milli' and 'kilogram' to 'nano'
   >>> set_default_magnitude({'m': 'm', 'kg': 'n'}) # Alternatively, use a string to represent the magnitude
-  >>> set_default_magnitude(-3, unit=volt) # Set the default magnitude for the 'volt' unit to 'milli'
   """
   global _default_magnitude
   if isinstance(magnitude, int):
