@@ -2890,7 +2890,7 @@ class Unit(Quantity):
       u = Unit(
         self.value,
         dim=self.dim ** -1,
-        name=f"Unit(1) / {name}",
+        name=f"1 / {name}",
         dispname=f"1 / {dispname}",
         scale=-self.scale,
         iscompound=True,
