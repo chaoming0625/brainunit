@@ -3360,13 +3360,13 @@ def calculate_scale(
   --------
   >>> set_default_magnitude({'m': -3, 'kg': -9})
   >>> calculate_scale(get_or_create_dimension(m=1))
-  -3
-  >>> calculate_scale(get_or_create_dimension(kg=1))
-  -9
-  >>> calculate_scale(get_or_create_dimension(m=1, kg=1))
-  -12
-  >>> calculate_scale(get_or_create_dimension(m=2, kg=-1))
   3
+  >>> calculate_scale(get_or_create_dimension(kg=1))
+  9
+  >>> calculate_scale(get_or_create_dimension(m=1, kg=1))
+  12
+  >>> calculate_scale(get_or_create_dimension(m=2, kg=-1))
+  -3
   """
   for dim, magnitude in zip(unit._dims, _default_magnitude.values()):
     scale -= dim * magnitude
