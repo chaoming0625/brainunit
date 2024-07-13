@@ -15,6 +15,7 @@
 
 __version__ = "0.0.1.1"
 
+from __future__ import annotations
 import importlib
 
 from . import math

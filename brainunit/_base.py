@@ -18,15 +18,14 @@ from __future__ import annotations
 import collections
 import itertools
 import numbers
-from functools import wraps
 import operator
 from contextlib import contextmanager
+from functools import wraps
 from typing import Union, Optional, Sequence, Callable, Tuple, Any, List
 
 import jax
 import jax.numpy as jnp
 import numpy as np
-from jax import Array
 from jax.interpreters.partial_eval import DynamicJaxprTracer
 from jax.tree_util import register_pytree_node_class
 
