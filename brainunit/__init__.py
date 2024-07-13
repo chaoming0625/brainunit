@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+from __future__ import annotations
 
 __version__ = "0.0.1.1"
 
-from __future__ import annotations
 import importlib
 
 from . import math
