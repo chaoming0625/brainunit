@@ -613,7 +613,7 @@ def get_unit(obj) -> Unit:
     return obj.unit
   except AttributeError:
     if isinstance(obj, (numbers.Number, jax.Array, np.number, np.ndarray)):
-      return Unit(1, name='1', dispname='1')
+      return Unit(1)
     try:
       return Quantity(obj).unit
     except TypeError:
@@ -1064,7 +1064,7 @@ class Quantity(object):
     # array value
     if isinstance(value, Quantity):
       self._dim = value.dim
-      self._unit = Unit(1, name='1', dispname='1') if unit is None else unit
+      self._unit = Unit(1, dim=value.dim, name=repr(value.dim), dispname=str(value.dim)) if unit is None else unit
       self._value = jnp.array(value.value, dtype=dtype)
       return
 
@@ -1088,7 +1088,7 @@ class Quantity(object):
 
     # unit
     if unit is None:
-      self._unit = Unit(1, name='1', dispname='1')
+      self._unit = Unit(1, dim=dim, name=repr(dim), dispname=str(dim))
     else:
       self._unit = unit
 
@@ -1263,7 +1263,7 @@ class Quantity(object):
         The best unit for this `Array`.
     """
     if self.is_unitless:
-      return Unit(1, name='1', dispname='1')
+      return Unit(1)
     if len(regs):
       for r in regs:
         try:
@@ -1622,9 +1622,10 @@ class Quantity(object):
       other_unit = get_unit(other)
 
     new_dim = unit_operation(self.dim, other_dim)
-    new_unit = unit_operation(self.unit, other_unit)
+    new_unit = unit_operation(self.unit, other_unit) if self.unit is not None else other_unit
     result = value_operation(self.value, other.value)
-    r = Quantity(result, dim=new_dim, unit=new_unit)
+    r = Quantity(result, dim=new_dim, unit=Unit(1, dim=new_unit.dim, name=new_unit.name, dispname=new_unit.dispname))
+
     if inplace:
       self.update_value(r.value)
       return self
@@ -2890,7 +2891,7 @@ class Unit(Quantity):
       u = Unit(
         self.value,
         dim=self.dim ** -1,
-        name=f"1 / {name}",
+        name=f"Unit(1) / {name}",
         dispname=f"1 / {dispname}",
         scale=-self.scale,
         iscompound=True,

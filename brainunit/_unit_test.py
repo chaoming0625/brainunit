@@ -1497,6 +1497,8 @@ def test_set_default_magnitude_1():
   assert q1.to_value() == 3e-3
   assert q2.to_value() == 3e-6
 
+  bu.set_default_magnitude(0)
+
 
 def test_set_default_magnitude_2():
   bu.set_default_magnitude(-3)
@@ -1523,6 +1525,8 @@ def test_set_default_magnitude_2():
   assert q1.to_value() == 3e-6
   assert q2.to_value() == 3e-6
 
+  bu.set_default_magnitude(0)
+
 
 def test_set_default_magnitude_3():
   bu.set_default_magnitude({'s': 'm'})
@@ -1546,6 +1550,8 @@ def test_set_default_magnitude_3():
   q2 = 3 * bu.ms * bu.kmeter
   assert q1.to_value() == 3e-3
   assert q2.to_value() == 3e-3
+
+  bu.set_default_magnitude(0)
 
 
 def test_set_default_magnitude_4():
@@ -1571,6 +1577,8 @@ def test_set_default_magnitude_4():
   q2 = 3 * bu.mV
   assert q1.to_value() == 3e3
   assert q2.to_value() == 3
+
+  bu.set_default_magnitude(0)
 
 # def test_set_default_magnitude_5():
 #   # volt: m=2, kg=1, s=-3, A=-1 --> (if set to milivolt) _default_magnitude = {'m': -1.5, 'kg': -3, 's': -1, 'A': -3} (WRONG!)
