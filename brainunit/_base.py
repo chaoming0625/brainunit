@@ -1629,6 +1629,7 @@ class Quantity(object):
     else:
       new_unit = Unit(1, dim=new_dim, register=False)
     result = value_operation(self.value, other.value)
+
     r = Quantity(result, dim=new_dim, unit=Unit(1, dim=new_unit.dim, name=new_unit.name, dispname=new_unit.dispname))
 
     if inplace:
@@ -1891,6 +1892,9 @@ class Quantity(object):
   ptp = wrap_function_keep_dimensions(jnp.ptp)
   ravel = wrap_function_keep_dimensions(jnp.ravel)
 
+  def __deepcopy__(self, memodict={}):
+    return Quantity(self.value, dim=self.dim, unit=self.unit)
+
   def round(
       self,
       decimals: int = 0,
@@ -1969,7 +1973,7 @@ class Quantity(object):
 
   def copy(self) -> 'Quantity':
     """Return a copy of the quantity."""
-    return type(self)(jnp.copy(self.value), dim=self.dim)
+    return type(self)(jnp.copy(self.value), dim=self.dim, unit=self.unit)
 
   def dot(self, b) -> 'Quantity':
     """Dot product of two arrays."""
