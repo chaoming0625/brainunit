@@ -1063,7 +1063,7 @@ class Quantity(object):
     # array value
     if isinstance(value, Quantity):
       self._dim = value.dim
-      self._unit = Unit(1, dim=value.dim, name=repr(value.dim), dispname=str(value.dim)) if unit is None else unit
+      self._unit = Unit(1, dim=value.dim, name=repr(value.dim), dispname=str(value.dim), register=False) if unit is None else unit
       self._value = jnp.array(value.value, dtype=dtype)
       return
 
@@ -1087,7 +1087,7 @@ class Quantity(object):
 
     # unit
     if unit is None:
-      self._unit = Unit(1, dim=dim, name=repr(dim), dispname=str(dim))
+      self._unit = Unit(1, dim=dim, name=repr(dim), dispname=str(dim), register=False)
     else:
       self._unit = unit
 
@@ -1269,7 +1269,7 @@ class Quantity(object):
           return r[self]
         except KeyError:
           pass
-      return self.unit
+      return Quantity(1, dim=self.dim, unit=self.unit)
     else:
       return self.get_best_unit(standard_unit_register, user_unit_register, additional_unit_register)
 
@@ -1604,7 +1604,6 @@ class Quantity(object):
     """
     other = _to_quantity(other)
     other_dim = None
-    other_unit = None
 
     if fail_for_mismatch:
       if inplace:
@@ -1617,11 +1616,18 @@ class Quantity(object):
     if other_dim is None:
       other_dim = get_dim(other)
 
-    if other_unit is None:
-      other_unit = get_unit(other)
+
+    other_unit = get_unit(other) if other_dim != DIMENSIONLESS else None
 
     new_dim = unit_operation(self.dim, other_dim)
-    new_unit = unit_operation(self.unit, other_unit) if self.unit is not None else other_unit
+    if self.dim != DIMENSIONLESS and other_dim != DIMENSIONLESS:
+      new_unit = unit_operation(self.unit, other_unit)
+    elif self.dim != DIMENSIONLESS:
+      new_unit = self.unit
+    elif other_dim != DIMENSIONLESS:
+      new_unit = other_unit
+    else:
+      new_unit = Unit(1, dim=new_dim, register=False)
     result = value_operation(self.value, other.value)
     r = Quantity(result, dim=new_dim, unit=Unit(1, dim=new_unit.dim, name=new_unit.name, dispname=new_unit.dispname))
 
