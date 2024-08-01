@@ -898,8 +898,8 @@ def float_power(
 
 @unit_change(lambda x, y: x * y)
 def dot(
-    a: Union[jax.Array, Quantity],
-    b: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
+    b: Union[jax.typing.ArrayLike, Quantity],
     *,
     precision: Any = None,
     preferred_element_type: Optional[jax.typing.DTypeLike] = None
@@ -1028,8 +1028,8 @@ def multi_dot(
 
 @unit_change(lambda ux, uy: ux * uy)
 def vdot(
-    a: Union[jax.Array, Quantity],
-    b: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
+    b: Union[jax.typing.ArrayLike, Quantity],
     *,
     precision: Any = None,
     preferred_element_type: Optional[jax.typing.DTypeLike] = None
@@ -1121,8 +1121,8 @@ def vecdot(
 
 @unit_change(lambda x, y: x * y)
 def inner(
-    a: Union[jax.Array, Quantity],
-    b: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
+    b: Union[jax.typing.ArrayLike, Quantity],
     *,
     precision: jax.lax.PrecisionLike = None,
     preferred_element_type: Optional[jax.typing.DTypeLike] = None
@@ -1161,8 +1161,8 @@ def inner(
 
 @unit_change(lambda x, y: x * y)
 def outer(
-    a: Union[jax.Array, Quantity],
-    b: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
+    b: Union[jax.typing.ArrayLike, Quantity],
     out: Optional[Any] = None
 ) -> Union[jax.Array, Quantity]:
   """
@@ -1194,8 +1194,8 @@ def outer(
 
 @unit_change(lambda x, y: x * y)
 def kron(
-    a: Union[jax.Array, Quantity],
-    b: Union[jax.Array, Quantity]
+    a: Union[jax.typing.ArrayLike, Quantity],
+    b: Union[jax.typing.ArrayLike, Quantity]
 ) -> Union[jax.Array, Quantity]:
   """
   Compute the Kronecker product of two arrays or quantities.
@@ -1221,8 +1221,8 @@ def kron(
 
 @unit_change(lambda x, y: x * y)
 def matmul(
-    a: Union[jax.Array, Quantity],
-    b: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
+    b: Union[jax.typing.ArrayLike, Quantity],
     *,
     precision: Any = None,
     preferred_element_type: Optional[jax.typing.DTypeLike] = None

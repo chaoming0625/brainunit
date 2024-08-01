@@ -196,7 +196,7 @@ def exp2(
 
 @set_module_as('brainunit.math')
 def expm1(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -219,7 +219,7 @@ def expm1(
 
 @set_module_as('brainunit.math')
 def log(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -242,7 +242,7 @@ def log(
 
 @set_module_as('brainunit.math')
 def log10(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -265,7 +265,7 @@ def log10(
 
 @set_module_as('brainunit.math')
 def log1p(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -288,7 +288,7 @@ def log1p(
 
 @set_module_as('brainunit.math')
 def log2(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -311,7 +311,7 @@ def log2(
 
 @set_module_as('brainunit.math')
 def arccos(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -334,7 +334,7 @@ def arccos(
 
 @set_module_as('brainunit.math')
 def arccosh(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -357,7 +357,7 @@ def arccosh(
 
 @set_module_as('brainunit.math')
 def arcsin(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -380,7 +380,7 @@ def arcsin(
 
 @set_module_as('brainunit.math')
 def arcsinh(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -403,7 +403,7 @@ def arcsinh(
 
 @set_module_as('brainunit.math')
 def arctan(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -426,7 +426,7 @@ def arctan(
 
 @set_module_as('brainunit.math')
 def arctanh(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -449,7 +449,7 @@ def arctanh(
 
 @set_module_as('brainunit.math')
 def cos(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -472,7 +472,7 @@ def cos(
 
 @set_module_as('brainunit.math')
 def cosh(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -495,7 +495,7 @@ def cosh(
 
 @set_module_as('brainunit.math')
 def sin(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -518,7 +518,7 @@ def sin(
 
 @set_module_as('brainunit.math')
 def sinc(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -541,7 +541,7 @@ def sinc(
 
 @set_module_as('brainunit.math')
 def sinh(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -564,7 +564,7 @@ def sinh(
 
 @set_module_as('brainunit.math')
 def tan(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -587,7 +587,7 @@ def tan(
 
 @set_module_as('brainunit.math')
 def tanh(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -610,7 +610,7 @@ def tanh(
 
 @set_module_as('brainunit.math')
 def deg2rad(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -633,7 +633,7 @@ def deg2rad(
 
 @set_module_as('brainunit.math')
 def rad2deg(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -656,7 +656,7 @@ def rad2deg(
 
 @set_module_as('brainunit.math')
 def degrees(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -679,7 +679,7 @@ def degrees(
 
 @set_module_as('brainunit.math')
 def radians(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -702,7 +702,7 @@ def radians(
 
 @set_module_as('brainunit.math')
 def angle(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -1031,8 +1031,8 @@ def _fun_accept_unitless_binary(
 
 @set_module_as('brainunit.math')
 def hypot(
-    x: Union[jax.Array, Quantity],
-    y: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
+    y: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -1055,8 +1055,8 @@ def hypot(
 
 @set_module_as('brainunit.math')
 def arctan2(
-    x: Union[jax.Array, Quantity],
-    y: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
+    y: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -1079,8 +1079,8 @@ def arctan2(
 
 @set_module_as('brainunit.math')
 def logaddexp(
-    x: Union[jax.Array, Quantity],
-    y: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
+    y: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -1103,8 +1103,8 @@ def logaddexp(
 
 @set_module_as('brainunit.math')
 def logaddexp2(
-    x: Union[jax.Array, Quantity],
-    y: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
+    y: Union[jax.typing.ArrayLike, Quantity],
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
@@ -1127,8 +1127,8 @@ def logaddexp2(
 
 @set_module_as('brainunit.math')
 def corrcoef(
-    x: Union[jax.Array, Quantity],
-    y: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
+    y: Union[jax.typing.ArrayLike, Quantity],
     rowvar: bool = True,
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
@@ -1170,8 +1170,8 @@ def corrcoef(
 
 @set_module_as('brainunit.math')
 def correlate(
-    a: Union[jax.Array, Quantity],
-    v: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
+    v: Union[jax.typing.ArrayLike, Quantity],
     mode: str = 'valid',
     *,
     precision: Any = None,
@@ -1224,8 +1224,8 @@ def correlate(
 
 @set_module_as('brainunit.math')
 def cov(
-    m: Union[jax.Array, Quantity],
-    y: Optional[Union[jax.Array, Quantity]] = None,
+    m: Union[jax.typing.ArrayLike, Quantity],
+    y: Optional[Union[jax.typing.ArrayLike, Quantity]] = None,
     rowvar: bool = True,
     bias: bool = False,
     ddof: Optional[int] = None,
