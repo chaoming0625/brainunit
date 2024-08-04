@@ -62,7 +62,6 @@ inf = np.inf
 nan = np.nan
 euler_gamma = np.euler_gamma
 
-
 # data types
 # ----------
 dtype = jnp.dtype
