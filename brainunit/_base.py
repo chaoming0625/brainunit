@@ -38,6 +38,7 @@ __all__ = [
   'DimensionMismatchError',
   'is_unitless',
   'display_in_unit',
+  'get_dim',
 
   # functions for checking
   'check_units',
