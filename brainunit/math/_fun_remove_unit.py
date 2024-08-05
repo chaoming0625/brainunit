@@ -77,7 +77,7 @@ def heaviside(
 
 
 @set_module_as('brainunit.math')
-def signbit(x: Union[jax.Array, Quantity]) -> jax.Array:
+def signbit(x: Union[jax.typing.ArrayLike, Quantity]) -> jax.Array:
   """
   Returns element-wise True where signbit is set (less than zero).
 
@@ -96,7 +96,7 @@ def signbit(x: Union[jax.Array, Quantity]) -> jax.Array:
 
 
 @set_module_as('brainunit.math')
-def sign(x: Union[jax.Array, Quantity]) -> jax.Array:
+def sign(x: Union[jax.typing.ArrayLike, Quantity]) -> jax.Array:
   """
   Returns the sign of each element in the input array.
 
@@ -116,7 +116,7 @@ def sign(x: Union[jax.Array, Quantity]) -> jax.Array:
 
 @set_module_as('brainunit.math')
 def bincount(
-    x: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
     weights: Optional[jax.typing.ArrayLike] = None,
     minlength: int = 0,
     *,
@@ -154,8 +154,8 @@ def bincount(
 
 @set_module_as('brainunit.math')
 def digitize(
-    x: Union[jax.Array, Quantity],
-    bins: Union[jax.Array, Quantity],
+    x: Union[jax.typing.ArrayLike, Quantity],
+    bins: Union[jax.typing.ArrayLike, Quantity],
     right: bool = False
 ) -> jax.Array:
   """
@@ -882,7 +882,7 @@ def logical_xor(
 
 @set_module_as('brainunit.math')
 def argsort(
-    a: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
     axis: Optional[int] = -1,
     *,
     kind: None = None,
@@ -926,7 +926,7 @@ def argsort(
 
 @set_module_as('brainunit.math')
 def argmax(
-    a: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
     axis: Optional[int] = None,
 ) -> jax.Array:
   """
@@ -952,7 +952,7 @@ def argmax(
 
 @set_module_as('brainunit.math')
 def argmin(
-    a: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
     axis: Optional[int] = None,
     keepdims: Optional[bool] = None
 ) -> jax.Array:
@@ -1046,7 +1046,7 @@ def nanargmin(
 
 @set_module_as('brainunit.math')
 def argwhere(
-    a: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
     *,
     size: Optional[int] = None,
     fill_value: Optional[jax.typing.ArrayLike] = None,
@@ -1074,7 +1074,7 @@ def argwhere(
 
 @set_module_as('brainunit.math')
 def nonzero(
-    a: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
     *,
     size: Optional[int] = None,
     fill_value: Optional[jax.typing.ArrayLike] = None,
@@ -1103,7 +1103,7 @@ def nonzero(
 
 @set_module_as('brainunit.math')
 def flatnonzero(
-    a: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
     *,
     size: Optional[int] = None,
     fill_value: Optional[jax.typing.ArrayLike] = None,
@@ -1131,7 +1131,7 @@ def flatnonzero(
 
 @set_module_as('brainunit.math')
 def count_nonzero(
-    a: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
     axis: Optional[int] = None,
     keepdims: Optional[bool] = None
 ) -> jax.Array:
@@ -1158,8 +1158,8 @@ def count_nonzero(
 
 @set_module_as('brainunit.math')
 def searchsorted(
-    a: Union[jax.Array, Quantity],
-    v: Union[jax.Array, Quantity],
+    a: Union[jax.typing.ArrayLike, Quantity],
+    v: Union[jax.typing.ArrayLike, Quantity],
     side: str = 'left',
     sorter: Optional[jax.Array] = None,
     *,

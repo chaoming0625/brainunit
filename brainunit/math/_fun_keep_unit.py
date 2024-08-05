@@ -84,7 +84,7 @@ def _fun_keep_unit_sequence(
 
 @set_module_as('brainunit.math')
 def concatenate(
-    arrays: Union[Sequence[jax.Array], Sequence[Quantity]],
+    arrays: Union[Sequence[jax.typing.ArrayLike], Sequence[Quantity]],
     axis: Optional[int] = None,
     dtype: Optional[jax.typing.DTypeLike] = None
 ) -> Union[jax.Array, Quantity]:
@@ -113,7 +113,7 @@ def concatenate(
 
 @set_module_as('brainunit.math')
 def stack(
-    arrays: Union[Sequence[jax.Array], Sequence[Quantity]],
+    arrays: Union[Sequence[jax.typing.ArrayLike], Sequence[Quantity]],
     axis: int = 0,
     dtype: Optional[jax.typing.DTypeLike] = None
 ) -> Union[jax.Array, Quantity]:
@@ -140,7 +140,7 @@ def stack(
 
 @set_module_as('brainunit.math')
 def vstack(
-    tup: Union[Sequence[jax.Array], Sequence[Quantity]],
+    tup: Union[Sequence[jax.typing.ArrayLike], Sequence[Quantity]],
     dtype: Optional[jax.typing.DTypeLike] = None
 ) -> Union[jax.Array, Quantity]:
   """
@@ -167,7 +167,7 @@ row_stack = vstack
 
 @set_module_as('brainunit.math')
 def hstack(
-    arrays: Union[Sequence[jax.Array], Sequence[Quantity]],
+    arrays: Union[Sequence[jax.typing.ArrayLike], Sequence[Quantity]],
     dtype: Optional[jax.typing.DTypeLike] = None
 ) -> Union[jax.Array, Quantity]:
   """
@@ -191,7 +191,7 @@ def hstack(
 
 @set_module_as('brainunit.math')
 def dstack(
-    arrays: Union[Sequence[jax.Array], Sequence[Quantity]],
+    arrays: Union[Sequence[jax.typing.ArrayLike], Sequence[Quantity]],
     dtype: Optional[jax.typing.DTypeLike] = None
 ) -> Union[jax.Array, Quantity]:
   """
@@ -215,7 +215,7 @@ def dstack(
 
 @set_module_as('brainunit.math')
 def column_stack(
-    tup: Union[Sequence[jax.Array], Sequence[Quantity]]
+    tup: Union[Sequence[jax.typing.ArrayLike], Sequence[Quantity]]
 ) -> Union[jax.Array, Quantity]:
   """
   Stack 1-D arrays as columns into a 2-D array.
@@ -2571,7 +2571,7 @@ def _fun_keep_unit_binary(func, x1, x2, *args, **kwargs):
 
 
 @set_module_as('brainunit.math')
-def fmod(x1: Union[Quantity, jax.Array],
+def fmod(x1: Union[Quantity, jax.typing.ArrayLike],
          x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
   """
   Return the element-wise remainder of division.
@@ -2592,7 +2592,7 @@ def fmod(x1: Union[Quantity, jax.Array],
 
 
 @set_module_as('brainunit.math')
-def mod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def mod(x1: Union[Quantity, jax.typing.ArrayLike], x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
   """
   Return the element-wise modulus of division.
 
@@ -2613,8 +2613,8 @@ def mod(x1: Union[Quantity, jax.Array], x2: Union[Quantity, jax.Array]) -> Union
 
 @set_module_as('brainunit.math')
 def copysign(
-    x1: Union[Quantity, jax.Array],
-    x2: Union[Quantity, jax.Array]
+    x1: Union[Quantity, jax.typing.ArrayLike],
+    x2: Union[Quantity, jax.typing.ArrayLike],
 ) -> Union[Quantity, jax.Array]:
   """
   Return a copy of the first array elements with the sign of the second array.
@@ -2637,8 +2637,8 @@ def copysign(
 
 @set_module_as('brainunit.math')
 def maximum(
-    x1: Union[Quantity, jax.Array],
-    x2: Union[Quantity, jax.Array]
+    x1: Union[Quantity, jax.typing.ArrayLike],
+    x2: Union[Quantity, jax.typing.ArrayLike],
 ) -> Union[Quantity, jax.Array]:
   """
   Element-wise maximum of array elements.
@@ -2659,8 +2659,10 @@ def maximum(
 
 
 @set_module_as('brainunit.math')
-def minimum(x1: Union[Quantity, jax.Array],
-            x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def minimum(
+    x1: Union[Quantity, jax.typing.ArrayLike],
+    x2: Union[Quantity, jax.typing.ArrayLike],
+) -> Union[Quantity, jax.Array]:
   """
   Element-wise minimum of array elements.
 
@@ -2680,8 +2682,10 @@ def minimum(x1: Union[Quantity, jax.Array],
 
 
 @set_module_as('brainunit.math')
-def fmax(x1: Union[Quantity, jax.Array],
-         x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def fmax(
+    x1: Union[Quantity, jax.typing.ArrayLike],
+    x2: Union[Quantity, jax.typing.ArrayLike],
+) -> Union[Quantity, jax.Array]:
   """
   Element-wise maximum of array elements ignoring NaNs.
 
@@ -2701,8 +2705,10 @@ def fmax(x1: Union[Quantity, jax.Array],
 
 
 @set_module_as('brainunit.math')
-def fmin(x1: Union[Quantity, jax.Array],
-         x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def fmin(
+    x1: Union[Quantity, jax.typing.ArrayLike],
+    x2: Union[Quantity, jax.typing.ArrayLike],
+) -> Union[Quantity, jax.Array]:
   """
   Element-wise minimum of array elements ignoring NaNs.
 
@@ -2722,8 +2728,10 @@ def fmin(x1: Union[Quantity, jax.Array],
 
 
 @set_module_as('brainunit.math')
-def lcm(x1: Union[Quantity, jax.Array],
-        x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def lcm(
+    x1: Union[Quantity, jax.typing.ArrayLike],
+    x2: Union[Quantity, jax.typing.ArrayLike],
+) -> Union[Quantity, jax.Array]:
   """
   Return the least common multiple of `x1` and `x2`.
 
@@ -2743,8 +2751,8 @@ def lcm(x1: Union[Quantity, jax.Array],
 
 
 @set_module_as('brainunit.math')
-def gcd(x1: Union[Quantity, jax.Array],
-        x2: Union[Quantity, jax.Array]) -> Union[Quantity, jax.Array]:
+def gcd(x1: Union[Quantity, jax.typing.ArrayLike],
+        x2: Union[Quantity, jax.typing.ArrayLike], ) -> Union[Quantity, jax.Array]:
   """
   Return the greatest common divisor of `x1` and `x2`.
 
@@ -2765,8 +2773,8 @@ def gcd(x1: Union[Quantity, jax.Array],
 
 @set_module_as('brainunit.math')
 def add(
-    x: Union[Quantity, jax.Array],
-    y: Union[Quantity, jax.Array],
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike],
 ) -> Union[Quantity, jax.Array]:
   """
   Add arguments element-wise.
@@ -2789,8 +2797,8 @@ def add(
 
 @set_module_as('brainunit.math')
 def subtract(
-    x: Union[Quantity, jax.Array],
-    y: Union[Quantity, jax.Array],
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike],
 ) -> Union[Quantity, jax.Array]:
   """
   subtract(x1, x2, /, out=None, *, where=True, casting='same_kind',
@@ -2849,8 +2857,8 @@ def remainder(
 
 @set_module_as('brainunit.math')
 def nextafter(
-    x: Union[Quantity, jax.Array],
-    y: Union[Quantity, jax.Array],
+    x: Union[Quantity, jax.typing.ArrayLike],
+    y: Union[Quantity, jax.typing.ArrayLike],
 ) -> Union[Quantity, jax.Array]:
   """
   nextafter(x, y, /, out=None, *, where=True, casting='same_kind',

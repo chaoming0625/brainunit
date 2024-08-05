@@ -862,8 +862,7 @@ def _sum_repeats(operand, names, counts, keep_names, preferred_element_type):
 
 
 def _filter_singleton_dims(operand, names, other_shape, other_names):
-  eq = jax.core.definitely_equal
-  keep = [not eq(operand.shape[i], 1) or j == -1 or eq(other_shape[j], 1)
+  keep = [not (operand.shape[i] == 1) or j == -1 or (other_shape[j] == 1)
           for i, j in enumerate(map(other_names.find, names))]
   sqez_axes, keep_axes = _partition_list(keep, list(range(operand.ndim)))
   return squeeze(operand, sqez_axes), "".join(names[i] for i in keep_axes)
