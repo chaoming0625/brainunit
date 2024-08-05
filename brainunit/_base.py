@@ -1807,7 +1807,7 @@ class Quantity:
     Returns:
       bool: True if the array does not have unit.
     """
-    return (self.unit is UNITLESS) or self.unit.is_unitless
+    return self.unit.is_unitless
 
   def has_same_unit(self, other):
     """
@@ -2451,7 +2451,7 @@ class Quantity:
     """Copy an element of an array to a standard Python scalar and return it."""
     return Quantity(self._value.item(*args), unit=self.unit)
 
-  def prod(self, *args, **kwds) -> 'Quantity':
+  def prod(self, *args, **kwds) -> 'Quantity':  # TODO: check error when axis is not None
     """Return the product of the array elements over the given axis."""
     prod_res = jnp.prod(self._value, *args, **kwds)
     # Calculating the correct dimensions is not completly trivial (e.g.
@@ -2470,7 +2470,7 @@ class Quantity:
     r = Quantity(jnp.array(prod_res), unit=self.unit ** dim_exponent)
     return remove_unitless(r)
 
-  def nanprod(self, *args, **kwds) -> 'Quantity':
+  def nanprod(self, *args, **kwds) -> 'Quantity':  # TODO: check error when axis is not None
     """Return the product of array elements over a given axis treating Not a Numbers (NaNs) as ones."""
     prod_res = jnp.nanprod(self._value, *args, **kwds)
     nan_mask = jnp.isnan(self._value)
@@ -2480,7 +2480,7 @@ class Quantity:
     r = Quantity(jnp.array(prod_res), unit=self.unit ** dim_exponent)
     return remove_unitless(r)
 
-  def cumprod(self, *args, **kwds):  # pylint: disable=C0111
+  def cumprod(self, *args, **kwds):  # TODO: check error when axis is not None
     prod_res = jnp.cumprod(self._value, *args, **kwds)
     dim_exponent = jnp.ones_like(self._value).cumsum(*args, **kwds)
     if dim_exponent.size > 1:
@@ -2488,7 +2488,7 @@ class Quantity:
     r = Quantity(jnp.array(prod_res), unit=self.unit ** dim_exponent)
     return remove_unitless(r)
 
-  def nancumprod(self, *args, **kwds):  # pylint: disable=C0111
+  def nancumprod(self, *args, **kwds):  # TODO: check error when axis is not None
     prod_res = jnp.nancumprod(self._value, *args, **kwds)
     nan_mask = jnp.isnan(self._value)
     dim_exponent = jnp.cumsum(jnp.where(nan_mask, 0, 1), *args)
