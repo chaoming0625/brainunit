@@ -604,8 +604,11 @@ def asarray(
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
     if dim != DIMENSIONLESS:
-      fail_for_dimension_mismatch(Unit(1., dim, register=False), unit,
-                                  error_message="a and unit have to have the same units.")
+      fail_for_dimension_mismatch(
+        Unit(dim),
+        unit,
+        error_message="a and unit have to have the same units."
+      )
 
   # compute
   r = jnp.asarray(a, dtype=dtype, order=order)

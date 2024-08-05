@@ -45,7 +45,7 @@ __all__ = [
 
 def _fun_remove_unit_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
-    return func(x.value, *args, **kwargs)
+    return func(x._value, *args, **kwargs)
   else:
     return func(x, *args, **kwargs)
 

@@ -37,10 +37,9 @@ from brainunit._base import (
   fail_for_dimension_mismatch,
   get_or_create_dimension,
   get_dim,
-  get_basic_unit,
-  have_same_unit,
-  in_unit,
-  is_scalar_type, in_best_unit,
+  have_same_dim,
+  display_in_unit,
+  is_scalar_type,
 )
 # from braincore.math import ufuncs_integers
 from brainunit._unit_shortcuts import Hz, cm, kHz, ms, mV, nS
@@ -63,7 +62,7 @@ def assert_allclose(actual, desired, rtol=4.5e8, atol=0, **kwds):
   atol : float, optional
       The absolute tolerance
   """
-  assert have_same_unit(actual, desired)
+  assert have_same_dim(actual, desired)
   eps = jnp.finfo(np.float32).eps
   rtol = eps * rtol
   jnp.allclose(
@@ -77,7 +76,7 @@ def assert_quantity(q, values, unit=None):
     assert jnp.allclose(q, values), f"Values do not match: {q.value} != {values}"
     return
   else:
-    assert have_same_unit(q.dim, unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
+    assert have_same_dim(q.dim, unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
     if not jnp.allclose(q.value, values):
       raise AssertionError(f"Values do not match: {q.value} != {values}")
 
@@ -109,11 +108,11 @@ def test_construction():
 
   # dimensionless quantities
   q = Quantity([1, 2, 3])
-  assert_quantity(q, np.array([1, 2, 3]), Unit(1))
+  assert_quantity(q, np.array([1, 2, 3]), Unit())
   q = Quantity(np.array([1, 2, 3]))
-  assert_quantity(q, np.array([1, 2, 3]), Unit(1))
+  assert_quantity(q, np.array([1, 2, 3]), Unit())
   q = Quantity([])
-  assert_quantity(q, np.array([]), Unit(1))
+  assert_quantity(q, np.array([]), Unit())
 
   # Illegal constructor calls
   with pytest.raises(TypeError):
@@ -163,10 +162,10 @@ def test_display():
   Test displaying a Array in different units
   """
 
-  assert_equal(in_unit(3. * volt, mvolt), "3000. mV")
-  assert_equal(in_unit(10. * mV, ohm * amp), "0.01 ohm * A")
+  assert_equal(display_in_unit(3. * volt, mvolt), "3000. mV")
+  assert_equal(display_in_unit(10. * mV, ohm * amp), "0.01 ohm * A")
   with pytest.raises(DimensionMismatchError):
-    in_unit(10 * nS, ohm)
+    display_in_unit(10 * nS, ohm)
     # with bst.environ.context(precision=32):
     #   assert_equal(in_unit(3. * volt, mvolt), "3000. mV")
     #   assert_equal(in_unit(10. * mV, ohm * amp), "0.01 ohm * A")
@@ -174,7 +173,7 @@ def test_display():
     #     in_unit(10 * nS, ohm)
 
     # A bit artificial...
-    assert_equal(in_unit(10.0, Unit(10.0, scale=1)), "1.0")
+    assert_equal(display_in_unit(10.0, Unit(scale=1)), "1.0")
 
 
 def test_unary_operations():
@@ -1028,14 +1027,14 @@ def test_special_case_numpy_functions():
   )
 
   # Check for correct units
-  assert have_same_unit(quadratic_matrix, ravel(quadratic_matrix))
-  assert have_same_unit(quadratic_matrix, trace(quadratic_matrix))
-  assert have_same_unit(quadratic_matrix, diagonal(quadratic_matrix))
-  assert have_same_unit(
+  assert have_same_dim(quadratic_matrix, ravel(quadratic_matrix))
+  assert have_same_dim(quadratic_matrix, trace(quadratic_matrix))
+  assert have_same_dim(quadratic_matrix, diagonal(quadratic_matrix))
+  assert have_same_dim(
     quadratic_matrix[0] ** 2,
     dot(quadratic_matrix, quadratic_matrix)
   )
-  assert have_same_unit(
+  assert have_same_dim(
     quadratic_matrix.prod(axis=0),
     quadratic_matrix[0] ** quadratic_matrix.shape[0]
   )
@@ -1169,7 +1168,7 @@ def test_list():
   for value in values:
     l = value.tolist()
     from_list = Quantity(l)
-    assert have_same_unit(from_list, value)
+    assert have_same_dim(from_list, value)
     assert_allclose(from_list.value, value.value)
 
 
@@ -1237,57 +1236,6 @@ def test_check_units():
     c_function(1 * mV, 1)
   with pytest.raises(TypeError):
     c_function(False, 1)
-
-
-def test_get_basic_unit():
-  """
-  Test get_unit
-  """
-  values = [
-    (volt.dim, volt),
-    (mV.dim, volt),
-    ((amp / metre ** 2).dim, amp / metre ** 2),
-  ]
-  for unit, expected_unit in values:
-    unit = get_basic_unit(unit)
-    assert isinstance(unit, Unit)
-    assert unit == expected_unit
-    assert float(unit.value) == 1.0
-
-
-def test_get_best_unit():
-  # get_best_unit should not check all values for long arrays, since it is
-  # a function used for display purposes only. Instead, only the first and
-  # last few values should matter (see github issue #966)
-  long_ar = np.ones(10000) * siemens
-  long_ar[:10] = 1 * nS
-  long_ar[-10:] = 2 * nS
-  values = [
-    # (np.arange(10) * mV, mV),
-    # ([0.001, 0.002, 0.003] * second, ms),
-    (long_ar, nS),
-  ]
-  for ar, expected_unit in values:
-    assert ar.get_best_unit() is expected_unit
-    assert str(expected_unit) in ar.repr_in_best_unit()
-
-
-def test_switching_off_unit_checks():
-  """
-  Check switching off unit checks (used for external functions).
-  """
-  from brainunit._base import turn_off_unit_checking
-
-  x = 3 * second
-  y = 5 * volt
-  with pytest.raises(DimensionMismatchError):
-    x + y
-
-  with turn_off_unit_checking():
-    # Now it should work
-    assert (x + y).value == np.array(8)
-    assert have_same_unit(x, y)
-    assert x.has_same_unit(y)
 
 
 def test_fail_for_dimension_mismatch():
@@ -1444,7 +1392,7 @@ def test_jit_array():
   @jax.jit
   def f3(a):
     b = a * bu.siemens / bu.cm ** 2
-    print(in_unit(b, bu.siemens / bu.meter ** 2))
+    print(display_in_unit(b, bu.siemens / bu.meter ** 2))
     return b
 
   val = np.random.rand(3)
@@ -1473,133 +1421,3 @@ def test_jit_array2():
 
   f(a)
 
-
-def test_set_default_magnitude_1():
-  bu.set_default_magnitude(-3)
-  # from brainunit import second, ms
-  q1 = 3 * bu.second
-  q2 = 3 * bu.ms
-
-  assert q1.to_value() == 3e3
-  assert q2.to_value() == 3.
-
-  bu.set_default_magnitude(0)
-  # from brainunit import second, ms
-  q1 = 3 * bu.second
-  q2 = 3 * bu.ms
-  assert q1.to_value() == 3.
-  assert q2.to_value() == 3e-3
-
-  bu.set_default_magnitude(3)
-  # from brainunit import second, ms
-  q1 = 3 * bu.second
-  q2 = 3 * bu.ms
-  assert q1.to_value() == 3e-3
-  assert q2.to_value() == 3e-6
-
-  bu.set_default_magnitude(0)
-
-
-def test_set_default_magnitude_2():
-  bu.set_default_magnitude(-3)
-  # from brainunit import second, ms, meter, kmeter
-  q1 = 3 * bu.second * bu.meter
-  q2 = 3 * bu.ms * bu.kmeter
-
-  value = str(q1)
-
-  assert q1.to_value() == 3e6
-  assert q2.to_value() == 3e6
-
-  bu.set_default_magnitude(0)
-  # from brainunit import second, ms, meter, kmeter
-  q1 = 3 * bu.second * bu.meter
-  q2 = 3 * bu.ms * bu.kmeter
-  assert q1.to_value() == 3.
-  assert q2.to_value() == 3.
-
-  bu.set_default_magnitude(3)
-  # from brainunit import second, ms, meter, kmeter
-  q1 = 3 * bu.second * bu.meter
-  q2 = 3 * bu.ms * bu.kmeter
-  assert q1.to_value() == 3e-6
-  assert q2.to_value() == 3e-6
-
-  bu.set_default_magnitude(0)
-
-
-def test_set_default_magnitude_3():
-  bu.set_default_magnitude({'s': 'm'})
-  from brainunit import second, ms, meter, kmeter
-  q1 = 3 * bu.second * bu.meter
-  q2 = 3 * bu.ms * bu.kmeter
-
-  assert q1.to_value() == 3e3
-  assert q2.to_value() == 3e3
-
-  bu.set_default_magnitude(0)
-  # from brainunit import second, ms, meter, kmeter
-  q1 = 3 * bu.second * bu.meter
-  q2 = 3 * bu.ms * bu.kmeter
-  assert q1.to_value() == 3.
-  assert q2.to_value() == 3.
-
-  bu.set_default_magnitude({'s': 3})
-  # from brainunit import second, ms, meter, kmeter
-  q1 = 3 * bu.second * bu.meter
-  q2 = 3 * bu.ms * bu.kmeter
-  assert q1.to_value() == 3e-3
-  assert q2.to_value() == 3e-3
-
-  bu.set_default_magnitude(0)
-
-
-def test_set_default_magnitude_4():
-  # volt: m=2, kg=1, s=-3, A=-1
-  bu.set_default_magnitude(-3)
-  # from brainunit import volt, mV
-  q1 = 3 * bu.volt
-  q2 = 3 * bu.mV
-
-  assert q1.to_value() == 3e-3
-  assert q2.to_value() == 3e-6
-
-  bu.set_default_magnitude(0)
-  # from brainunit import volt, mV
-  q1 = 3 * bu.volt
-  q2 = 3 * bu.mV
-  assert q1.to_value() == 3.
-  assert q2.to_value() == 3e-3
-
-  bu.set_default_magnitude(3)
-  # from brainunit import volt, mV
-  q1 = 3 * bu.volt
-  q2 = 3 * bu.mV
-  assert q1.to_value() == 3e3
-  assert q2.to_value() == 3
-
-  bu.set_default_magnitude(0)
-
-# def test_set_default_magnitude_5():
-#   # volt: m=2, kg=1, s=-3, A=-1 --> (if set to milivolt) _default_magnitude = {'m': -1.5, 'kg': -3, 's': -1, 'A': -3} (WRONG!)
-#   bu.set_default_magnitude(-3, unit=bu.volt)
-#   from brainunit import volt, mV
-#   q1 = 3 * volt
-#   q2 = 3 * mV
-#
-#   assert q1.to_value() == 3e3
-#   assert q2.to_value() == 3
-#
-#   bu.set_default_magnitude(0)
-#   from brainunit import volt, mV
-#   q1 = 3 * volt
-#   q2 = 3 * mV
-#   assert q1.to_value() == 3.
-#   assert q2.to_value() == 3e-3
-#
-#   bu.set_default_magnitude(3)
-#   from brainunit import volt, mV
-#   q1 = 3 * volt
-#   q2 = 3 * mV
-#   assert q1.to_value() == 3e-3
-#   assert q2.to_value() == 3e-6

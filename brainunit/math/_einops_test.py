@@ -353,7 +353,7 @@ def assert_quantity(q, values, unit=None):
     assert jnp.allclose(q, values), f"Values do not match: {q.value} != {values}"
     return
   else:
-    assert bu.have_same_unit(q.dim, unit), f"Dimension mismatch: ({q}) ({unit})"
+    assert bu.have_same_dim(q.dim, unit), f"Dimension mismatch: ({q}) ({unit})"
     if not jnp.allclose(q.value, values):
       raise AssertionError(f"Values do not match: {q.value} != {values}")
 
