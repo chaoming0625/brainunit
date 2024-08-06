@@ -18,6 +18,7 @@ from __future__ import annotations
 import numbers
 import operator
 from contextlib import contextmanager
+from copy import deepcopy
 from functools import wraps
 from typing import Union, Optional, Sequence, Callable, Tuple, Any, List, Dict
 
@@ -403,9 +404,6 @@ class Dimension:
 
   def __ne__(self, value):
     return not self.__eq__(value)
-
-  def __hash__(self):
-    return hash(self._dims)
 
   # MAKE DIMENSION PICKABLE #
   def __getstate__(self):
@@ -1259,8 +1257,15 @@ class Unit:
       iscompound=self.iscompound,
     )
 
-  def __deepcopy__(self, memodict={}):
-    return self.copy()
+  def __deepcopy__(self, memodict):
+    return Unit(
+      dim=self.dim.__deepcopy__(memodict),
+      scale=deepcopy(self.scale),
+      base=deepcopy(self.base),
+      name=self.name,
+      dispname=self.dispname,
+      iscompound=self.iscompound,
+    )
 
   def has_same_scale(self, other: 'Unit') -> bool:
     """
@@ -1548,9 +1553,6 @@ class Unit:
 
   def __neq__(self, other) -> bool:
     return not self.__eq__(other)
-
-  def __hash__(self):
-    return hash((self.dim, self.base, self.scale))
 
   def __reduce__(self):
     return _to_unit, (self.dim, self.scale, self.base, self.name, self.dispname, self.iscompound)
@@ -2369,7 +2371,7 @@ class Quantity:
   ravel = _wrap_function_keep_unit(jnp.ravel)
 
   def __deepcopy__(self, memodict: Dict):
-    return Quantity(self._value, unit=self.unit)
+    return Quantity(deepcopy(self._value), unit=self.unit.__deepcopy__(memodict))
 
   def round(
       self,
