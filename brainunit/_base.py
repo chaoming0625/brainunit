@@ -1596,10 +1596,10 @@ def _check_units_and_collect_values(lst) -> Tuple[jax.typing.ArrayLike, 'Unit']:
   values = []
 
   for item in lst:
-    if isinstance(item, list):
+    if isinstance(item, (list, tuple)):
       val, unit = _check_units_and_collect_values(item)
       values.append(val)
-      if unit is not None:
+      if unit != UNITLESS:
         units.append(unit)
     elif isinstance(item, Quantity):
       values.append(item._value)
@@ -1611,16 +1611,19 @@ def _check_units_and_collect_values(lst) -> Tuple[jax.typing.ArrayLike, 'Unit']:
       values.append(item)
       units.append(None)
 
-  if units:
+  if len(units):
     first_unit = units[0]
     if not all(unit == first_unit for unit in units):
       raise TypeError(f"All elements must have the same units, but got {units}")
+    if first_unit is None:
+      first_unit = UNITLESS
+      units = [UNITLESS] * len(units)
     return jnp.asarray(zoom_values_with_scales(values, units)), first_unit
   else:
     return jnp.asarray(values), UNITLESS
 
 
-def _process_list_with_units(value: List):
+def _process_list_with_units(value: List) -> Tuple[jax.typing.ArrayLike, 'Unit']:
   values, unit = _check_units_and_collect_values(value)
   return values, unit
 
@@ -2420,7 +2423,7 @@ class Quantity:
     """
     _, min = unit_scale_align_to_first(self, min)
     _, max = unit_scale_align_to_first(self, max)
-    return Quantity(jnp.clip(self._value, min._value, max._value), unit=self.unit, )
+    return Quantity(jnp.clip(self._value, min._value, max._value), unit=self.unit)
 
   def conj(self) -> 'Quantity':
     """Complex-conjugate all elements."""
