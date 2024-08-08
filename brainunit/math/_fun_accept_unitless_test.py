@@ -118,7 +118,7 @@ class TestFunAcceptUnitless(parameterized.TestCase):
       q1 = value1 * meter
       q2 = value2 * meter
       result = bm_fun(q1, q2, unit_to_scale=bu.dametre)
-      expected = jnp_fun(jnp.array(value1) / bu.dametre.value, jnp.array(value2) / bu.dametre.value)
+      expected = jnp_fun(jnp.array(value1) / bu.dametre.mantissa, jnp.array(value2) / bu.dametre.mantissa)
       assert_quantity(result, expected)
 
       with pytest.raises(AssertionError):
@@ -145,7 +145,7 @@ class TestFunAcceptUnitless(parameterized.TestCase):
 
       q1 = value1 * meter
       q2 = value2 * meter
-      result = bm_fun(q1.to_value(meter), jnp.array(value2))
+      result = bm_fun(q1.to_decimal_num(meter), jnp.array(value2))
       expected = jnp_fun(jnp.array(value1), jnp.array(value2))
       assert_quantity(result, expected)
 

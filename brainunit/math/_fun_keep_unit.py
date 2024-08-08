@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+
 from __future__ import annotations
 
 import functools
@@ -22,7 +23,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from ._fun_array_creation import asarray
-from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS
+from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS, fail_for_unit_mismatch, UNITLESS
 from .._misc import set_module_as
 
 __all__ = [
@@ -1228,7 +1229,7 @@ def diagflat(
 
 def _fun_keep_unit_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
-    return Quantity(func(x.value, *args, **kwargs), dim=x.dim)
+    return Quantity(func(x.mantissa, *args, **kwargs), unit=x.unit)
   else:
     return func(x, *args, **kwargs)
 
@@ -2558,14 +2559,14 @@ def nanquantile(
 
 def _fun_keep_unit_binary(func, x1, x2, *args, **kwargs):
   if isinstance(x1, Quantity) and isinstance(x2, Quantity):
-    fail_for_dimension_mismatch(x1, x2)
-    return Quantity(func(x1.value, x2.value, *args, **kwargs), dim=x1.dim)
+    fail_for_unit_mismatch(x1, x2)
+    return Quantity(func(x1.mantissa, x2.in_unit(x1.unit).mantissa, *args, **kwargs), unit=x1.unit)
   elif isinstance(x1, Quantity):
     assert x1.is_unitless, f'Expected unitless array when x2 is not Quantity, while got {x1}'
-    return func(x1.value, x2, *args, **kwargs)
+    return func(x1.mantissa, x2, *args, **kwargs)
   elif isinstance(x2, Quantity):
     assert x2.is_unitless, f'Expected unitless array when x1 is not Quantity, while got {x2}'
-    return func(x1, x2.value, *args, **kwargs)
+    return func(x1, x2.mantissa, *args, **kwargs)
   else:
     return func(x1, x2, *args, **kwargs)
 
@@ -3017,8 +3018,8 @@ def histogram(
   if range is not None:
     fail_for_dimension_mismatch(range[0], Quantity(0., dim=dim))
     fail_for_dimension_mismatch(range[1], Quantity(0., dim=dim))
-    range = (range[0].value if isinstance(range[0], Quantity) else range[0],
-             range[1].value if isinstance(range[1], Quantity) else range[1])
+    range = (range[0].mantissa if isinstance(range[0], Quantity) else range[0],
+             range[1].mantissa if isinstance(range[1], Quantity) else range[1])
   hist, bin_edges = jnp.histogram(x, bins, range=range, weights=weights, density=density)
   if dim == DIMENSIONLESS:
     return hist, bin_edges
@@ -3103,7 +3104,7 @@ def extract(
   if isinstance(arr, Quantity):
     if fill_value != 0:
       fail_for_dimension_mismatch(fill_value, arr)
-      fill_value = fill_value.value
+      fill_value = fill_value.mantissa
   else:
     if isinstance(fill_value, Quantity):
       assert fill_value.is_unitless, 'fill_value must be unitless when "a" is not a Quantity.'
@@ -3251,10 +3252,20 @@ def where(condition, x=None, y=None, /, *, size=None, fill_value=None):
   """
   assert not isinstance(condition, Quantity), "condition should not be a Quantity."
   if x is None and y is None:
+    assert not isinstance(fill_value, Quantity), "fill_value should not be a Quantity."
     return jnp.where(condition, size=size, fill_value=fill_value)
+
+  assert size is None and fill_value is None, "size and fill_value are only supported when x and y are not None."
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    fail_for_dimension_mismatch(x, y)
-    return Quantity(jnp.where(condition, x.value, y.value), dim=x.dim)
+    fail_for_unit_mismatch(x, y)
+    y = y.in_unit(x.unit)
+    return Quantity(jnp.where(condition, x.mantissa, y.mantissa), unit=x.unit)
+  elif isinstance(x, Quantity):
+    assert x.is_unitless, 'x must be unitless when y is not a Quantity.'
+    x = x.mantissa
+  elif isinstance(y, Quantity):
+    assert y.is_unitless, 'y must be unitless when x is not a Quantity.'
+    y = y.mantissa
   return jnp.where(condition, x, y)
 
 

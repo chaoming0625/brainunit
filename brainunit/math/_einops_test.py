@@ -350,12 +350,12 @@ def test_reduction_imperatives_booleans():
 def assert_quantity(q, values, unit=None):
   values = jnp.asarray(values)
   if unit is None:
-    assert jnp.allclose(q, values), f"Values do not match: {q.value} != {values}"
+    assert jnp.allclose(q, values), f"Values do not match: {q.mantissa} != {values}"
     return
   else:
     assert bu.have_same_dim(q.dim, unit), f"Dimension mismatch: ({q}) ({unit})"
-    if not jnp.allclose(q.value, values):
-      raise AssertionError(f"Values do not match: {q.value} != {values}")
+    if not jnp.allclose(q.mantissa, values):
+      raise AssertionError(f"Values do not match: {q.mantissa} != {values}")
 
 
 def test_einsum():

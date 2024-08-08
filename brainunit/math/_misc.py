@@ -408,7 +408,7 @@ def gradient(
     if unit is None or unit == DIMENSIONLESS:
       return jnp.gradient(f, varargs[0], axis=axis)
     else:
-      return [Quantity(r, dim=unit) for r in jnp.gradient(f.value, varargs[0].value, axis=axis)]
+      return [Quantity(r, dim=unit) for r in jnp.gradient(f.mantissa, varargs[0].mantissa, axis=axis)]
   else:
     unit_list = [get_dim(f) / get_dim(v) for v in varargs]
     f = f.value if isinstance(f, Quantity) else f

@@ -21,7 +21,7 @@ import jax
 import jax.numpy as jnp
 
 from ._fun_array_creation import asarray
-from .._base import (DIMENSIONLESS, Quantity, remove_unitless)
+from .._base import (DIMENSIONLESS, UNITLESS, Quantity, remove_unitless)
 from .._misc import set_module_as
 
 __all__ = [
@@ -517,15 +517,15 @@ cumproduct = cumprod
 def _fun_change_unit_binary(val_fun, unit_fun, x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
     return remove_unitless(
-      Quantity(val_fun(x.value, y.value, *args, **kwargs), dim=unit_fun(x.dim, y.dim))
+      Quantity(val_fun(x.mantissa, y.mantissa, *args, **kwargs), unit=unit_fun(x.unit, y.unit))
     )
   elif isinstance(x, Quantity):
     return remove_unitless(
-      Quantity(val_fun(x.value, y, *args, **kwargs), dim=unit_fun(x.dim, DIMENSIONLESS))
+      Quantity(val_fun(x.mantissa, y, *args, **kwargs), unit=unit_fun(x.unit, UNITLESS))
     )
   elif isinstance(y, Quantity):
     return remove_unitless(
-      Quantity(val_fun(x, y.value, *args, **kwargs), dim=unit_fun(DIMENSIONLESS, y.dim))
+      Quantity(val_fun(x, y.mantissa, *args, **kwargs), dim=unit_fun(UNITLESS, y.unit))
     )
   else:
     return val_fun(x, y, *args, **kwargs)

@@ -35,13 +35,15 @@ __all__ = [
   'Quantity',
 
   # helpers
-  'DIMENSIONLESS',
   'DimensionMismatchError',
+  'UnitMismatchError',
   'is_unitless',
   'display_in_unit',
   'get_dim',
+  'get_unit',
 
   # functions for checking
+  'check_dims',
   'check_units',
   'fail_for_dimension_mismatch',
   'fail_for_unit_mismatch',
@@ -56,7 +58,7 @@ def _to_quantity(array) -> 'Quantity':
   if isinstance(array, Quantity):
     return array
   else:
-    return Quantity(value=array)
+    return Quantity(array)
 
 
 def _assert_not_quantity(array):
@@ -85,7 +87,7 @@ def _short_str(arr):
   Return a short string representation of an array, suitable for use in
   error messages.
   """
-  arr = arr._value if isinstance(arr, Quantity) else arr
+  arr = arr._mantissa if isinstance(arr, Quantity) else arr
   if not isinstance(arr, (jax.core.Tracer, jax.core.ShapedArray, jax.ShapeDtypeStruct)):
     arr = np.asanyarray(arr)
   with change_printoption(edgeitems=2, threshold=5):
@@ -116,18 +118,18 @@ def get_dim_for_display(d):
 
 def assert_quantity(
     q: Union['Quantity', jax.typing.ArrayLike],
-    value: jax.typing.ArrayLike,
+    mantissa: jax.typing.ArrayLike,
     unit: 'Unit' = None
 ):
   """
-  Assert that a Quantity has a certain value and unit.
+  Assert that a Quantity has a certain mantissa and unit.
 
   Parameters
   ----------
   q : Quantity
       The Quantity to check.
-  value : array-like
-      The value to check.
+  mantissa : array-like
+      The mantissa to check.
   unit : Unit, optional
       The unit to check.
 
@@ -146,17 +148,18 @@ def assert_quantity(
   Traceback (most recent call last):
       ...
   """
-  value = jnp.asarray(value)
+  mantissa = jnp.asarray(mantissa)
   if unit is None:
     if isinstance(q, Quantity):
-      assert q.is_unitless, f"Expected a unitless array when 'unit' is not given, but got {q}"
-      q = q._value
-    assert jnp.allclose(q, value, equal_nan=True), f"Values do not match: {q} != {value}"
+      assert q.is_unitless, f"Expected a unitless quantity when 'unit' is not given, but got {q}"
+      q = q.mantissa
+    assert jnp.allclose(q, mantissa, equal_nan=True), f"Values do not match: {q} != {mantissa}"
   else:
-    q = Quantity(q)
+    assert isinstance(unit, Unit), f"Expected a Unit, but got {unit}."
+    q = _to_quantity(q)
     assert have_same_dim(get_dim(q), unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
-    if not jnp.allclose(q.to_value(unit), value, equal_nan=True):
-      raise AssertionError(f"Values do not match: {q.to_value(unit)} != {value}")
+    if not jnp.allclose(q.to_decimal_num(unit), mantissa, equal_nan=True):
+      raise AssertionError(f"Values do not match: {q.to_decimal_num(unit)} != {mantissa}")
 
 
 # SI dimensions (see table at the top of the file) and various descriptions,
@@ -383,16 +386,16 @@ class Dimension:
     return get_or_create_dimension([x * value for x in self._dims])
 
   def __imul__(self, value):
-    raise TypeError("Dimension object is immutable")
+    raise NotImplementedError("Dimension object is immutable")
 
   def __idiv__(self, value):
-    raise TypeError("Dimension object is immutable")
+    raise NotImplementedError("Dimension object is immutable")
 
   def __itruediv__(self, value):
-    raise TypeError("Dimension object is immutable")
+    raise NotImplementedError("Dimension object is immutable")
 
   def __ipow__(self, value):
-    raise TypeError("Dimension object is immutable")
+    raise NotImplementedError("Dimension object is immutable")
 
   # ---- COMPARISON ---- #
   def __eq__(self, value: 'Dimension'):
@@ -421,7 +424,7 @@ class Dimension:
     return self
 
 
-def get_or_create_dimension(*args, **kwds):
+def get_or_create_dimension(*args, **kwds) -> Dimension:
   """
   Create a new Dimension object or get a reference to an existing one.
   This function takes care of only creating new objects if they were not
@@ -433,7 +436,7 @@ def get_or_create_dimension(*args, **kwds):
   args : sequence of `float`
       A sequence with the indices of the 7 elements of an SI dimension.
   kwds : keyword arguments
-      a sequence of ``keyword=value`` pairs where the keywords are the names of
+      a sequence of ``keyword=mantissa`` pairs where the keywords are the names of
       the SI dimensions, or the standard unit.
 
   Examples
@@ -495,12 +498,6 @@ def get_or_create_dimension(*args, **kwds):
 DIMENSIONLESS = Dimension((0, 0, 0, 0, 0, 0, 0))
 
 
-# '''The dictionary of all existing Dimension objects.'''
-# _dimensions = {
-#   (0, 0, 0, 0, 0, 0, 0): DIMENSIONLESS,
-# }
-
-
 class DimensionMismatchError(Exception):
   """
   Exception class for attempted operations with inconsistent dimensions.
@@ -553,6 +550,56 @@ class DimensionMismatchError(Exception):
     return s
 
 
+class UnitMismatchError(Exception):
+  """
+  Exception class for attempted operations with inconsistent units.
+
+  For example, ``3*mvolt + 2*amp`` raises this exception. The purpose of this
+  class is to help catch errors based on incorrect units. The exception will
+  print a representation of the dimensions of the two inconsistent objects
+  that were operated on.
+
+  Parameters
+  ----------
+  description : ``str``
+      A description of the type of operation being performed, e.g. Addition,
+      Multiplication, etc.
+  units : Unit
+      The physical dimensions of the objects involved in the operation, any
+      number of them is possible
+  """
+  __module__ = "brainunit"
+
+  def __init__(self, description, *units):
+    super().__init__(description, *units)
+    self.units: Tuple = units
+    self.desc = description
+
+  def __repr__(self):
+    dims_repr = [repr(dim) for dim in self.units]
+    return f"{self.__class__.__name__}({self.desc!r}, {', '.join(dims_repr)})"
+
+  def __str__(self):
+    s = self.desc
+    if len(self.units) == 0:
+      pass
+    elif len(self.units) == 1:
+      s += f" (unit is {self.units[0]}"
+    elif len(self.units) == 2:
+      d1, d2 = self.units
+      s += (
+        f" (units are {d1} and {d2}"
+      )
+    else:
+      s += (
+        " (units are"
+        f" {' '.join([f'({d})' for d in self.units])}"
+      )
+    if len(self.units):
+      s += ")."
+    return s
+
+
 def get_dim(obj) -> Dimension:
   """
   Return the dimension of any object that has them.
@@ -597,6 +644,8 @@ def get_unit(obj) -> Unit:
   unit : Unit
       The physical unit of the `obj`.
   """
+  if isinstance(obj, Unit):
+    return obj
   try:
     return obj.unit
   except AttributeError:
@@ -628,6 +677,26 @@ def have_same_dim(obj1, obj2) -> bool:
   dim1 = get_dim(obj1)
   dim2 = get_dim(obj2)
   return (dim1 is dim2) or (dim1 == dim2)
+
+
+def has_same_unit(obj1, obj2) -> bool:
+  """
+  Check whether two objects have the same unit.
+
+  Parameters
+  ----------
+  obj1, obj2 : {`Array`, array-like, number}
+      The values of which to compare the units.
+
+  Returns
+  -------
+  same : `bool`
+      ``True`` if `obj1` and `obj2` have the same unit.
+  """
+  unit1 = get_unit(obj1)
+  unit2 = get_unit(obj2)
+  return unit1 == unit2
+
 
 
 def fail_for_dimension_mismatch(
@@ -752,44 +821,28 @@ def fail_for_unit_mismatch(
   """
   unit1 = get_unit(obj1)
   if obj2 is None:
-    unit2 = DIMENSIONLESS
+    unit2 = UNITLESS
   else:
     unit2 = get_unit(obj2)
 
-  if unit1 is not unit2 and not (unit1 is None or unit2 is None):
-    # Special treatment for "0":
-    #     if it is not a Array, it has "any dimension".
-    #     This allows expressions like 3*mV + 0 to pass (useful in cases where
-    #     zero is treated as the neutral element, e.g. in the Python sum
-    #     builtin) or comparisons like 3 * mV == 0 to return False instead of
-    #     failing # with a DimensionMismatchError. Note that 3*mV == 0*second
-    #     is not allowed, though.
-
-    # if (dim1 is DIMENSIONLESS and jnp.all(obj1 == 0)) or (
-    #     dim2 is DIMENSIONLESS and jnp.all(obj2 == 0)
-    # ):
-    #   return dim1, dim2
-
-    # We do another check here, this should allow Brian1 units to pass as
-    # having the same dimensions as a Brian2 unit
-    if unit1 == unit2:
-      return unit1, unit2
-
-    if error_message is None:
-      error_message = "Dimension mismatch"
-    else:
-      error_arrays = {
-        name: _short_str(q) for name, q in error_arrays.items()
-      }
-      error_message = error_message.format(**error_arrays)
-    # If we are comparing an object to a specific unit, we don't want to
-    # restate this unit (it is probably mentioned in the text already)
-    if obj2 is None or isinstance(obj2, (Dimension, Unit)):
-      raise DimensionMismatchError(error_message, unit1)
-    else:
-      raise DimensionMismatchError(error_message, unit1, unit2)
-  else:
+  # We do another check here, this should allow Brian1 units to pass as
+  # having the same dimensions as a Brian2 unit
+  if unit1.has_same_dim(unit2):
     return unit1, unit2
+
+  if error_message is None:
+    error_message = "Unit mismatch"
+  else:
+    error_arrays = {
+      name: _short_str(q) for name, q in error_arrays.items()
+    }
+    error_message = error_message.format(**error_arrays)
+  # If we are comparing an object to a specific unit, we don't want to
+  # restate this unit (it is probably mentioned in the text already)
+  if obj2 is None or isinstance(obj2, (Dimension, Unit)):
+    raise UnitMismatchError(error_message, unit1)
+  else:
+    raise UnitMismatchError(error_message, unit1, unit2)
 
 
 def display_in_unit(
@@ -837,16 +890,14 @@ def display_in_unit(
   --------
   Array.in_unit
   """
-  if is_unitless(x):
-    fail_for_dimension_mismatch(x, u, 'Non-matching unit for function "in_unit"')
-    return str(jnp.array(x / u))
-  else:
-    return x.in_unit(u).repr_in_unit(precision=precision)
+  x = _to_quantity(x)
+  fail_for_unit_mismatch(x, u, 'Non-matching unit for function "in_unit"')
+  return x.in_unit(u).repr_in_unit(precision=precision)
 
 
 def unit_scale_align_to_first(*args) -> List['Quantity']:
   """
-  Align the unit scales of all arguments to the first one.
+  Align the unit units of all arguments to the first one.
 
   Parameters
   ----------
@@ -875,8 +926,10 @@ def unit_scale_align_to_first(*args) -> List['Quantity']:
   args = list(args)
   first_unit = get_unit(args[0])
   if first_unit.is_unitless:
+    if not isinstance(args[0], Quantity):
+      args[0] = Quantity(args[0])
     for i in range(1, len(args)):
-      fail_for_unit_mismatch(args[i], args[0], 'Non-matching unit for function "unitscale_align_to_first"')
+      fail_for_unit_mismatch(args[i], args[0], 'Non-matching unit for function "unit_scale_align_to_first"')
       if not isinstance(args[i], Quantity):
         args[i] = Quantity(args[i])
   else:
@@ -935,7 +988,8 @@ def is_unitless(obj: Union['Quantity', 'Unit', jax.typing.ArrayLike]) -> bool:
   dimensionless : `bool`
       ``True`` if `obj` is dimensionless.
   """
-  return get_dim(obj) is DIMENSIONLESS
+
+  return _to_quantity(obj).is_unitless
 
 
 def is_scalar_type(obj) -> bool:
@@ -972,7 +1026,7 @@ def _wrap_function_keep_unit(func):
   """
 
   def f(x: Quantity, *args, **kwds):  # pylint: disable=C0111
-    return Quantity(func(x._value, *args, **kwds), unit=x.unit)
+    return Quantity(func(x._mantissa, *args, **kwds), unit=x.unit)
 
   f._arg_units = [None]
   f._return_unit = lambda u: u
@@ -997,7 +1051,7 @@ def _wrap_function_change_unit(func, unit_fun):
 
   def f(x, *args, **kwds):  # pylint: disable=C0111
     assert isinstance(x, Quantity), "Only Quantity objects can be passed to this function"
-    return remove_unitless(Quantity(func(x._value, *args, **kwds), dim=unit_fun(x._value, x.unit)))
+    return remove_unitless(Quantity(func(x.mantissa, *args, **kwds), unit=unit_fun(x.unit, x.unit)))
 
   f._arg_units = [None]
   f._return_unit = unit_fun
@@ -1020,7 +1074,7 @@ def _wrap_function_remove_unit(func):
 
   def f(x, *args, **kwds):  # pylint: disable=C0111
     assert isinstance(x, Quantity), "Only Quantity objects can be passed to this function"
-    return func(x._value, *args, **kwds)
+    return func(x.mantissa, *args, **kwds)
 
   f._arg_units = [None]
   f._return_unit = 1
@@ -1032,9 +1086,14 @@ def _wrap_function_remove_unit(func):
 
 def remove_unitless(q: 'Quantity') -> jax.typing.ArrayLike | 'Quantity':
   if q.is_unitless:
-    return q._value
+    return q.mantissa
   else:
     return q
+
+
+def _assert_same_base(u1, u2):
+  assert u1.has_same_base(u2), (f"Currently, we only support units have different bases. "
+                                f"But we got {u1.base} != {u1.base}.")
 
 
 class Unit:
@@ -1138,8 +1197,8 @@ class Unit:
   def __init__(
       self,
       dim: Dimension = None,
-      scale: int | float | jax.Array = 0,
-      base: int | float | jax.Array = 10.,
+      scale: jax.typing.ArrayLike = 0,
+      base: jax.typing.ArrayLike = 10.,
       name: str = None,
       dispname: str = None,
       iscompound: bool = False,
@@ -1150,18 +1209,18 @@ class Unit:
 
     # The scale for this unit (as the integer exponent of 10), i.e.
     # a scale of 3 means base^3, for a "k" prefix.
-    assert isinstance(scale, int), f"Expected an int, but got {scale}"
     self._scale = scale
 
     # The physical unit dimensions of this unit
     if dim is None:
       dim = DIMENSIONLESS
+    assert isinstance(dim, Dimension), f'Expected instance of Dimension, but got {dim}'
     self._dim = dim
 
     # The name of this unit
     if name is None:
-      if dim is DIMENSIONLESS:
-        name = "Unit(1)"
+      if dim == DIMENSIONLESS:
+        name = f"Unit({self._base ** self._scale})"
       else:
         name = repr(dim)
     self._name = name
@@ -1173,7 +1232,7 @@ class Unit:
     self.iscompound = iscompound
 
   @property
-  def base(self) -> int | float | jax.Array:
+  def base(self) -> jax.typing.ArrayLike:
     return self._base
 
   @base.setter
@@ -1184,7 +1243,7 @@ class Unit:
     )
 
   @property
-  def scale(self) -> int | float | jax.Array:
+  def scale(self) -> jax.typing.ArrayLike:
     return self._scale
 
   @scale.setter
@@ -1195,7 +1254,7 @@ class Unit:
     )
 
   @property
-  def value(self) -> float | jax.Array:
+  def value(self) -> jax.typing.ArrayLike:
     # return the value
     return self.base ** self._scale
 
@@ -1217,7 +1276,7 @@ class Unit:
     # Do not support setting the unit directly
     raise NotImplementedError(
       "Cannot set the dimension of a Quantity object directly,"
-      "Please create a new Quantity object with the value you want."
+      "Please create a new Quantity object with the dimension you want."
     )
 
   @property
@@ -1228,7 +1287,7 @@ class Unit:
     Returns:
       bool: True if the array does not have unit.
     """
-    return self.dim.is_dimensionless
+    return self.dim.is_dimensionless and self.scale == 0
 
   @property
   def name(self):
@@ -1283,6 +1342,22 @@ class Unit:
     """
     return self.scale == other.scale and self.base == other.base
 
+  def has_same_base(self, other: 'Unit') -> bool:
+    """
+    Whether this Unit has the same ``base`` as another Unit.
+
+    Parameters
+    ----------
+    other : Unit
+        The other Unit to compare with.
+
+    Returns
+    -------
+    bool
+        Whether the two Units have the same base.
+    """
+    return self.base == other.base
+
   def has_same_dim(self, other: 'Unit') -> bool:
     """
     Whether this Unit has the same unit dimensions as another Unit.
@@ -1297,7 +1372,7 @@ class Unit:
     bool
         Whether the two Units have the same unit dimensions.
     """
-    other_dim = get_dim(other.dim)
+    other_dim = get_dim(other)
     return get_dim(self) == other_dim
 
   @staticmethod
@@ -1371,16 +1446,12 @@ class Unit:
       name = f"{self.name} * {other.name}"
       dispname = f"{self.dispname} * {other.dispname}"
       scale = self.scale + other.scale
-      u = Unit(
-        dim=self.dim * other.dim,
-        name=name,
-        dispname=dispname,
-        iscompound=True,
-        scale=scale,
-      )
-      return u
+      _assert_same_base(self, other)
+      return Unit(self.dim * other.dim, scale=scale, base=self.base, name=name, dispname=dispname, iscompound=True)
+
     elif isinstance(other, Quantity):
-      return Quantity(other._value, unit=(self * other.unit))
+      return Quantity(other._mantissa, unit=(self * other.unit))
+
     else:
       return Quantity(other, unit=self)
 
@@ -1389,12 +1460,12 @@ class Unit:
     if isinstance(other, Unit):
       return other.__mul__(self)
     elif isinstance(other, Quantity):
-      return Quantity(other._value, unit=(other.unit * self))
+      return Quantity(other._mantissa, unit=(other.unit * self))
     else:
       return Quantity(other, unit=self)
 
   def __imul__(self, other):
-    raise TypeError("Units cannot be modified in-place")
+    raise NotImplementedError("Units cannot be modified in-place")
 
   def __div__(self, other) -> 'Unit':
     # self / other
@@ -1413,16 +1484,10 @@ class Unit:
       else:
         dispname += other.dispname
         name += other.name
-
       scale = self.scale - other.scale
-      u = Unit(
-        dim=self.dim / other.dim,
-        name=name,
-        dispname=dispname,
-        scale=scale,
-        iscompound=True,
-      )
-      return u
+      dim = self.dim / other.dim
+      _assert_same_base(self, other)
+      return Unit(dim, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=True)
     else:
       raise TypeError(f"unit {self} cannot divide by a non-unit {other}")
 
@@ -1434,26 +1499,20 @@ class Unit:
       if self.iscompound:
         dispname = f"({self.dispname})"
         name = f"({self.name})"
-      u = Unit(
-        dim=self.dim ** -1,
-        name=f"1 / {name}",
-        dispname=f"1 / {dispname}",
-        scale=-self.scale,
-        iscompound=True,
-      )
-      return u
+      return Unit(self.dim ** -1, base=self.base, scale=-self.scale, name=f"1 / {name}",
+                  dispname=f"1 / {dispname}", iscompound=True)
 
     elif isinstance(other, Unit):
       return other.__div__(self)
 
     elif isinstance(other, Quantity):
-      return Quantity(other._value, unit=(other.unit / self))
+      return Quantity(other._mantissa, unit=(other.unit / self))
 
     else:
       return Quantity(other, unit=(1 / self))
 
   def __idiv__(self, other):
-    raise TypeError("Units cannot be modified in-place")
+    raise NotImplementedError("Units cannot be modified in-place")
 
   def __truediv__(self, oc):
     # self / oc
@@ -1464,16 +1523,16 @@ class Unit:
     return self.__rdiv__(oc)
 
   def __itruediv__(self, other):
-    raise TypeError("Units cannot be modified in-place")
+    raise NotImplementedError("Units cannot be modified in-place")
 
   def __floordiv__(self, oc):
-    raise TypeError("Units cannot be performed floor division")
+    raise NotImplementedError("Units cannot be performed floor division")
 
   def __rfloordiv__(self, oc):
-    raise TypeError("Units cannot be performed floor division")
+    raise NotImplementedError("Units cannot be performed floor division")
 
   def __ifloordiv__(self, other):
-    raise TypeError("Units cannot be modified in-place")
+    raise NotImplementedError("Units cannot be modified in-place")
 
   def __pow__(self, other):
     # self ** other
@@ -1487,20 +1546,14 @@ class Unit:
       dispname += f"^{str(other)}"
       name += f" ** {repr(other)}"
       scale = self.scale * other
-      u = Unit(
-        dim=self.dim ** other,
-        name=name,
-        dispname=dispname,
-        scale=scale,
-        iscompound=True,
-      )  # To avoid issues with units like (second ** -1) ** -1
-      return u
+      return Unit(self.dim ** other, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=True)
     else:
-      return TypeError(f"unit cannot perform an exponentiation (unit ** other) with a non-scalar. "
-                       f"unit={self}, other={other}")
+      raise TypeError(f"unit cannot perform an exponentiation (unit ** other) with a non-scalar, "
+                      f"since one unit cannot contain multiple units. \n"
+                      f"But we got unit={self}, other={other}")
 
   def __ipow__(self, other, modulo=None):
-    raise TypeError("Units cannot be modified in-place")
+    raise NotImplementedError("Units cannot be modified in-place")
 
   def __add__(self, other: 'Unit') -> 'Unit':
     # self + other
@@ -1509,7 +1562,7 @@ class Unit:
       if self.has_same_scale(other):
         return self.copy()
       else:
-        raise TypeError(f"Units {self} and {other} have different scales.")
+        raise TypeError(f"Units {self} and {other} have different units.")
     else:
       raise TypeError(f"Units {self} and {other} have different dimensions.")
 
@@ -1517,7 +1570,7 @@ class Unit:
     return self.__add__(oc)
 
   def __iadd__(self, other):
-    raise TypeError("Units cannot be modified in-place")
+    raise NotImplementedError("Units cannot be modified in-place")
 
   def __sub__(self, other: 'Unit') -> 'Unit':
     # self - other
@@ -1526,7 +1579,7 @@ class Unit:
       if self.has_same_scale(other):
         return self.copy()
       else:
-        raise TypeError(f"Units {self} and {other} have different scales.")
+        raise TypeError(f"Units {self} and {other} have different units.")
     else:
       raise TypeError(f"Units {self} and {other} have different dimensions.")
 
@@ -1534,16 +1587,16 @@ class Unit:
     return self.__sub__(oc)
 
   def __isub__(self, other):
-    raise TypeError("Units cannot be modified in-place")
+    raise NotImplementedError("Units cannot be modified in-place")
 
   def __mod__(self, oc):
-    raise TypeError("Units cannot be performed modulo")
+    raise NotImplementedError("Units cannot be performed modulo")
 
   def __rmod__(self, oc):
-    raise TypeError("Units cannot be performed modulo")
+    raise NotImplementedError("Units cannot be performed modulo")
 
   def __imod__(self, other):
-    raise TypeError("Units cannot be modified in-place")
+    raise NotImplementedError("Units cannot be modified in-place")
 
   def __eq__(self, other) -> bool:
     if isinstance(other, Unit):
@@ -1565,31 +1618,32 @@ def _to_unit(*args):
 UNITLESS = Unit()
 
 
-def zoom_values_with_scales(
+def _zoom_values_with_units(
     values: Sequence[jax.typing.ArrayLike],
-    scales: Sequence['Unit']
+    units: Sequence['Unit']
 ):
   """
-  Zoom values with scales.
+  Zoom values with units.
 
   Parameters
   ----------
   values : `Array`
       The values to zoom.
-  scales : `Array`
-      The scales to use for zooming.
+  units : `Array`
+      The units to use for zooming.
 
   Returns
   -------
   zoomed_values : `Array`
       The zoomed values.
   """
-  assert len(values) == len(scales), "The number of values and scales must be the same"
+  assert len(values) == len(units), "The number of values and units must be the same"
   values = list(values)
-  first_unit = scales[0]
+  first_unit = units[0]
   for i in range(1, len(values)):
-    if scales[i].has_same_scale(first_unit):
-      values[i] = values[i] * (scales[i].value / first_unit.value)
+    values[i] = values[i]
+    if not units[i].has_same_scale(first_unit):
+      values[i] = values[i] * (units[i].value / first_unit.value)
   return values
 
 
@@ -1604,7 +1658,7 @@ def _check_units_and_collect_values(lst) -> Tuple[jax.typing.ArrayLike, 'Unit']:
       if unit != UNITLESS:
         units.append(unit)
     elif isinstance(item, Quantity):
-      values.append(item._value)
+      values.append(item._mantissa)
       units.append(item.unit)
     elif isinstance(item, Unit):
       values.append(1)
@@ -1615,12 +1669,15 @@ def _check_units_and_collect_values(lst) -> Tuple[jax.typing.ArrayLike, 'Unit']:
 
   if len(units):
     first_unit = units[0]
-    if not all(unit == first_unit for unit in units):
-      raise TypeError(f"All elements must have the same units, but got {units}")
     if first_unit is None:
+      if not all(unit is None for unit in units):
+        raise TypeError(f"All elements must have the same units, but got {units}")
       first_unit = UNITLESS
       units = [UNITLESS] * len(units)
-    return jnp.asarray(zoom_values_with_scales(values, units)), first_unit
+    else:
+      if not all(first_unit.has_same_dim(unit) for unit in units):
+        raise TypeError(f"All elements must have the same units, but got {units}")
+    return jnp.asarray(_zoom_values_with_units(values, units)), first_unit
   else:
     return jnp.asarray(values), UNITLESS
 
@@ -1633,93 +1690,96 @@ def _process_list_with_units(value: List) -> Tuple[jax.typing.ArrayLike, 'Unit']
 @register_pytree_node_class
 class Quantity:
   """
-  The `Quantity` class represents a physical quantity with a value and a unit.
+  The `Quantity` class represents a physical quantity with a mantissa and a unit.
   It is used to represent all physical quantities in ``BrainUnit``.
   """
 
   __module__ = "brainunit"
-  __slots__ = ('_value', '_unit')
+  __slots__ = ('_mantissa', '_unit')
   __array_priority__ = 1000
-  _value: jax.Array | np.ndarray
+  _mantissa: jax.Array | np.ndarray
   _unit: Unit
 
   def __init__(
       self,
-      value: PyTree,
-      unit: Optional['Unit'] = UNITLESS,
+      mantissa: PyTree | Unit,
+      unit: Optional[Unit | jax.typing.ArrayLike] = UNITLESS,
       dtype: Optional[jax.typing.DTypeLike] = None,
   ):
-    if isinstance(value, Unit):
-      assert unit is UNITLESS, "Cannot create a Quantity object with a unit and a value that is a Unit object."
-      unit = value
-      value = 1.
+    if isinstance(mantissa, Unit):
+      assert unit is UNITLESS, "Cannot create a Quantity object with a unit and a mantissa that is a Unit object."
+      unit = mantissa
+      mantissa = 1.
 
-    if isinstance(value, (list, tuple)):
-      value, new_unit = _process_list_with_units(value)
+    if isinstance(mantissa, (list, tuple)):
+      mantissa, new_unit = _process_list_with_units(mantissa)
       if unit is UNITLESS:
         unit = new_unit
       elif new_unit != UNITLESS:
         if not new_unit.has_same_dim(unit):
           raise TypeError(f"All elements must have the same unit. But got {unit} != {UNITLESS}")
         if not new_unit.has_same_scale(unit):
-          value = value * (new_unit.value / unit.value)
-      value = jnp.array(value, dtype=dtype)
+          mantissa = mantissa * (new_unit.value / unit.value)
+      mantissa = jnp.array(mantissa, dtype=dtype)
 
-    # array value
-    elif isinstance(value, Quantity):
+    # array mantissa
+    elif isinstance(mantissa, Quantity):
       if unit is UNITLESS:
-        unit = value.unit
-      elif not unit.has_same_dim(value.unit):
+        unit = mantissa.unit
+      elif not unit.has_same_dim(mantissa.unit):
         raise ValueError("Cannot create a Quantity object with a different unit.")
-      if not unit.has_same_scale(value.unit):
-        value = value._value * (value.unit.value / unit.value)
+      mantissa = mantissa.in_unit(unit)
+      mantissa = mantissa._mantissa
 
-    elif isinstance(value, (np.ndarray, jax.Array)):
+    elif isinstance(mantissa, (np.ndarray, jax.Array)):
       if dtype is not None:
-        value = jnp.array(value, dtype=dtype)
+        mantissa = jnp.array(mantissa, dtype=dtype)
 
-    elif isinstance(value, (jnp.number, numbers.Number)):
-      value = jnp.array(value, dtype=dtype)
+    elif isinstance(mantissa, (jnp.number, numbers.Number)):
+      mantissa = jnp.array(mantissa, dtype=dtype)
 
     else:
-      value = value
+      mantissa = mantissa
 
-    # value
-    self._value = value
+    # mantissa
+    self._mantissa = mantissa
 
     # dimension
     self._unit = unit
 
-  def update_value(self, value):
+  @property
+  def mantissa(self):
+    return self._mantissa
+
+  def update_value(self, mantissa: PyTree):
     """
-    Set the value of the array.
+    Set the mantissa of the array.
 
     Examples::
 
     >>> a = jax.numpy.array([1, 2, 3]) * mV
     >>> a[:] = jax.numpy.array([4, 5, 6]) * mV
-    >>> a.value = jax.numpy.array([7, 8, 9])
 
     Args:
-      value: The new value of the array.
+      mantissa: The new mantissa of the array.
     """
     self_value = self._check_tracer()
-    if isinstance(value, Quantity):
-      raise ValueError("Cannot set the value of an Array object to another Array object.")
-    if isinstance(value, np.ndarray):
-      value = jnp.asarray(value, dtype=self.dtype)
-    elif isinstance(value, jax.Array):
+    if isinstance(mantissa, Quantity):
+      raise ValueError("Cannot set the mantissa of an Array object to another Array object.")
+    if isinstance(mantissa, np.ndarray):
+      mantissa = jnp.asarray(mantissa, dtype=self.dtype)
+    elif isinstance(mantissa, jax.Array):
       pass
     else:
-      value = jnp.asarray(value, dtype=self.dtype)
+      mantissa = jnp.asarray(mantissa, dtype=self.dtype)
     # check
-    if value.shape != jnp.shape(self_value):
+    if mantissa.shape != jnp.shape(self_value):
       raise ValueError(f"The shape of the original data is {jnp.shape(self_value)}, "
-                       f"while we got {value.shape}.")
-    if value.dtype != jax.dtypes.result_type(self_value):
+                       f"while we got {mantissa.shape}.")
+    if mantissa.dtype != jax.dtypes.result_type(self_value):
       raise ValueError(f"The dtype of the original data is {jax.dtypes.result_type(self_value)}, "
-                       f"while we got {value.dtype}.")
-    self._value = value
+                       f"while we got {mantissa.dtype}.")
+    self._mantissa = mantissa
 
   @property
   def dim(self) -> Dimension:
@@ -1733,7 +1793,7 @@ class Quantity:
     # Do not support setting the unit directly
     raise NotImplementedError(
       "Cannot set the dimension of a Quantity object directly,"
-      "Please create a new Quantity object with the value you want."
+      "Please create a new Quantity object with the dimension you want."
     )
 
   @property
@@ -1748,45 +1808,54 @@ class Quantity:
       "Please create a new Quantity object with the unit you want."
     )
 
-  def to_value(self, unit: 'Unit') -> jax.typing.ArrayLike:
+  def to_decimal_num(self, unit: Unit) -> jax.typing.ArrayLike:
     """
-    Convert the value of the array to a new unit.
+    Convert the given :py:class:`Quantity` into the decimal number.
 
     Examples::
 
     >>> a = jax.numpy.array([1, 2, 3]) * mV
-    >>> a.to_value(volt)
+    >>> a.to_decimal_num(volt)
     array([0.001, 0.002, 0.003])
 
     Args:
-      unit: The new unit to convert the value of the array to.
+      unit: The new unit to convert the quantity to.
 
     Returns:
-      The value of the array in the new unit.
+      The decimal number of the quantity based on the given unit.
     """
-    assert unit.has_same_dim(self.unit)
+    assert isinstance(unit, Unit), f"Expected a Unit, but got {unit}."
+    assert unit.has_same_dim(self.unit), (f"Cannot convert to the decimal number using a unit with different "
+                                          f"dimensions. The quantity has the unit {self.unit}, but the given "
+                                          f"unit is {unit}")
     if not unit.has_same_scale(self.unit):
-      return self._value * (self.unit.value / unit.value)
+      return self._mantissa * (self.unit.value / unit.value)
     else:
-      return self._value
+      return self._mantissa
 
   def in_unit(self, unit: Unit):
+    """
+    Convert the given :py:class:`Quantity` into the given unit.
+
+    """
+    assert isinstance(unit, Unit), f"Expected a Unit, but got {unit}."
     if not unit.has_same_dim(self.unit):
-      raise DimensionMismatchError(f"Cannot convert to a unit with different dimensions: {self.unit.dim} != {unit.dim}")
-    if not unit.has_same_scale(self.unit):
-      return Quantity(self._value * (self.unit.value / unit.value), unit=unit)
+      raise UnitMismatchError(f"Cannot convert to a unit with different dimensions.", self.unit, unit)
+    if unit.has_same_scale(self.unit):
+      u = Quantity(self._mantissa, unit=unit)
     else:
-      return Quantity(self._value, unit=unit)
+      u = Quantity(self._mantissa * (self.unit.value / unit.value), unit=unit)
+    return u
 
   @staticmethod
-  def with_unit(value: PyTree, unit: Unit):
+  def with_unit(mantissa: PyTree, unit: Unit):
     """
     Create a `Array` object with the given units.
 
     Parameters
     ----------
-    value : {array_like, number}
-        The value of the dimension
+    mantissa : {array_like, number}
+        The mantissa of the dimension
     unit : Unit
         The unit of the dimension
 
@@ -1803,7 +1872,7 @@ class Quantity:
     >>> Quantity.with_unit(2, unit=metre)
     2. * metre
     """
-    return Quantity(value, unit=unit)
+    return Quantity(mantissa, unit=unit)
 
   @property
   def is_unitless(self) -> bool:
@@ -1842,8 +1911,6 @@ class Quantity:
 
     Parameters
     ----------
-    u : `Unit`
-        The unit in which to show the ar.
     precision : `int`, optional
         The number of digits of precision (in the given unit)
         If no value is given, numpy's `get_printoptions` is used.
@@ -1868,7 +1935,7 @@ class Quantity:
     >>> x.repr_in_unit(mV, 3)
     '25.123 mV'
     """
-    value = jnp.asarray(self._value)
+    value = jnp.asarray(self._mantissa)
     if isinstance(value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
       s = str(value)
     else:
@@ -1899,7 +1966,7 @@ class Quantity:
     return s.strip()
 
   def _check_tracer(self):
-    self_value = self._value
+    self_value = self._mantissa
     # if hasattr(self_value, '_trace') and hasattr(self_value._trace.main, 'jaxpr_stack'):
     #   if len(self_value._trace.main.jaxpr_stack) == 0:
     #     raise RuntimeError('This Array is modified during the transformation. '
@@ -1910,7 +1977,7 @@ class Quantity:
   @property
   def dtype(self):
     """Variable dtype."""
-    a = self._value
+    a = self._mantissa
     if hasattr(a, 'dtype'):
       return a.dtype
     else:
@@ -1928,31 +1995,31 @@ class Quantity:
   @property
   def shape(self) -> Tuple[int, ...]:
     """Variable shape."""
-    return jnp.shape(self._value)
+    return jnp.shape(self._mantissa)
 
   @property
   def ndim(self) -> int:
-    return jnp.ndim(self._value)
+    return jnp.ndim(self._mantissa)
 
   @property
   def imag(self) -> 'Quantity':
-    return Quantity(jnp.imag(self._value), unit=self.unit)
+    return Quantity(jnp.imag(self._mantissa), unit=self.unit)
 
   @property
   def real(self) -> 'Quantity':
-    return Quantity(jnp.real(self._value), unit=self.unit)
+    return Quantity(jnp.real(self._mantissa), unit=self.unit)
 
   @property
   def size(self) -> int:
-    return jnp.size(self._value)
+    return jnp.size(self._mantissa)
 
   @property
   def T(self) -> 'Quantity':
-    return Quantity(jnp.asarray(self._value).T, unit=self.unit)
+    return Quantity(jnp.asarray(self._mantissa).T, unit=self.unit)
 
   @property
   def isreal(self) -> jax.Array:
-    return jnp.isreal(self._value)
+    return jnp.isreal(self._mantissa)
 
   @property
   def isscalar(self) -> bool:
@@ -1960,27 +2027,25 @@ class Quantity:
 
   @property
   def isfinite(self) -> jax.Array:
-    return jnp.isfinite(self._value)
+    return jnp.isfinite(self._mantissa)
 
   @property
   def isinfnite(self) -> jax.Array:
-    return jnp.isinf(self._value)
+    return jnp.isinf(self._mantissa)
 
   @property
   def isinf(self) -> jax.Array:
-    return jnp.isinf(self._value)
+    return jnp.isinf(self._mantissa)
 
   @property
   def isnan(self) -> jax.Array:
-    return jnp.isnan(self._value)
+    return jnp.isnan(self._mantissa)
 
   # ----------------------- #
   # Python inherent methods #
   # ----------------------- #
 
   def __repr__(self) -> str:
-    # if isinstance(self._value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
-    #   return f'{self._value} * {self.unit}'
     return self.repr_in_unit(python_code=True)
 
   def __str__(self) -> str:
@@ -1998,25 +2063,26 @@ class Quantity:
       yield self
     else:
       for i in range(self.shape[0]):
-        yield Quantity(self._value[i], unit=self.unit)
+        yield Quantity(self._mantissa[i], unit=self.unit)
 
   def __getitem__(self, index) -> 'Quantity':
     if isinstance(index, slice) and (index == _all_slice):
-      return Quantity(self._value, unit=self.unit)
+      return Quantity(self._mantissa, unit=self.unit)
     elif isinstance(index, tuple):
       for x in index:
         assert not isinstance(x, Quantity), "Array indices must be integers or slices, not Array"
     elif isinstance(index, Quantity):
       raise TypeError("Array indices must be integers or slices, not Array")
-    return Quantity(self._value[index], unit=self.unit)
+    return Quantity(self._mantissa[index], unit=self.unit)
 
-  def __setitem__(self, index, value: 'Quantity'):
+  def __setitem__(self, index, value: 'Quantity' | jax.typing.ArrayLike):
     if not isinstance(value, Quantity):
-      raise DimensionMismatchError("Only Array can be assigned to Array.")
-    fail_for_dimension_mismatch(self, value, "Inconsistent units in assignment")
-    value = value._value
-    if not value.unit.has_same_scale(self.unit):
-      value = value * (value.unit.value / self.unit.value)
+      if self.is_unitless:
+        value = Quantity(value)
+      else:
+        raise TypeError(f"Only Quantity can be assigned to Quantity. But got {value}")
+    fail_for_unit_mismatch(self, value, "Inconsistent units in assignment")
+    value = value.in_unit(self.unit)
 
     # index is a tuple
     _assert_not_quantity(index)
@@ -2028,35 +2094,39 @@ class Quantity:
 
     # update
     self_value = self._check_tracer()
-    self.update_value(self_value.at[index].set(value))
+    if isinstance(self_value, jax.Array):
+      self_value = self_value.at[index].set(value.mantissa)
+    else:
+      self_value[index] = value.mantissa
+    self.update_value(self_value)
 
   # ---------- #
   # operations #
   # ---------- #
 
   def __len__(self) -> int:
-    return len(self._value)
+    return len(self._mantissa)
 
   def __neg__(self) -> 'Quantity':
-    return Quantity(self._value.__neg__(), unit=self.unit)
+    return Quantity(self._mantissa.__neg__(), unit=self.unit)
 
   def __pos__(self) -> 'Quantity':
-    return Quantity(self._value.__pos__(), unit=self.unit)
+    return Quantity(self._mantissa.__pos__(), unit=self.unit)
 
   def __abs__(self) -> 'Quantity':
-    return Quantity(self._value.__abs__(), unit=self.unit)
+    return Quantity(self._mantissa.__abs__(), unit=self.unit)
 
   def __invert__(self) -> 'Quantity':
-    return Quantity(self._value.__invert__(), unit=self.unit)
+    return Quantity(self._mantissa.__invert__(), unit=self.unit)
 
   def _comparison(self, other: Any, operator_str: str, operation: Callable):
     other = _to_quantity(other)
     message = "Cannot perform comparison {value1} %s {value2}, units do not match" % operator_str
     fail_for_unit_mismatch(self, other, message, value1=self, value2=other)
-    oth_value = other._value
+    oth_value = other._mantissa
     if not other.unit.has_same_scale(self.unit):
       oth_value = oth_value * (other.unit.value / self.unit.value)
-    return operation(self._value, oth_value)
+    return operation(self._mantissa, oth_value)
 
   def __eq__(self, oc) -> jax.typing.ArrayLike:
     return self._comparison(oc, "==", operator.eq)
@@ -2112,9 +2182,9 @@ class Quantity:
     # format "other"
     other = _to_quantity(other)
 
-    # format the unit and value of "other"
+    # format the unit and mantissa of "other"
     other_unit = None
-    other_value = other._value
+    other_value = other._mantissa
     if fail_for_mismatch:
       if inplace:
         message = "Cannot calculate ... %s {value}, units do not match" % operator_str
@@ -2127,14 +2197,14 @@ class Quantity:
     if other_unit is None:
       other_unit = get_unit(other)
 
-    # calculate the new unit and value
+    # calculate the new unit and mantissa
     new_unit = unit_operation(self.unit, other_unit)
-    result = value_operation(self._value, other_value)
+    result = value_operation(self._mantissa, other_value)
     r = Quantity(result, unit=new_unit)
 
-    # update the value in-place or not
+    # update the mantissa in-place or not
     if inplace:
-      self.update_value(r._value)
+      self.update_value(r._mantissa)
       return self
     else:
       return r
@@ -2251,14 +2321,14 @@ class Quantity:
   def __pow__(self, oc):
     if isinstance(oc, Quantity):
       assert oc.is_unitless, f"Cannot calculate {self} ** {oc}, the exponent has to be dimensionless"
-      oc = oc._value
-    r = Quantity(jnp.array(self._value) ** oc, unit=self.unit ** oc)
+      oc = oc.mantissa
+    r = Quantity(jnp.array(self.mantissa) ** oc, unit=self.unit ** oc)
     return remove_unitless(r)
 
   def __rpow__(self, oc):
     # oc ** self
     assert self.is_unitless, f"Cannot calculate {oc} ** {self}, the exponent has to be dimensionless"
-    return oc ** self._value
+    return oc ** self._mantissa
 
   def __ipow__(self, oc):
     # a **= b
@@ -2306,45 +2376,45 @@ class Quantity:
     # self << oc
     if isinstance(oc, Quantity):
       assert oc.is_unitless, "The shift amount must be dimensionless"
-      oc = oc._value
-    r = Quantity(self._value << oc, unit=self.unit)
+      oc = oc._mantissa
+    r = Quantity(self._mantissa << oc, unit=self.unit)
     return remove_unitless(r)
 
   def __rlshift__(self, oc) -> 'Quantity' | jax.typing.ArrayLike:
     # oc << self
     assert self.is_unitless, "The shift amount must be dimensionless"
-    return oc << self._value
+    return oc << self._mantissa
 
   def __ilshift__(self, oc) -> 'Quantity':
     # self <<= oc
     r = self.__lshift__(oc)
-    self.update_value(r._value)
+    self.update_value(r._mantissa)
     return self
 
   def __rshift__(self, oc) -> 'Quantity':
     # self >> oc
     if isinstance(oc, Quantity):
       assert oc.is_unitless, "The shift amount must be dimensionless"
-      oc = oc._value
-    r = Quantity(self._value >> oc, unit=self.unit)
+      oc = oc._mantissa
+    r = Quantity(self._mantissa >> oc, unit=self.unit)
     return remove_unitless(r)
 
   def __rrshift__(self, oc) -> 'Quantity' | jax.typing.ArrayLike:
     # oc >> self
     assert self.is_unitless, "The shift amount must be dimensionless"
-    return oc >> self._value
+    return oc >> self._mantissa
 
   def __irshift__(self, oc) -> 'Quantity':
     # self >>= oc
     r = self.__rshift__(oc)
-    self.update_value(r._value)
+    self.update_value(r._mantissa)
     return self
 
   def __round__(self, ndigits: int = None) -> 'Quantity':
-    return Quantity(self._value.__round__(ndigits), unit=self.unit)
+    return Quantity(self._mantissa.__round__(ndigits), unit=self.unit)
 
   def __reduce__(self):
-    return array_with_unit, (self._value, self.unit, None)
+    return array_with_unit, (self._mantissa, self.unit, None)
 
   # ----------------------- #
   #      NumPy methods      #
@@ -2371,7 +2441,7 @@ class Quantity:
   ravel = _wrap_function_keep_unit(jnp.ravel)
 
   def __deepcopy__(self, memodict: Dict):
-    return Quantity(deepcopy(self._value), unit=self.unit.__deepcopy__(memodict))
+    return Quantity(deepcopy(self._mantissa), unit=self.unit.__deepcopy__(memodict))
 
   def round(
       self,
@@ -2397,7 +2467,7 @@ class Quantity:
         The real and imaginary parts of complex numbers are rounded
         separately.  The result of rounding a float is a float.
     """
-    return Quantity(jnp.round(self._value, decimals), unit=self.unit)
+    return Quantity(jnp.round(self._mantissa, decimals), unit=self.unit)
 
   def astype(
       self,
@@ -2411,9 +2481,9 @@ class Quantity:
       Typecode or data-type to which the array is cast.
     """
     if dtype is None:
-      return Quantity(self._value, unit=self.unit)
+      return Quantity(self._mantissa, unit=self.unit)
     else:
-      return Quantity(jnp.astype(self._value, dtype), unit=self.unit)
+      return Quantity(jnp.astype(self._mantissa, dtype), unit=self.unit)
 
   def clip(
       self,
@@ -2425,19 +2495,19 @@ class Quantity:
     """
     _, min = unit_scale_align_to_first(self, min)
     _, max = unit_scale_align_to_first(self, max)
-    return Quantity(jnp.clip(self._value, min._value, max._value), unit=self.unit)
+    return Quantity(jnp.clip(self._mantissa, min._mantissa, max._mantissa), unit=self.unit)
 
   def conj(self) -> 'Quantity':
     """Complex-conjugate all elements."""
-    return Quantity(jnp.conj(self._value), unit=self.unit)
+    return Quantity(jnp.conj(self._mantissa), unit=self.unit)
 
   def conjugate(self) -> 'Quantity':
     """Return the complex conjugate, element-wise."""
-    return Quantity(jnp.conjugate(self._value), unit=self.unit)
+    return Quantity(jnp.conjugate(self._mantissa), unit=self.unit)
 
   def copy(self) -> 'Quantity':
     """Return a copy of the quantity."""
-    return type(self)(jnp.copy(self._value), unit=self.unit)
+    return type(self)(jnp.copy(self._mantissa), unit=self.unit)
 
   def dot(self, b) -> 'Quantity':
     """Dot product of two arrays."""
@@ -2445,21 +2515,21 @@ class Quantity:
     return remove_unitless(r)
 
   def fill(self, value: Quantity) -> 'Quantity':
-    """Fill the array with a scalar value."""
+    """Fill the array with a scalar mantissa."""
     fail_for_dimension_mismatch(self, value, "fill")
     self[:] = value
     return self
 
   def flatten(self) -> 'Quantity':
-    return Quantity(jnp.reshape(self._value, -1), unit=self.unit)
+    return Quantity(jnp.reshape(self._mantissa, -1), unit=self.unit)
 
   def item(self, *args) -> 'Quantity':
     """Copy an element of an array to a standard Python scalar and return it."""
-    return Quantity(self._value.item(*args), unit=self.unit)
+    return Quantity(self._mantissa.item(*args), unit=self.unit)
 
   def prod(self, *args, **kwds) -> 'Quantity':  # TODO: check error when axis is not None
     """Return the product of the array elements over the given axis."""
-    prod_res = jnp.prod(self._value, *args, **kwds)
+    prod_res = jnp.prod(self._mantissa, *args, **kwds)
     # Calculating the correct dimensions is not completly trivial (e.g.
     # like doing self.dim**self.size) because prod can be called on
     # multidimensional arrays along a certain axis.
@@ -2468,7 +2538,7 @@ class Quantity:
     # The result gives the exponent for the dimensions.
     # This relies on sum and prod having the same arguments, which is true
     # now and probably remains like this in the future
-    dim_exponent = jnp.ones_like(self._value).sum(*args, **kwds)
+    dim_exponent = jnp.ones_like(self._mantissa).sum(*args, **kwds)
     # The result is possibly multidimensional but all entries should be
     # identical
     if dim_exponent.size > 1:
@@ -2478,8 +2548,8 @@ class Quantity:
 
   def nanprod(self, *args, **kwds) -> 'Quantity':  # TODO: check error when axis is not None
     """Return the product of array elements over a given axis treating Not a Numbers (NaNs) as ones."""
-    prod_res = jnp.nanprod(self._value, *args, **kwds)
-    nan_mask = jnp.isnan(self._value)
+    prod_res = jnp.nanprod(self._mantissa, *args, **kwds)
+    nan_mask = jnp.isnan(self._mantissa)
     dim_exponent = jnp.cumsum(jnp.where(nan_mask, 0, 1), *args)
     if dim_exponent.size > 1:
       dim_exponent = dim_exponent[-1]
@@ -2487,16 +2557,16 @@ class Quantity:
     return remove_unitless(r)
 
   def cumprod(self, *args, **kwds):  # TODO: check error when axis is not None
-    prod_res = jnp.cumprod(self._value, *args, **kwds)
-    dim_exponent = jnp.ones_like(self._value).cumsum(*args, **kwds)
+    prod_res = jnp.cumprod(self._mantissa, *args, **kwds)
+    dim_exponent = jnp.ones_like(self._mantissa).cumsum(*args, **kwds)
     if dim_exponent.size > 1:
       dim_exponent = dim_exponent[-1]
     r = Quantity(jnp.array(prod_res), unit=self.unit ** dim_exponent)
     return remove_unitless(r)
 
   def nancumprod(self, *args, **kwds):  # TODO: check error when axis is not None
-    prod_res = jnp.nancumprod(self._value, *args, **kwds)
-    nan_mask = jnp.isnan(self._value)
+    prod_res = jnp.nancumprod(self._mantissa, *args, **kwds)
+    nan_mask = jnp.isnan(self._mantissa)
     dim_exponent = jnp.cumsum(jnp.where(nan_mask, 0, 1), *args)
     if dim_exponent.size > 1:
       dim_exponent = dim_exponent[-1]
@@ -2519,16 +2589,16 @@ class Quantity:
 
   def repeat(self, repeats, axis=None) -> 'Quantity':
     """Repeat elements of an array."""
-    r = jnp.repeat(self._value, repeats=repeats, axis=axis)
+    r = jnp.repeat(self._mantissa, repeats=repeats, axis=axis)
     return Quantity(r, unit=self.unit)
 
   def reshape(self, *shape, order='C') -> 'Quantity':
     """Returns an array containing the same data with a new shape."""
-    return Quantity(jnp.reshape(self._value, shape, order=order), unit=self.unit)
+    return Quantity(jnp.reshape(self._mantissa, shape, order=order), unit=self.unit)
 
   def resize(self, new_shape) -> 'Quantity':
     """Change shape and size of array in-place."""
-    self.update_value(jnp.resize(self._value, new_shape))
+    self.update_value(jnp.resize(self._mantissa, new_shape))
     return self
 
   def sort(self, axis=-1, stable=True, order=None) -> 'Quantity':
@@ -2548,16 +2618,16 @@ class Quantity:
         but unspecified fields will still be used, in the order in which
         they come up in the dtype, to break ties.
     """
-    self.update_value(jnp.sort(self._value, axis=axis, stable=stable, order=order))
+    self.update_value(jnp.sort(self._mantissa, axis=axis, stable=stable, order=order))
     return self
 
   def squeeze(self, axis=None) -> 'Quantity':
     """Remove axes of length one from ``a``."""
-    return Quantity(jnp.squeeze(self._value, axis=axis), unit=self.unit)
+    return Quantity(jnp.squeeze(self._mantissa, axis=axis), unit=self.unit)
 
   def swapaxes(self, axis1, axis2) -> 'Quantity':
     """Return a view of the array with `axis1` and `axis2` interchanged."""
-    return Quantity(jnp.swapaxes(self._value, axis1, axis2), unit=self.unit)
+    return Quantity(jnp.swapaxes(self._mantissa, axis1, axis2), unit=self.unit)
 
   def split(self, indices_or_sections, axis=0) -> List['Quantity']:
     """Split an array into multiple sub-arrays as views into ``ary``.
@@ -2587,7 +2657,7 @@ class Quantity:
     sub-arrays : list of ndarrays
       A list of sub-arrays as views into `ary`.
     """
-    return [Quantity(a, unit=self.unit) for a in jnp.split(self._value, indices_or_sections, axis=axis)]
+    return [Quantity(a, unit=self.unit) for a in jnp.split(self._mantissa, indices_or_sections, axis=axis)]
 
   def take(
       self,
@@ -2601,13 +2671,13 @@ class Quantity:
     """Return an array formed from the elements of a at the given indices."""
     if isinstance(fill_value, Quantity):
       fail_for_dimension_mismatch(self, fill_value, "take")
-      fill_value = unit_scale_align_to_first(self, fill_value)[1]._value
+      fill_value = unit_scale_align_to_first(self, fill_value)[1]._mantissa
     elif fill_value is not None:
       if not self.is_unitless:
         raise TypeError(f"fill_value must be a Quantity when the unit {self.unit}. But got {fill_value}")
     return Quantity(
       jnp.take(
-        self._value,
+        self._mantissa,
         indices=indices,
         axis=axis,
         mode=mode,
@@ -2628,7 +2698,7 @@ class Quantity:
     If ``a.ndim`` is 0, then since the depth of the nested list is 0, it will
     not be a list at all, but a simple Python scalar.
     """
-    return replace_with_array(self._value.tolist(), self.unit)
+    return _replace_with_array(self._mantissa.tolist(), self.unit)
 
   def transpose(self, *axes) -> 'Quantity':
     """Returns a view of the array with axes transposed.
@@ -2660,7 +2730,7 @@ class Quantity:
     out : ndarray
         View of `a`, with axes suitably permuted.
     """
-    return Quantity(jnp.transpose(self._value, *axes), unit=self.unit)
+    return Quantity(jnp.transpose(self._mantissa, *axes), unit=self.unit)
 
   def tile(self, reps) -> 'Quantity':
     """Construct an array by repeating A the number of times given by reps.
@@ -2691,7 +2761,7 @@ class Quantity:
     c : ndarray
         The tiled output array.
     """
-    return Quantity(jnp.tile(self._value, reps), unit=self.unit)
+    return Quantity(jnp.tile(self._mantissa, reps), unit=self.unit)
 
   def view(self, *args, dtype=None) -> 'Quantity':
     r"""New view of array with the same data.
@@ -2833,16 +2903,16 @@ class Quantity:
       if dtype is None:
         raise ValueError('Provide dtype or shape.')
       else:
-        return Quantity(self._value.view(dtype), unit=self.unit)
+        return Quantity(self._mantissa.view(dtype), unit=self.unit)
     else:
       if isinstance(args[0], int):  # shape
         if dtype is not None:
           raise ValueError('Provide one of dtype or shape. Not both.')
-        return Quantity(self._value.reshape(*args), unit=self.unit)
+        return Quantity(self._mantissa.reshape(*args), unit=self.unit)
       else:  # dtype
         assert not isinstance(args[0], int)
         assert dtype is None
-        return Quantity(self._value.view(args[0]), unit=self.unit)
+        return Quantity(self._mantissa.view(args[0]), unit=self.unit)
 
   # ------------------
   # NumPy support
@@ -2850,8 +2920,8 @@ class Quantity:
 
   def __array__(self, dtype: Optional[jax.typing.DTypeLike] = None) -> np.ndarray:
     """Support ``numpy.array()`` and ``numpy.asarray()`` functions."""
-    if self.dim == DIMENSIONLESS:
-      return np.asarray(self._value, dtype=dtype)
+    if self.unit.is_unitless:
+      return np.asarray(self._mantissa, dtype=dtype)
     else:
       raise TypeError(
         f"only dimensionless quantities can be "
@@ -2859,8 +2929,8 @@ class Quantity:
       )
 
   def __float__(self):
-    if self.dim == DIMENSIONLESS and self.ndim == 0:
-      return float(self._value)
+    if self.unit.is_unitless and self.ndim == 0:
+      return float(self._mantissa)
     else:
       raise TypeError(
         "only dimensionless scalar quantities can be "
@@ -2868,8 +2938,8 @@ class Quantity:
       )
 
   def __int__(self):
-    if self.dim == DIMENSIONLESS and self.ndim == 0:
-      return int(self._value)
+    if self.unit.is_unitless and self.ndim == 0:
+      return int(self._mantissa)
     else:
       raise TypeError(
         "only dimensionless scalar quantities can be "
@@ -2877,8 +2947,8 @@ class Quantity:
       )
 
   def __index__(self):
-    if self.dim == DIMENSIONLESS:
-      return operator.index(self._value)
+    if self.unit.is_unitless:
+      return operator.index(self._mantissa)
     else:
       raise TypeError(
         "only dimensionless quantities can be "
@@ -2897,7 +2967,7 @@ class Quantity:
 
     See :func:`brainstate.math.unsqueeze`
     """
-    return Quantity(jnp.expand_dims(self._value, axis), unit=self.unit)
+    return Quantity(jnp.expand_dims(self._mantissa, axis), unit=self.unit)
 
   def expand_dims(self, axis: Union[int, Sequence[int]]) -> 'Quantity':
     """
@@ -2913,7 +2983,7 @@ class Quantity:
     expanded : Quantity
         A view with the new axis inserted.
     """
-    return Quantity(jnp.expand_dims(self._value, axis), unit=self.unit)
+    return Quantity(jnp.expand_dims(self._mantissa, axis), unit=self.unit)
 
   def expand_as(self, array: Union['Quantity', jax.typing.ArrayLike]) -> 'Quantity':
     """
@@ -2932,8 +3002,8 @@ class Quantity:
     """
     if isinstance(array, Quantity):
       fail_for_dimension_mismatch(self, array, "expand_as (Quantity)")
-      array = array._value
-    return Quantity(jnp.broadcast_to(self._value, array), unit=self.unit)
+      array = array._mantissa
+    return Quantity(jnp.broadcast_to(self._mantissa, array), unit=self.unit)
 
   def pow(self, oc) -> 'Quantity':
     return self.__pow__(oc)
@@ -2948,45 +3018,45 @@ class Quantity:
     Returns:
       The data and the dimension.
     """
-    return (self._value,), self.unit
+    return (self._mantissa,), self.unit
 
   @classmethod
-  def tree_unflatten(cls, unit, value) -> 'Quantity':
+  def tree_unflatten(cls, unit, values) -> 'Quantity':
     """
     Tree unflattens the data.
 
     Args:
       unit: The unit.
-      value: The data.
+      values: The data.
 
     Returns:
       The Quantity object.
     """
-    return cls(*value, unit=unit)
+    return cls(*values, unit=unit)
 
   def cuda(self, deice=None) -> 'Quantity':
     deice = jax.devices('cuda')[0] if deice is None else deice
-    self.update_value(jax.device_put(self._value, deice))
+    self.update_value(jax.device_put(self._mantissa, deice))
     return self
 
   def cpu(self, device=None) -> 'Quantity':
     device = jax.devices('cpu')[0] if device is None else device
-    self.update_value(jax.device_put(self._value, device))
+    self.update_value(jax.device_put(self._mantissa, device))
     return self
 
   # dtype exchanging #
   # ---------------- #
   def half(self) -> 'Quantity':
-    return Quantity(jnp.asarray(self._value, dtype=jnp.float16), unit=self.unit)
+    return Quantity(jnp.asarray(self._mantissa, dtype=jnp.float16), unit=self.unit)
 
   def float(self) -> 'Quantity':
-    return Quantity(jnp.asarray(self._value, dtype=jnp.float32), unit=self.unit)
+    return Quantity(jnp.asarray(self._mantissa, dtype=jnp.float32), unit=self.unit)
 
   def double(self) -> 'Quantity':
-    return Quantity(jnp.asarray(self._value, dtype=jnp.float64), unit=self.unit)
+    return Quantity(jnp.asarray(self._mantissa, dtype=jnp.float64), unit=self.unit)
 
 
-def replace_with_array(seq, unit):
+def _replace_with_array(seq, unit):
   """
   Replace all the elements in the list with an equivalent `Array`
   with the given `unit`.
@@ -3006,6 +3076,249 @@ def replace_with_array(seq, unit):
         yield list(top_replace(i))
 
   return list(top_replace(seq))
+
+
+def check_dims(**au):
+  """
+  Decorator to check dimensions of arguments passed to a function
+
+  Examples
+  --------
+  >>> from brainunit import *
+  >>> @check_dims(I=amp.dim, R=ohm.dim, wibble=metre.dim, result=volt.dim)
+  ... def getvoltage(I, R, **k):
+  ...     return I*R
+
+  You don't have to check the units of every variable in the function, and
+  you can define what the units should be for variables that aren't
+  explicitly named in the definition of the function. For example, the code
+  above checks that the variable wibble should be a length, so writing
+
+  >>> getvoltage(1*amp, 1*ohm, wibble=1)  # doctest: +IGNORE_EXCEPTION_DETAIL
+  Traceback (most recent call last):
+  ...
+  DimensionMismatchError: Function "getvoltage" variable "wibble" has wrong dimensions, dimensions were (1) (m)
+
+  fails, but
+
+  >>> getvoltage(1*amp, 1*ohm, wibble=1*metre)
+  1. * volt
+
+  By using the special name ``result``, you can check the return value of the
+  function.
+
+  You can also use ``1`` or ``bool`` as a special value to check for a
+  unitless number or a boolean value, respectively:
+
+  >>> @check_units(value=1, absolute=bool, result=bool)
+  ... def is_high(value, absolute=False):
+  ...     if absolute:
+  ...         return abs(value) >= 5
+  ...     else:
+  ...         return value >= 5
+
+  This will then again raise an error if the argument if not of the expected
+  type:
+
+  >>> is_high(7)
+  True
+  >>> is_high(-7, True)
+  True
+  >>> is_high(3, 4)  # doctest: +IGNORE_EXCEPTION_DETAIL
+  Traceback (most recent call last):
+  ...
+  TypeError: Function "is_high" expected a boolean value for argument "absolute" but got 4.
+
+  If the return unit depends on the unit of an argument, you can also pass
+  a function that takes the units of all the arguments as its inputs (in the
+  order specified in the function header):
+
+  >>> @check_units(result=lambda d: d**2)
+  ... def square(value):
+  ...     return value**2
+
+  If several arguments take arbitrary units but they have to be
+  consistent among each other, you can state the name of another argument as
+  a string to state that it uses the same unit as that argument.
+
+  >>> @check_units(summand_1=None, summand_2='summand_1')
+  ... def multiply_sum(multiplicand, summand_1, summand_2):
+  ...     "Calculates multiplicand*(summand_1 + summand_2)"
+  ...     return multiplicand*(summand_1 + summand_2)
+  >>> multiply_sum(3, 4*mV, 5*mV)
+  27. * mvolt
+  >>> multiply_sum(3*nA, 4*mV, 5*mV)
+  27. * pwatt
+  >>> multiply_sum(3*nA, 4*mV, 5*nA)  # doctest: +IGNORE_EXCEPTION_DETAIL
+  Traceback (most recent call last):
+  ...
+  DimensionMismatchError: Function 'multiply_sum' expected the same arguments for arguments 'summand_1', 'summand_2', but argument 'summand_1' has unit V, while argument 'summand_2' has unit A.
+
+  Raises
+  ------
+
+  DimensionMismatchError
+      In case the input arguments or the return value do not have the
+      expected dimensions.
+  TypeError
+      If an input argument or return value was expected to be a boolean but
+      is not.
+
+  Notes
+  -----
+  This decorator will destroy the signature of the original function, and
+  replace it with the signature ``(*args, **kwds)``. Other decorators will
+  do the same thing, and this decorator critically needs to know the signature
+  of the function it is acting on, so it is important that it is the first
+  decorator to act on a function. It cannot be used in combination with
+  another decorator that also needs to know the signature of the function.
+
+  Note that the ``bool`` type is "strict", i.e. it expects a proper
+  boolean value and does not accept 0 or 1. This is not the case the other
+  way round, declaring an argument or return value as "1" *does* allow for a
+  ``True`` or ``False`` value.
+  """
+
+  def do_check_units(f):
+    @wraps(f)
+    def new_f(*args, **kwds):
+      newkeyset = kwds.copy()
+      arg_names = f.__code__.co_varnames[0: f.__code__.co_argcount]
+      for n, v in zip(arg_names, args[0: f.__code__.co_argcount]):
+        if (
+            not isinstance(v, (Quantity, str, bool))
+            and v is not None
+            and n in au
+        ):
+          try:
+            # allow e.g. to pass a Python list of values
+            v = Quantity(v)
+          except TypeError:
+            if have_same_dim(au[n], 1):
+              raise TypeError(f"Argument {n} is not a unitless value/array.")
+            else:
+              raise TypeError(
+                f"Argument '{n}' is not a array, "
+                "expected a array with dimensions "
+                f"{au[n]}"
+              )
+        newkeyset[n] = v
+
+      for k in newkeyset:
+        # string variables are allowed to pass, the presumption is they
+        # name another variable. None is also allowed, useful for
+        # default parameters
+        if (
+            k in au
+            and not isinstance(newkeyset[k], str)
+            and not newkeyset[k] is None
+            and not au[k] is None
+        ):
+          if au[k] == bool:
+            if not isinstance(newkeyset[k], bool):
+              value = newkeyset[k]
+              error_message = (
+                f"Function '{f.__name__}' "
+                "expected a boolean value "
+                f"for argument '{k}' but got "
+                f"'{value}'"
+              )
+              raise TypeError(error_message)
+          elif isinstance(au[k], str):
+            if not au[k] in newkeyset:
+              error_message = (
+                f"Function '{f.__name__}' "
+                "expected its argument to have the "
+                f"same units as argument '{k}', but "
+                "there is no argument of that name"
+              )
+              raise TypeError(error_message)
+            if not have_same_dim(newkeyset[k], newkeyset[au[k]]):
+              d1 = get_dim(newkeyset[k])
+              d2 = get_dim(newkeyset[au[k]])
+              error_message = (
+                f"Function '{f.__name__}' expected "
+                f"the argument '{k}' to have the same "
+                f"dimensions as argument '{au[k]}', but "
+                f"argument '{k}' has "
+                f"unit {get_dim_for_display(d1)}, "
+                f"while argument '{au[k]}' "
+                f"has dimension {get_dim_for_display(d2)}."
+              )
+              raise DimensionMismatchError(error_message)
+          elif not have_same_dim(newkeyset[k], au[k]):
+            unit = repr(au[k])
+            value = newkeyset[k]
+            error_message = (
+              f"Function '{f.__name__}' "
+              "expected a array with dimension "
+              f"{unit} for argument '{k}' but got "
+              f"'{value}'"
+            )
+            raise DimensionMismatchError(
+              error_message, get_dim(newkeyset[k])
+            )
+
+      result = f(*args, **kwds)
+      if "result" in au:
+        if isinstance(au["result"], Callable) and au["result"] != bool:
+          expected_result = au["result"](*[get_dim(a) for a in args])
+        else:
+          expected_result = au["result"]
+        if au["result"] == bool:
+          if not isinstance(result, bool):
+            error_message = (
+              "The return value of function "
+              f"'{f.__name__}' was expected to be "
+              "a boolean value, but was of type "
+              f"{type(result)}"
+            )
+            raise TypeError(error_message)
+        elif not have_same_dim(result, expected_result):
+          unit = get_dim_for_display(expected_result)
+          error_message = (
+            "The return value of function "
+            f"'{f.__name__}' was expected to have "
+            f"dimension {unit} but was "
+            f"'{result}'"
+          )
+          raise DimensionMismatchError(error_message, get_dim(result))
+      return result
+
+    new_f._orig_func = f
+    # store the information in the function, necessary when using the
+    # function in expressions or equations
+    if hasattr(f, "_orig_arg_names"):
+      arg_names = f._orig_arg_names
+    else:
+      arg_names = f.__code__.co_varnames[: f.__code__.co_argcount]
+    new_f._arg_names = arg_names
+    new_f._arg_units = [au.get(name, None) for name in arg_names]
+    return_unit = au.get("result", None)
+    if return_unit is None:
+      new_f._return_unit = None
+    else:
+      new_f._return_unit = return_unit
+    if return_unit == bool:
+      new_f._returns_bool = True
+    else:
+      new_f._returns_bool = False
+    new_f._orig_arg_names = arg_names
+
+    # copy any annotation attributes
+    if hasattr(f, "_annotation_attributes"):
+      for attrname in f._annotation_attributes:
+        setattr(new_f, attrname, getattr(f, attrname))
+    new_f._annotation_attributes = getattr(f, "_annotation_attributes", []) + [
+      "_arg_units",
+      "_arg_names",
+      "_return_unit",
+      "_orig_func",
+      "_returns_bool",
+    ]
+    return new_f
+
+  return do_check_units
 
 
 def check_units(**au):
@@ -3163,20 +3476,20 @@ def check_units(**au):
                 "there is no argument of that name"
               )
               raise TypeError(error_message)
-            if not have_same_dim(newkeyset[k], newkeyset[au[k]]):
-              d1 = get_dim(newkeyset[k])
-              d2 = get_dim(newkeyset[au[k]])
+            if not has_same_unit(newkeyset[k], newkeyset[au[k]]):
+              d1 = get_unit(newkeyset[k])
+              d2 = get_unit(newkeyset[au[k]])
               error_message = (
                 f"Function '{f.__name__}' expected "
                 f"the argument '{k}' to have the same "
                 f"units as argument '{au[k]}', but "
                 f"argument '{k}' has "
-                f"unit {get_dim_for_display(d1)}, "
+                f"unit {d1}, "
                 f"while argument '{au[k]}' "
-                f"has unit {get_dim_for_display(d2)}."
+                f"has unit {d2}."
               )
-              raise DimensionMismatchError(error_message)
-          elif not have_same_dim(newkeyset[k], au[k]):
+              raise UnitMismatchError(error_message)
+          elif not has_same_unit(newkeyset[k], au[k]):
             unit = repr(au[k])
             value = newkeyset[k]
             error_message = (
@@ -3185,9 +3498,7 @@ def check_units(**au):
               f"{unit} for argument '{k}' but got "
               f"'{value}'"
             )
-            raise DimensionMismatchError(
-              error_message, get_dim(newkeyset[k])
-            )
+            raise UnitMismatchError(error_message, get_unit(newkeyset[k]))
 
       result = f(*args, **kwds)
       if "result" in au:
@@ -3204,15 +3515,14 @@ def check_units(**au):
               f"{type(result)}"
             )
             raise TypeError(error_message)
-        elif not have_same_dim(result, expected_result):
-          unit = get_dim_for_display(expected_result)
+        elif not has_same_unit(result, expected_result):
           error_message = (
             "The return value of function "
             f"'{f.__name__}' was expected to have "
-            f"unit {unit} but was "
+            f"unit {get_unit(expected_result)} but was "
             f"'{result}'"
           )
-          raise DimensionMismatchError(error_message, get_dim(result))
+          raise UnitMismatchError(error_message, get_unit(result))
       return result
 
     new_f._orig_func = f

@@ -19,7 +19,7 @@ from typing import (Union, Optional, Tuple, Any, Callable)
 import jax
 import jax.numpy as jnp
 
-from .._base import (Quantity, Unit, fail_for_dimension_mismatch)
+from .._base import (Quantity, Unit, fail_for_dimension_mismatch, fail_for_unit_mismatch)
 from .._misc import set_module_as
 
 __all__ = [
@@ -59,19 +59,19 @@ def _fun_accept_unitless_unary(
     if unit_to_scale is None:
       assert x.is_unitless, (f'Input should be unitless for the function "{func}" '
                              f'when scaling "unit_to_scale" is not provided.')
-      x = x.value
+      x = x.mantissa
       return func(x, *args, **kwargs)
     else:
-      fail_for_dimension_mismatch(
+      fail_for_unit_mismatch(
         x,
         unit_to_scale,
         error_message="Unit mismatch: {value} != {unit_to_scale}",
         value=x,
         unit_to_scale=unit_to_scale
       )
-      return func(x.to_value(unit_to_scale), *args, **kwargs)
+      return func(x.to_decimal_num(unit_to_scale), *args, **kwargs)
   else:
-    # assert unit_to_scale is None, f'Unit should be None for the function "{func}" when "x" is not a Quantity.'
+    assert unit_to_scale is None, f'Unit should be None for the function "{func}" when "x" is not a Quantity.'
     return func(x, *args, **kwargs)
 
 

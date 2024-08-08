@@ -19,7 +19,7 @@ from typing import (Union, Optional, Sequence)
 import jax
 import jax.numpy as jnp
 
-from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS
+from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS, fail_for_unit_mismatch, UNITLESS
 from .._misc import set_module_as
 
 __all__ = [
@@ -330,14 +330,14 @@ sometrue = any
 
 def _fun_logic_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    fail_for_dimension_mismatch(x, y)
-    return func(x.value, y.value, *args, **kwargs)
+    fail_for_unit_mismatch(x, y)
+    return func(x.mantissa, y.in_unit(x.unit).mantissa, *args, **kwargs)
   elif isinstance(x, Quantity):
     assert x.is_unitless, f'Expected unitless array when y is not Quantity, while got {x}'
-    return func(x.value, y, *args, **kwargs)
+    return func(x.mantissa, y, *args, **kwargs)
   elif isinstance(y, Quantity):
     assert y.is_unitless, f'Expected unitless array when x is not Quantity, while got {y}'
-    return func(x, y.value, *args, **kwargs)
+    return func(x, y.mantissa, *args, **kwargs)
   else:
     return func(x, y, *args, **kwargs)
 
@@ -694,8 +694,8 @@ def isclose(
 def allclose(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike],
-    rtol: float | Quantity = 1e-05,
-    atol: float | Quantity = 1e-08,
+    rtol: float | Quantity = None,
+    atol: float | Quantity = None,
     equal_nan: bool = False
 ) -> Union[bool, jax.Array]:
   """
@@ -728,19 +728,39 @@ def allclose(
     Returns True if the two arrays are equal within the given
     tolerance; False otherwise.
   """
-  dim = DIMENSIONLESS
+  unit = UNITLESS
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    fail_for_dimension_mismatch(x, y)
-    dim = x.dim
+    fail_for_unit_mismatch(x, y)
+    unit = x.unit
+    y = y.in_unit(x.unit)
+    x_val = x.mantissa
+    y_val = y.mantissa
   elif isinstance(x, Quantity):
     assert x.is_unitless, f'Expected unitless array when y is not Quantity, while got {x}'
+    x_val = x.mantissa
+    y_val = y
   elif isinstance(y, Quantity):
     assert y.is_unitless, f'Expected unitless array when x is not Quantity, while got {y}'
+    y_val = y.mantissa
+    x_val = x
+  else:
+    x_val = x
+    y_val = y
+  if rtol is None:
+    rtol = 1e-5 * unit
+  if atol is None:
+    atol = 1e-8 * unit
   if isinstance(rtol, Quantity):
-    fail_for_dimension_mismatch(rtol, Quantity(0., dim=dim), 'rtol should be a Quantity with {dim}.', dim=dim)
+    rtol = rtol.in_unit(unit).mantissa
+  else:
+    assert unit == UNITLESS, f'Expected unitless rtol when x and y is unitless, while got {rtol}'
+    rtol = rtol
   if isinstance(atol, Quantity):
-    fail_for_dimension_mismatch(atol, Quantity(0., dim=dim), 'atol should be a Quantity with {dim}.', dim=dim)
-  return _fun_logic_binary(jnp.allclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
+    atol = atol.in_unit(unit).mantissa
+  else:
+    assert unit == UNITLESS, f'Expected unitless atol when x and y is unitless, while got {atol}'
+    atol = atol
+  return jnp.allclose(x_val, y_val, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 @set_module_as('brainunit.math')
@@ -1199,7 +1219,7 @@ def searchsorted(
   if isinstance(a, Quantity):
     fail_for_dimension_mismatch(a, v)
     a = a.value
-    v = v.value
+    v = v.mantissa
   if isinstance(v, Quantity):
     assert v.is_unitless, 'v must be unitless when "a" is not a Quantity.'
     v = v.value

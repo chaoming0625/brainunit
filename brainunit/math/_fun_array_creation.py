@@ -26,6 +26,7 @@ from .._base import (DIMENSIONLESS,
                      Quantity,
                      Unit,
                      fail_for_dimension_mismatch,
+                     fail_for_unit_mismatch,
                      DimensionMismatchError, )
 from .._misc import set_module_as
 
@@ -509,8 +510,9 @@ def ones_like(
   if isinstance(a, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
-      fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.ones_like(a.value, dtype=dtype, shape=shape), dim=a.dim)
+      fail_for_unit_mismatch(a, unit, error_message="a and unit have to have the same units.")
+      a = a.in_unit(unit)
+    return Quantity(jnp.ones_like(a.mantissa, dtype=dtype, shape=shape), unit=a.unit)
   else:
     if unit is not None:
       assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
@@ -549,7 +551,7 @@ def zeros_like(
     if unit is not None:
       assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
       fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.zeros_like(a.value, dtype=dtype, shape=shape), dim=a.dim)
+    return Quantity(jnp.zeros_like(a.mantissa, dtype=dtype, shape=shape), unit=a.unit)
   else:
     if unit is not None:
       assert isinstance(unit, Unit), 'unit must be an instance of Unit.'

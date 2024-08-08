@@ -976,7 +976,7 @@ def _einsum(
       operand = transpose(operand, perm)
     operands.append(operand)  # used in next iteration
 
-  ret = operands[0].value if isinstance(operands[0], Quantity) else operands[0]
+  ret = operands[0].mantissa if isinstance(operands[0], Quantity) else operands[0]
   ret = jax.lax.convert_element_type(ret, preferred_element_type)
   if isinstance(operands[0], Quantity):
     return Quantity(ret, dim=operands[0].dim)
