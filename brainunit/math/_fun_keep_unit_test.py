@@ -4,7 +4,8 @@ from absl.testing import parameterized
 
 import brainunit as bu
 import brainunit.math as bm
-from brainunit import assert_quantity, second, meter, ms
+from brainunit import second, meter, ms
+from brainunit._base import assert_quantity
 
 fun_keep_unit_squence_inputs = [
   'row_stack', 'concatenate', 'stack', 'vstack', 'hstack', 'dstack', 'column_stack', 'block', 'append',

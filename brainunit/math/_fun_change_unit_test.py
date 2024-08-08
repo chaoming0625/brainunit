@@ -4,7 +4,8 @@ from absl.testing import parameterized
 
 import brainunit as bu
 import brainunit.math as bm
-from brainunit import meter, second, assert_quantity, volt, get_dim
+from brainunit import meter, second, volt, get_dim
+from brainunit._base import assert_quantity
 
 fun_change_unit_unary = [
   'reciprocal', 'var', 'nanvar', 'cbrt', 'square', 'sqrt',

@@ -37,8 +37,8 @@ __all__ = [
   # helpers
   'DimensionMismatchError',
   'UnitMismatchError',
+  'is_dimensionless',
   'is_unitless',
-  'display_in_unit',
   'get_dim',
   'get_unit',
 
@@ -698,7 +698,6 @@ def has_same_unit(obj1, obj2) -> bool:
   return unit1 == unit2
 
 
-
 def fail_for_dimension_mismatch(
     obj1, obj2=None, error_message=None, **error_arrays
 ):
@@ -974,7 +973,7 @@ def array_with_unit(
   return Quantity(floatval, dim=get_or_create_dimension(dim._dims), dtype=dtype)
 
 
-def is_unitless(obj: Union['Quantity', 'Unit', jax.typing.ArrayLike]) -> bool:
+def is_dimensionless(obj: Union['Quantity', 'Unit', 'Dimension', jax.typing.ArrayLike]) -> bool:
   """
   Test if a value is dimensionless or not.
 
@@ -988,6 +987,26 @@ def is_unitless(obj: Union['Quantity', 'Unit', jax.typing.ArrayLike]) -> bool:
   dimensionless : `bool`
       ``True`` if `obj` is dimensionless.
   """
+  if isinstance(obj, Dimension):
+    return obj.is_dimensionless
+  return _to_quantity(obj).dim.is_dimensionless
+
+
+def is_unitless(obj: Union['Quantity', 'Unit', jax.typing.ArrayLike]) -> bool:
+  """
+  Test if a value is unitless or not.
+
+  Parameters
+  ----------
+  obj : `object`
+      The object to check.
+
+  Returns
+  -------
+  unitless : `bool`
+      ``True`` if `obj` is unitless.
+  """
+  assert not isinstance(obj, Dimension), f"Dimension objects are not unitless or not, but got {obj}"
 
   return _to_quantity(obj).is_unitless
 

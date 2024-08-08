@@ -4,7 +4,8 @@ from absl.testing import parameterized
 
 import brainunit as bu
 import brainunit.math as bm
-from brainunit import second, meter, DimensionMismatchError, assert_quantity
+from brainunit import second, meter, DimensionMismatchError
+from brainunit._base import assert_quantity
 
 fun_array_creation_given_shape = [
   'empty', 'ones', 'zeros',

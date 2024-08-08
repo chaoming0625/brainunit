@@ -4,7 +4,8 @@ from absl.testing import parameterized
 
 import brainunit as bu
 import brainunit.math as bm
-from brainunit import meter, DimensionMismatchError, assert_quantity
+from brainunit import meter, DimensionMismatchError
+from brainunit._base import assert_quantity
 
 fun_accept_unitless_unary = [
   'exp', 'exp2', 'expm1', 'log', 'log10', 'log1p', 'log2',
