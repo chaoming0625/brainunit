@@ -1767,7 +1767,17 @@ class Quantity:
     self._unit = unit
 
   @property
-  def mantissa(self):
+  def mantissa(self) -> jax.typing.ArrayLike:
+    r"""
+    The mantissa of the array.
+
+    In the scientific notation, :math:`x = a * 10^b`, the mantissa :math:`a` is the part of
+    a floating-point number that contains its significant digits. For example, in the number
+    :math:`3.14 * 10^5`, the mantissa is :math:`3.14`.
+
+    Returns:
+      The mantissa of the array.
+    """
     return self._mantissa
 
   def update_value(self, mantissa: PyTree):
@@ -1918,8 +1928,9 @@ class Quantity:
     bool
         Whether the two Arrays have the same unit dimensions
     """
-    other_unit = get_dim(other.dim)
-    return (get_dim(self.dim) is other_unit) or (get_dim(self.dim) == other_unit)
+    self_dim = get_dim(self.dim)
+    other_dim = get_dim(other.dim)
+    return (self_dim is other_dim) or (self_dim == other_dim)
 
   def repr_in_unit(
       self,
