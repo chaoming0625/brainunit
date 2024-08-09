@@ -15,19 +15,21 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import (Union, Optional, List, Any)
+from typing import (Union, Optional, List, Any, Tuple)
 
 import jax
 import jax.numpy as jnp
 import numpy as np
 from jax import Array
 
-from .._base import (DIMENSIONLESS,
-                     Quantity,
-                     Unit,
-                     fail_for_dimension_mismatch,
-                     fail_for_unit_mismatch,
-                     DimensionMismatchError, )
+from .._base import (
+  Quantity,
+  Unit,
+  fail_for_dimension_mismatch,
+  fail_for_unit_mismatch,
+  get_unit,
+  unit_scale_align_to_first,
+)
 from .._misc import set_module_as
 
 Shape = Union[int, Sequence[int]]
@@ -83,7 +85,7 @@ def full(
     Array of `fill_value` with the given shape, dtype, and order.
   """
   if isinstance(fill_value, Quantity):
-    return Quantity(jnp.full(shape, fill_value.value, dtype=dtype), dim=fill_value.dim)
+    return Quantity(jnp.full(shape, fill_value.mantissa, dtype=dtype), unit=fill_value.unit)
   return jnp.full(shape, fill_value, dtype=dtype)
 
 
@@ -318,17 +320,21 @@ def full_like(
   """
   if isinstance(fill_value, Quantity):
     if isinstance(a, Quantity):
-      fail_for_dimension_mismatch(a, fill_value, error_message="a and fill_value have to have the same units.")
-      return Quantity(jnp.full_like(a.value, fill_value.value, dtype=dtype, shape=shape),
-                      dim=a.dim)
+      fill_value = fill_value.in_unit(a.unit)
+      return Quantity(
+        jnp.full_like(a.mantissa, fill_value.mantissa, dtype=dtype, shape=shape),
+        unit=a.unit
+      )
     else:
       assert fill_value.is_unitless, 'fill_value must be unitless when a is not a Quantity.'
-      return Quantity(jnp.full_like(a, fill_value.value, dtype=dtype, shape=shape),
-                      dim=fill_value.dim)
+      return Quantity(
+        jnp.full_like(a, fill_value.mantissa, dtype=dtype, shape=shape),
+        unit=fill_value.unit
+      )
   else:
     if isinstance(a, Quantity):
       assert a.is_unitless, 'a must be unitless when fill_value is not a Quantity.'
-      return jnp.full_like(a.value, fill_value, dtype=dtype, shape=shape)
+      return jnp.full_like(a.mantissa, fill_value, dtype=dtype, shape=shape)
     else:
       return jnp.full_like(a, fill_value, dtype=dtype, shape=shape)
 
@@ -361,8 +367,8 @@ def diag(
   if isinstance(v, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-      fail_for_dimension_mismatch(v, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.diag(v.value, k=k), dim=v.dim)
+      v = v.in_unit(unit)
+    return Quantity(jnp.diag(v.mantissa, k=k), unit=v.unit)
   else:
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -400,8 +406,8 @@ def tril(
   if isinstance(m, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-      fail_for_dimension_mismatch(m, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.tril(m.value, k=k), dim=m.dim)
+      m = m.in_unit(unit)
+    return Quantity(jnp.tril(m.mantissa, k=k), unit=m.unit)
   else:
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -432,8 +438,8 @@ def triu(
   if isinstance(m, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-      fail_for_dimension_mismatch(m, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.triu(m.value, k=k), dim=m.dim)
+      m = m.in_unit(unit)
+    return Quantity(jnp.triu(m.mantissa, k=k), unit=m.unit)
   else:
     if unit is not None:
       assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -471,8 +477,8 @@ def empty_like(
   if isinstance(prototype, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
-      fail_for_dimension_mismatch(prototype, unit, error_message="a and unit have to have the same units.")
-    return Quantity(jnp.empty_like(prototype.value, dtype=dtype), dim=prototype.dim)
+      prototype = prototype.in_unit(unit)
+    return Quantity(jnp.empty_like(prototype.mantissa, dtype=dtype), unit=prototype.unit)
   else:
     if unit is not None:
       assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
@@ -510,7 +516,6 @@ def ones_like(
   if isinstance(a, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
-      fail_for_unit_mismatch(a, unit, error_message="a and unit have to have the same units.")
       a = a.in_unit(unit)
     return Quantity(jnp.ones_like(a.mantissa, dtype=dtype, shape=shape), unit=a.unit)
   else:
@@ -550,7 +555,7 @@ def zeros_like(
   if isinstance(a, Quantity):
     if unit is not None:
       assert isinstance(unit, Unit), 'unit must be an instance of Unit.'
-      fail_for_dimension_mismatch(a, unit, error_message="a and unit have to have the same units.")
+      a = a.in_unit(unit)
     return Quantity(jnp.zeros_like(a.mantissa, dtype=dtype, shape=shape), unit=a.unit)
   else:
     if unit is not None:
@@ -596,31 +601,24 @@ def asarray(
 
   # get leaves
   leaves, treedef = jax.tree.flatten(a, is_leaf=lambda x: isinstance(x, Quantity))
-  a = treedef.unflatten([leaf.value if isinstance(leaf, Quantity) else leaf for leaf in leaves])
+  leaves = unit_scale_align_to_first(*leaves)
+  leaf_unit = leaves[0].unit
 
   # get unit
-  dims = [leaf.dim if isinstance(leaf, Quantity) else DIMENSIONLESS for leaf in leaves]
-  if any(dims[0] != d for d in dims):
-    raise DimensionMismatchError(f'Units do not match for asarray operation. Got {dims}')
-  dim = dims[0]
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
-    if dim != DIMENSIONLESS:
-      fail_for_dimension_mismatch(
-        Unit(dim),
-        unit,
-        error_message="a and unit have to have the same units."
-      )
+    leaves = [leaf.in_unit(unit) for leaf in leaves]
+  else:
+    unit = leaf_unit
 
-  # compute
-  r = jnp.asarray(a, dtype=dtype, order=order)
+  # 
+  a_mantissa = treedef.unflatten([leaf.mantissa for leaf in leaves])
+  a_mantissa = jnp.asarray(a_mantissa, dtype=dtype, order=order)
 
   # returns
-  if dim != DIMENSIONLESS:
-    return Quantity(r, dim=dim)
-  if unit is not None:
-    return r * unit
-  return r
+  if unit.is_unitless:
+    return a_mantissa
+  return Quantity(a_mantissa, unit=unit)
 
 
 array = asarray
@@ -654,25 +652,27 @@ def arange(
   out : quantity or array
       Array of evenly spaced values.
   """
-  non_none_data = [d for d in (start, stop, step) if d is not None]
   # checking the dimension of the data
+  non_none_data = [d for d in (start, stop, step) if d is not None]
   assert len(non_none_data) > 0, 'At least one of start, stop, or step must be provided.'
   d1 = non_none_data[0]
   for d2 in non_none_data[1:]:
-    fail_for_dimension_mismatch(
-      d1, d2,
-      error_message="Start stop, and step value have to "
-                    "have the same units. Got: {d1}  {d2}",
-      d1=d1, d2=d2
+    fail_for_unit_mismatch(
+      d1,
+      d2,
+      error_message="Start value {d1} and stop value {d2} have to have the same units.",
+      d1=d1,
+      d2=d2
     )
-  dim = d1.dim if isinstance(d1, Quantity) else None
+
   # convert to array
-  start = start.value if isinstance(start, Quantity) else start
-  stop = stop.value if isinstance(stop, Quantity) else stop
-  step = step.value if isinstance(step, Quantity) else step
+  unit = get_unit(d1)
+  start = start.in_unit(unit).mantissa if isinstance(start, Quantity) else start
+  stop = stop.in_unit(unit).mantissa if isinstance(stop, Quantity) else stop
+  step = step.in_unit(unit).mantissa if isinstance(step, Quantity) else step
   # compute
   r = jnp.arange(start, stop, step, dtype=dtype)
-  return Quantity(r, dim=dim) if dim is not None else r
+  return r if unit.is_unitless else Quantity(r, unit=unit)
 
 
 @set_module_as('brainunit.math')
@@ -710,19 +710,18 @@ def linspace(
   samples : quantity or array
     There are `num` equally spaced samples in the closed interval [`start`, `stop`] or the half-open interval [`start`, `stop`).
   """
-  fail_for_dimension_mismatch(
+  fail_for_unit_mismatch(
     start,
     stop,
     error_message="Start value {start} and stop value {stop} have to have the same units.",
     start=start,
     stop=stop,
   )
-  unit = getattr(start, "dim", DIMENSIONLESS)
-  start = start.value if isinstance(start, Quantity) else start
-  stop = stop.value if isinstance(stop, Quantity) else stop
-
+  unit = get_unit(start)
+  start = start.in_unit(unit).mantissa if isinstance(start, Quantity) else start
+  stop = stop.in_unit(unit).mantissa if isinstance(stop, Quantity) else stop
   result = jnp.linspace(start, stop, num=num, endpoint=endpoint, retstep=retstep, dtype=dtype)
-  return Quantity(result, dim=unit) if unit != DIMENSIONLESS else result
+  return result if unit.is_unitless else Quantity(result, unit=unit)
 
 
 @set_module_as('brainunit.math')
@@ -759,19 +758,19 @@ def logspace(
   samples : quantity or array
     There are `num` equally spaced samples in the closed interval [`start`, `stop`] or the half-open interval [`start`, `stop`).
   """
-  fail_for_dimension_mismatch(
+  fail_for_unit_mismatch(
     start,
     stop,
     error_message="Start value {start} and stop value {stop} have to have the same units.",
     start=start,
     stop=stop,
   )
-  unit = getattr(start, "dim", DIMENSIONLESS)
-  start = start.value if isinstance(start, Quantity) else start
-  stop = stop.value if isinstance(stop, Quantity) else stop
+  unit = get_unit(start)
+  start = start.in_unit(unit).mantissa if isinstance(start, Quantity) else start
+  stop = stop.in_unit(unit).mantissa if isinstance(stop, Quantity) else stop
 
   result = jnp.logspace(start, stop, num=num, endpoint=endpoint, base=base, dtype=dtype)
-  return Quantity(result, dim=unit) if unit != DIMENSIONLESS else result
+  return result if unit.is_unitless else Quantity(result, unit=unit)
 
 
 @set_module_as('brainunit.math')
@@ -806,13 +805,13 @@ def fill_diagonal(
   """
   if isinstance(val, Quantity):
     if isinstance(a, Quantity):
-      fail_for_dimension_mismatch(a, val, error_message="Array and value have to have the same units.")
-      return Quantity(jnp.fill_diagonal(a.value, val.value, wrap, inplace=inplace), dim=a.dim)
+      val = val.in_unit(a.unit)
+      return Quantity(jnp.fill_diagonal(a.mantissa, val.mantissa, wrap, inplace=inplace), unit=a.unit)
     else:
-      return Quantity(jnp.fill_diagonal(a, val.value, wrap, inplace=inplace), dim=val.dim)
+      return Quantity(jnp.fill_diagonal(a, val.mantissa, wrap, inplace=inplace), unit=val.unit)
   else:
     if isinstance(a, Quantity):
-      return jnp.fill_diagonal(a.value, val, wrap, inplace=inplace)
+      return Quantity(jnp.fill_diagonal(a.mantissa, val, wrap, inplace=inplace), unit=a.unit)
     else:
       return jnp.fill_diagonal(a, val, wrap, inplace=inplace)
 
@@ -901,7 +900,7 @@ def vander(
   """
   if isinstance(x, Quantity):
     assert x.is_unitless, f'x must be unitless for function {vander.__name__}.'
-    x = x.value
+    x = x.mantissa
   r = jnp.vander(x, N=N, increasing=increasing)
   if unit is not None:
     assert isinstance(unit, Unit), f'unit must be an instance of Unit, got {type(unit)}'
@@ -920,7 +919,7 @@ tril_indices = jnp.tril_indices
 def tril_indices_from(
     arr: Union[Quantity, jax.typing.ArrayLike],
     k: Optional[int] = 0
-) -> tuple[jax.Array, jax.Array]:
+) -> Tuple[jax.Array, jax.Array]:
   """
   Return the indices for the lower-triangle of an (n, m) array.
 
@@ -937,7 +936,7 @@ def tril_indices_from(
     tuple of arrays
   """
   if isinstance(arr, Quantity):
-    return jnp.tril_indices_from(arr.value, k=k)
+    return jnp.tril_indices_from(arr.mantissa, k=k)
   else:
     return jnp.tril_indices_from(arr, k=k)
 
@@ -949,7 +948,7 @@ triu_indices = jnp.triu_indices
 def triu_indices_from(
     arr: Union[Quantity, jax.typing.ArrayLike],
     k: Optional[int] = 0
-) -> tuple[jax.Array, jax.Array]:
+) -> Tuple[jax.Array, jax.Array]:
   """
   Return the indices for the upper-triangle of an (n, m) array.
 
@@ -1019,7 +1018,7 @@ def tree_zeros_like(tree):
   Returns:
     The tree with zeros in each leaf.
   """
-  return jax.tree_map(jnp.zeros_like, tree)
+  return jax.tree_map(zeros_like, tree)
 
 
 @set_module_as('brainunit.math')
@@ -1034,4 +1033,4 @@ def tree_ones_like(tree):
     The tree with ones in each leaf.
 
   """
-  return jax.tree_map(jnp.ones_like, tree)
+  return jax.tree_map(ones_like, tree)

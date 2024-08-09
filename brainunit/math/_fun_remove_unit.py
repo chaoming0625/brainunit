@@ -19,7 +19,7 @@ from typing import (Union, Optional, Sequence)
 import jax
 import jax.numpy as jnp
 
-from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS, fail_for_unit_mismatch, UNITLESS
+from .._base import Quantity, fail_for_dimension_mismatch, get_unit, fail_for_unit_mismatch, UNITLESS
 from .._misc import set_module_as
 
 __all__ = [
@@ -45,7 +45,7 @@ __all__ = [
 
 def _fun_remove_unit_unary(func, x, *args, **kwargs):
   if isinstance(x, Quantity):
-    return func(x._value, *args, **kwargs)
+    return func(x.mantissa, *args, **kwargs)
   else:
     return func(x, *args, **kwargs)
 
@@ -70,9 +70,10 @@ def heaviside(
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  x1 = x1.value if isinstance(x1, Quantity) else x1
+  x1 = x1.mantissa if isinstance(x1, Quantity) else x1
   if isinstance(x2, Quantity):
     assert x2.is_unitless, f'Expected unitless array for x2, while got {x2}'
+    x2 = x2.mantissa
   return _fun_remove_unit_unary(jnp.heaviside, x1, x2)
 
 
@@ -193,15 +194,14 @@ def digitize(
       Output array of indices, of same shape as `x`.
   """
   if isinstance(x, Quantity) and isinstance(bins, Quantity):
-    fail_for_dimension_mismatch(x, bins, 'digitize requires x and bins to have the same dimension')
-    x = x.value
-    bins = bins.value
+    bins = bins.in_unit(x.unit).mantissa
+    x = x.mantissa
   elif isinstance(x, Quantity):
     assert x.is_unitless, f'Expected unitless Quantity when bins is not a Quantity, got {x}'
-    x = x.value
+    x = x.mantissa
   elif isinstance(bins, Quantity):
     assert bins.is_unitless, f'Expected unitless Quantity when x is not a Quantity, got {bins}'
-    bins = bins.value
+    bins = bins.mantissa
   return jnp.digitize(x, bins, right=right)
 
 
@@ -330,7 +330,6 @@ sometrue = any
 
 def _fun_logic_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    fail_for_unit_mismatch(x, y)
     return func(x.mantissa, y.in_unit(x.unit).mantissa, *args, **kwargs)
   elif isinstance(x, Quantity):
     assert x.is_unitless, f'Expected unitless array when y is not Quantity, while got {x}'
@@ -643,8 +642,8 @@ def array_equal(
 def isclose(
     x: Union[Quantity, jax.typing.ArrayLike],
     y: Union[Quantity, jax.typing.ArrayLike],
-    rtol: float | Quantity = 1e-05,
-    atol: float | Quantity = 1e-08,
+    rtol: float | Quantity = None,
+    atol: float | Quantity = None,
     equal_nan: bool = False
 ) -> Union[bool, jax.Array]:
   """
@@ -675,18 +674,22 @@ def isclose(
     given tolerance. If both `a` and `b` are scalars, returns a single
     boolean value.
   """
-  dim = DIMENSIONLESS
+  unit = get_unit(x)
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    fail_for_dimension_mismatch(x, y)
-    dim = x.dim
+    y = y.in_unit(x.unit).mantissa
+    x = x.mantissa
   elif isinstance(x, Quantity):
     assert x.is_unitless, f'Expected unitless array when y is not Quantity, while got {x}'
+    x = x.mantissa
   elif isinstance(y, Quantity):
     assert y.is_unitless, f'Expected unitless array when x is not Quantity, while got {y}'
-  if isinstance(rtol, Quantity):
-    fail_for_dimension_mismatch(rtol, Quantity(0., dim=dim), 'rtol should be a Quantity with {dim}.', dim=dim)
-  if isinstance(atol, Quantity):
-    fail_for_dimension_mismatch(atol, Quantity(0., dim=dim), 'atol should be a Quantity with {dim}.', dim=dim)
+    y = y.mantissa
+  if rtol is None:
+    rtol = 1e-5 * unit
+  if atol is None:
+    atol = 1e-8 * unit
+  atol = Quantity(atol).in_unit(unit).mantissa
+  rtol = Quantity(rtol).in_unit(unit).mantissa
   return _fun_logic_binary(jnp.isclose, x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
@@ -728,10 +731,8 @@ def allclose(
     Returns True if the two arrays are equal within the given
     tolerance; False otherwise.
   """
-  unit = UNITLESS
+  unit = get_unit(x)
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    fail_for_unit_mismatch(x, y)
-    unit = x.unit
     y = y.in_unit(x.unit)
     x_val = x.mantissa
     y_val = y.mantissa
@@ -750,16 +751,8 @@ def allclose(
     rtol = 1e-5 * unit
   if atol is None:
     atol = 1e-8 * unit
-  if isinstance(rtol, Quantity):
-    rtol = rtol.in_unit(unit).mantissa
-  else:
-    assert unit == UNITLESS, f'Expected unitless rtol when x and y is unitless, while got {rtol}'
-    rtol = rtol
-  if isinstance(atol, Quantity):
-    atol = atol.in_unit(unit).mantissa
-  else:
-    assert unit == UNITLESS, f'Expected unitless atol when x and y is unitless, while got {atol}'
-    atol = atol
+  rtol = Quantity(rtol).in_unit(unit).mantissa
+  atol = Quantity(atol).in_unit(unit).mantissa
   return jnp.allclose(x_val, y_val, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
@@ -1146,6 +1139,9 @@ def flatnonzero(
   res : ndarray
     Output array, containing the indices of the elements of `a.ravel()` that are non-zero.
   """
+  a_unit = get_unit(a)
+  if fill_value is not None:
+    fill_value = Quantity(fill_value).in_unit(a_unit).mantissa
   return _fun_remove_unit_unary(jnp.flatnonzero, a, size=size, fill_value=fill_value)
 
 
@@ -1184,7 +1180,7 @@ def searchsorted(
     sorter: Optional[jax.Array] = None,
     *,
     method: Optional[str] = 'scan'
-) -> jax.Array:
+) -> jax.Array | Quantity:
   """
   Find indices where elements should be inserted to maintain order.
 
@@ -1216,11 +1212,8 @@ def searchsorted(
   out : ndarray
     Array of insertion points with the same shape as `v`.
   """
-  if isinstance(a, Quantity):
-    fail_for_dimension_mismatch(a, v)
-    a = a.value
-    v = v.mantissa
-  if isinstance(v, Quantity):
-    assert v.is_unitless, 'v must be unitless when "a" is not a Quantity.'
-    v = v.value
-  return jnp.searchsorted(a, v, side=side, sorter=sorter, method=method)
+  a_unit = get_unit(a)
+  v = Quantity(v).in_unit(a_unit).mantissa
+  a = Quantity(a).mantissa
+  r = jnp.searchsorted(a, v, side=side, sorter=sorter, method=method)
+  return r

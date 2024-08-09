@@ -13,13 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 from __future__ import annotations
-
-from typing import (Union, Optional, Tuple, Any, Callable)
+from typing import Union, Optional, Tuple, Any, Callable
 
 import jax
 import jax.numpy as jnp
 
-from .._base import (Quantity, Unit, fail_for_dimension_mismatch, fail_for_unit_mismatch)
+from .._base import Quantity, Unit
 from .._misc import set_module_as
 
 __all__ = [
@@ -62,13 +61,7 @@ def _fun_accept_unitless_unary(
       x = x.mantissa
       return func(x, *args, **kwargs)
     else:
-      fail_for_unit_mismatch(
-        x,
-        unit_to_scale,
-        error_message="Unit mismatch: {value} != {unit_to_scale}",
-        value=x,
-        unit_to_scale=unit_to_scale
-      )
+      assert isinstance(unit_to_scale, Unit), f'unit_to_scale should be a Unit instance. Got {unit_to_scale}'
       return func(x.to_decimal_num(unit_to_scale), *args, **kwargs)
   else:
     assert unit_to_scale is None, f'Unit should be None for the function "{func}" when "x" is not a Quantity.'
@@ -765,17 +758,11 @@ def _fun_accept_unitless_return_keep_unit(
     if unit_to_scale is None:
       assert x.is_unitless, (f'Input should be unitless for the function "{func}" '
                              f'when scaling "unit_to_scale" is not provided.')
-      x = x.value
+      x = x.mantissa
       return func(x, *args, **kwargs)
     else:
-      fail_for_dimension_mismatch(
-        x,
-        unit_to_scale,
-        error_message="Unit mismatch: {value} != {unit_to_scale}",
-        value=x,
-        unit_to_scale=unit_to_scale
-      )
-      r = func(x.to_value(unit_to_scale), *args, **kwargs)
+      assert isinstance(unit_to_scale, Unit), f'unit_to_scale should be a Unit instance. Got {unit_to_scale}'
+      r = func(x.to_decimal_num(unit_to_scale), *args, **kwargs)
       return jax.tree.map(lambda a: a * unit_to_scale, r)
   else:
     # assert unit_to_scale is None, f'Unit should be None for the function "{func}" when "x" is not a Quantity.'
@@ -1002,30 +989,18 @@ def _fun_accept_unitless_binary(
     if unit_to_scale is None:
       assert x.is_unitless, (f'Input should be unitless for the function "{func}" '
                              f'when scaling "unit_to_scale" is not provided.')
-      x = x.value
+      x = x.mantissa
     else:
-      fail_for_dimension_mismatch(
-        x,
-        unit_to_scale,
-        error_message="Unit mismatch: {value} != {unit_to_scale}",
-        value=x,
-        unit_to_scale=unit_to_scale
-      )
-      x = x.to_value(unit_to_scale)
+      assert isinstance(unit_to_scale, Unit), f'unit_to_scale should be a Unit instance. Got {unit_to_scale}'
+      x = x.to_decimal_num(unit_to_scale)
   if isinstance(y, Quantity):
     if unit_to_scale is None:
       assert y.is_unitless, (f'Input should be unitless for the function "{func}" '
                              f'when scaling "unit_to_scale" is not provided.')
-      y = y.value
+      y = y.mantissa
     else:
-      fail_for_dimension_mismatch(
-        y,
-        unit_to_scale,
-        error_message="Unit mismatch: {value} != {unit_to_scale}",
-        value=y,
-        unit_to_scale=unit_to_scale
-      )
-      y = y.to_value(unit_to_scale)
+      assert isinstance(unit_to_scale, Unit), f'unit_to_scale should be a Unit instance. Got {unit_to_scale}'
+      y = y.to_decimal_num(unit_to_scale)
   return func(x, y, *args, **kwargs)
 
 
@@ -1379,10 +1354,10 @@ def invert(
 def _fun_unitless_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity):
     assert x.is_unitless, f'Expected unitless array, got {x}'
-    x = x.value
+    x = x.mantissa
   if isinstance(y, Quantity):
     assert y.is_unitless, f'Expected unitless array, got {y}'
-    y = y.value
+    y = y.mantissa
   return func(x, y, *args, **kwargs)
 
 

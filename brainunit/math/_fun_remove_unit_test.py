@@ -122,9 +122,6 @@ class TestFunChangeUnit(parameterized.TestCase):
       expected = jnp_fun(jnp.array(value))
       assert_quantity(result, expected)
 
-      with pytest.raises(TypeError):
-        result = bm_fun(q)
-
   @parameterized.product(
     array=[(1, 2, 3), (1, 2, 3, 4, 5)],
     bins=[(0, 1, 2, 3, 4), (0, 1, 2, 3, 4, 5)],
@@ -267,10 +264,10 @@ class TestFunChangeUnit(parameterized.TestCase):
       expected = jnp_fun(jnp.array(x), jnp.array(v))
       assert_quantity(result, expected)
 
-      with pytest.raises(AssertionError):
+      with pytest.raises(bu.UnitMismatchError):
         result = bm_fun(jnp.array(x), q_v)
 
-      with pytest.raises(DimensionMismatchError):
+      with pytest.raises(bu.UnitMismatchError):
         result = bm_fun(q_x, jnp.array(v))
 
 
@@ -282,7 +279,7 @@ class Test_allclose(unittest.TestCase):
 
     a = a * bu.ms
     b = b * bu.ms
-    with pytest.raises(AssertionError):
+    with pytest.raises(bu.UnitMismatchError):
       assert bu.math.allclose(a, b, atol=1e-3)
     assert bu.math.allclose(a, b, atol=1e-3 * bu.ms)
 
@@ -309,13 +306,13 @@ class Test_allclose(unittest.TestCase):
 
     a = val * bu.mV
     b = val * bu.mV
-    with pytest.raises(AssertionError):
+    with pytest.raises(bu.UnitMismatchError):
       assert bu.math.allclose(a, b, atol=1e-3)
     with pytest.raises(bu.UnitMismatchError):
       assert bu.math.allclose(a, b, atol=1e-3 * bu.ms)
     assert bu.math.allclose(a, b, atol=1e-3 * bu.mV)
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(bu.UnitMismatchError):
       assert bu.math.allclose(a, b, rtol=1e-8)
     with pytest.raises(bu.UnitMismatchError):
       assert bu.math.allclose(a, b, rtol=1e-8 * bu.ms)

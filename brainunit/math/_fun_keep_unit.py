@@ -23,7 +23,11 @@ import jax.numpy as jnp
 import numpy as np
 
 from ._fun_array_creation import asarray
-from .._base import Quantity, fail_for_dimension_mismatch, DIMENSIONLESS, fail_for_unit_mismatch, UNITLESS
+from .._base import (Quantity,
+                     fail_for_dimension_mismatch, get_unit,
+                     UNITLESS,
+                     unit_scale_align_to_first,
+                     remove_unitless)
 from .._misc import set_module_as
 
 __all__ = [
@@ -72,15 +76,14 @@ def _fun_keep_unit_sequence(
     **kwargs
 ):
   leaves, treedef = jax.tree.flatten(args, is_leaf=lambda x: isinstance(x, Quantity))
-  dims = [x.dim if isinstance(x, Quantity) else None for x in leaves]
-  if not all(dim == dims[0] for dim in dims[1:]):
-    raise ValueError(f'Units in args do not match for {func.__name__} operation. Got {dims}.')
-  leaves = [x.value if isinstance(x, Quantity) else x for x in leaves]
+  leaves = unit_scale_align_to_first(*leaves)
+  unit = leaves[0].unit
+  leaves = [x.mantissa for x in leaves]
   args = treedef.unflatten(leaves)
   r = func(*args, **kwargs)
-  if dims[0] is not None:
-    return Quantity(r, dim=dims[0])
-  return r
+  if unit.is_unitless:
+    return r
+  return Quantity(r, unit=unit)
 
 
 @set_module_as('brainunit.math')
@@ -293,8 +296,8 @@ def _fun_keep_unit_return_sequence(
     **kwargs
 ):
   if isinstance(x, Quantity):
-    r = func(x.value, *args, **kwargs)
-    return [Quantity(rr, dim=x.dim) for rr in r]
+    r = func(x.mantissa, *args, **kwargs)
+    return [remove_unitless(Quantity(rr, unit=x.unit)) for rr in r]
   return func(x, *args, **kwargs)
 
 
@@ -1153,18 +1156,18 @@ def remove_diag(x: jax.typing.ArrayLike | Quantity) -> jax.Array | Quantity:
   arr: Array, Quantity
     The matrix without diagonal which has the shape of `(M, N-1)`.
   """
-  dim = None
+  unit = UNITLESS
   if isinstance(x, Quantity):
-    x = x.value
-    dim = x.dim
+    x = x.mantissa
+    unit = x.unit
 
   if x.ndim != 2:
     raise ValueError(f'Only support 2D matrix, while we got a {x.ndim}D array.')
   eyes = jnp.fill_diagonal(jnp.ones(x.shape, dtype=bool), False)
   x = jnp.reshape(x[eyes], (x.shape[0], x.shape[1] - 1))
-  if dim is not None:
-    return Quantity(x, dim=dim)
-  return x
+  if unit.is_unitless:
+    return x
+  return Quantity(x, unit=unit)
 
 
 # ----------  selection
@@ -1414,9 +1417,8 @@ def sum(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  if isinstance(initial, Quantity):
-    fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
-    initial = initial.value
+  if initial is not None:
+    initial = Quantity(initial).in_unit(get_unit(x)).mantissa
   return _fun_keep_unit_unary(jnp.sum,
                               x,
                               axis=axis,
@@ -1503,9 +1505,8 @@ def nansum(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  if isinstance(initial, Quantity):
-    fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
-    initial = initial.value
+  if initial is not None:
+    initial = Quantity(initial).in_unit(get_unit(x)).mantissa
   return _fun_keep_unit_unary(jnp.nansum,
                               x,
                               axis=axis,
@@ -1569,12 +1570,11 @@ def ediff1d(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  if isinstance(to_end, Quantity):
-    fail_for_dimension_mismatch(x, to_end, 'to_end and x should have the same dimension.')
-    to_end = to_end.value
-  if isinstance(to_begin, Quantity):
-    fail_for_dimension_mismatch(x, to_begin, 'to_begin and x should have the same dimension.')
-    to_begin = to_begin.value
+  x_unit = get_unit(x)
+  if to_end is not None:
+    to_end = Quantity(to_end).in_unit(x_unit).mantissa
+  if to_begin is not None:
+    to_begin = Quantity(to_begin).in_unit(x_unit).mantissa
   return _fun_keep_unit_unary(jnp.ediff1d, x, to_end=to_end, to_begin=to_begin)
 
 
@@ -1692,9 +1692,8 @@ def nanmin(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  if isinstance(initial, Quantity):
-    fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
-    initial = initial.value
+  if initial is not None:
+    initial = Quantity(initial).in_unit(get_unit(x)).mantissa
   return _fun_keep_unit_unary(jnp.nanmin, x, axis=axis, keepdims=keepdims, initial=initial, where=where)
 
 
@@ -1737,9 +1736,8 @@ def nanmax(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  if isinstance(initial, Quantity):
-    fail_for_dimension_mismatch(x, initial, 'initial and x should have the same dimension.')
-    initial = initial.value
+  if initial is not None:
+    initial = Quantity(initial).in_unit(get_unit(x)).mantissa
   return _fun_keep_unit_unary(jnp.nanmax, x, axis=axis, keepdims=keepdims, initial=initial, where=where)
 
 
@@ -2111,12 +2109,11 @@ def diff(
   out : jax.Array, Quantity
     Quantity if `x` is a Quantity, else an array.
   """
-  if isinstance(prepend, Quantity):
-    fail_for_dimension_mismatch(x, prepend, 'diff requires the same dimension.')
-    prepend = prepend.value
-  if isinstance(append, Quantity):
-    fail_for_dimension_mismatch(x, append, 'diff requires the same dimension.')
-    append = append.value
+  x_unit = get_unit(x)
+  if prepend is not None:
+    prepend = Quantity(prepend).in_unit(x_unit).mantissa
+  if append is not None:
+    append = Quantity(append).in_unit(x_unit).mantissa
   return _fun_keep_unit_unary(jnp.diff, x, n=n, axis=axis, prepend=prepend, append=append)
 
 
@@ -2190,22 +2187,22 @@ def intersect1d(
     Only provided if `return_indices` is True.
   """
   fail_for_dimension_mismatch(ar1, ar2, 'intersect1d')
-  unit = None
+  unit = UNITLESS
   if isinstance(ar1, Quantity):
-    unit = ar1.dim
-  ar1 = ar1.value if isinstance(ar1, Quantity) else ar1
-  ar2 = ar2.value if isinstance(ar2, Quantity) else ar2
+    unit = ar1.unit
+  ar1 = ar1.in_unit(unit).mantissa if isinstance(ar1, Quantity) else ar1
+  ar2 = ar2.in_unit(unit).mantissa if isinstance(ar2, Quantity) else ar2
   result = jnp.intersect1d(ar1, ar2, assume_unique=assume_unique, return_indices=return_indices)
   if return_indices:
-    if unit is not None:
-      return Quantity(result[0], dim=unit), result[1], result[2]
-    else:
+    if unit.is_unitless:
       return result
+    else:
+      return Quantity(result[0], unit=unit), result[1], result[2]
   else:
-    if unit is not None:
-      return Quantity(result, dim=unit)
-    else:
+    if unit.is_unitless:
       return result
+    else:
+      return Quantity(result, unit=unit)
 
 
 @set_module_as('brainunit.math')
@@ -2254,29 +2251,18 @@ def nan_to_num(
     `x`, with the non-finite values replaced. If `copy` is False, this may
     be `x` itself.
   """
+  x_unit = get_unit(x)
   if isinstance(x, Quantity):
     if nan is not None:
-      fail_for_dimension_mismatch(x, nan,
-                                  'nan_to_num required "x" and "nan" the same dimension. But got {x} != {nan}',
-                                  x=x, nan=nan)
-      nan = nan.value if isinstance(nan, Quantity) else nan
+      nan = Quantity(nan).in_unit(x_unit).mantissa
     else:
       nan = 0.0
     if posinf is not None:
-      fail_for_dimension_mismatch(
-        x, posinf,
-        'nan_to_num required "x" and "posinf" the same dimension. But got {x} != {posinf}',
-        x=x, posinf=posinf
-      )
-      posinf = posinf.value if isinstance(posinf, Quantity) else posinf
+      posinf = Quantity(posinf).in_unit(x_unit).mantissa
     if neginf is not None:
-      fail_for_dimension_mismatch(
-        x, neginf,
-        'nan_to_num required "x" and "neginf" the same dimension. But got {x} != {neginf}',
-        x=x, neginf=neginf
-      )
-      neginf = neginf.value if isinstance(neginf, Quantity) else neginf
-    return Quantity(jnp.nan_to_num(x.value, nan=nan, posinf=posinf, neginf=neginf), dim=x.dim)
+      neginf = Quantity(neginf).in_unit(x_unit).mantissa
+    r = jnp.nan_to_num(x.mantissa, nan=nan, posinf=posinf, neginf=neginf)
+    return r if x_unit.is_unitless else Quantity(r, unit=x_unit)
   else:
     nan = 0.0 if nan is None else nan
     return jnp.nan_to_num(x, nan=nan, posinf=posinf, neginf=neginf)
@@ -2380,7 +2366,9 @@ def percentile(
   out : jax.Array
     Output array.
   """
-  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
+  if isinstance(q, Quantity):
+    assert q.is_unitless, 'Percentile should be unitless.'
+    q = q.mantissa
   return _fun_keep_unit_unary(
     jnp.percentile, a, q=q, axis=axis, method=method, keepdims=keepdims,
   )
@@ -2436,7 +2424,9 @@ def nanpercentile(
   out : jax.Array
     Output array.
   """
-  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
+  if isinstance(q, Quantity):
+    assert q.is_unitless, 'Percentile should be unitless.'
+    q = q.mantissa
   return _fun_keep_unit_unary(
     jnp.nanpercentile, a, q=q, axis=axis, method=method, keepdims=keepdims,
   )
@@ -2492,7 +2482,9 @@ def quantile(
   out : jax.Array
     Output array.
   """
-  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
+  if isinstance(q, Quantity):
+    assert q.is_unitless, 'Percentile should be unitless.'
+    q = q.mantissa
   return _fun_keep_unit_unary(
     jnp.quantile, a, q=q, axis=axis, method=method, keepdims=keepdims
   )
@@ -2548,7 +2540,9 @@ def nanquantile(
   out : jax.Array
     Output array.
   """
-  assert not isinstance(q, Quantity), 'Percentile should be unitless.'
+  if isinstance(q, Quantity):
+    assert q.is_unitless, 'Percentile should be unitless.'
+    q = q.mantissa
   return _fun_keep_unit_unary(
     jnp.nanquantile, a, q=q, axis=axis, method=method, keepdims=keepdims,
   )
@@ -2559,7 +2553,6 @@ def nanquantile(
 
 def _fun_keep_unit_binary(func, x1, x2, *args, **kwargs):
   if isinstance(x1, Quantity) and isinstance(x2, Quantity):
-    fail_for_unit_mismatch(x1, x2)
     return Quantity(func(x1.mantissa, x2.in_unit(x1.unit).mantissa, *args, **kwargs), unit=x1.unit)
   elif isinstance(x1, Quantity):
     assert x1.is_unitless, f'Expected unitless array when x2 is not Quantity, while got {x1}'
@@ -2632,7 +2625,7 @@ def copysign(
   out : jax.Array, Quantity
     Quantity if `x1` and `x2` are Quantities that have the same unit, else an array.
   """
-  x2 = x2.value if isinstance(x2, Quantity) else x2
+  x2 = x2.mantissa if isinstance(x2, Quantity) else x2
   return _fun_keep_unit_unary(jnp.copysign, x1, x2)
 
 
@@ -2910,26 +2903,19 @@ def interp(
   Returns:
     Union[jax.Array, Quantity]: Quantity if `x`, `xp`, and `fp` are Quantities that have the same unit, else an array.
   """
-  fail_for_dimension_mismatch(x, xp, 'xp and x should have the same dimension.')
-  if left is not None:
-    fail_for_dimension_mismatch(fp, left, 'fp and left should have the same dimension.')
-  if right is not None:
-    fail_for_dimension_mismatch(fp, right, 'fp and right should have the same dimension.')
-  if period is not None:
-    fail_for_dimension_mismatch(fp, period, 'fp and period should have the same dimension.')
-  dim = None
-  if isinstance(fp, Quantity):
-    dim = fp.dim
-  x, xp, fp, left, right, period = (x.value if isinstance(x, Quantity) else x,
-                                    xp.value if isinstance(xp, Quantity) else xp,
-                                    fp.value if isinstance(fp, Quantity) else fp,
-                                    left.value if isinstance(left, Quantity) else left,
-                                    right.value if isinstance(right, Quantity) else right,
-                                    period.value if isinstance(period, Quantity) else period)
+  x_unit = get_unit(x)
+  x, xp, fp, left, right, period = (
+    x.mantissa if isinstance(x, Quantity) else x,
+    Quantity(xp).in_unit(x_unit).mantissa,
+    Quantity(fp).in_unit(x_unit).mantissa,
+    Quantity(left).in_unit(x_unit).mantissa if left is not None else left,
+    Quantity(right).in_unit(x_unit).mantissa if right is not None else right,
+    Quantity(period).in_unit(x_unit).mantissa if period is not None else period
+  )
   r = jnp.interp(x, xp=xp, fp=fp, left=left, right=right, period=period)
-  if dim is None:
+  if x_unit.is_unitless:
     return r
-  return Quantity(r, dim=dim)
+  return Quantity(r, unit=x_unit)
 
 
 @set_module_as('brainunit.math')
@@ -2949,12 +2935,11 @@ def clip(
   Returns:
     Union[jax.Array, Quantity]: Quantity if `a`, `a_min`, and `a_max` are Quantities that have the same unit, else an array.
   """
-  if isinstance(a_min, Quantity):
-    fail_for_dimension_mismatch(a, a_min, 'a and a_min should have the same dimension.')
-    a_min = a_min.value
-  if isinstance(a_max, Quantity):
-    fail_for_dimension_mismatch(a, a_max, 'a and a_max should have the same dimension.')
-    a_max = a_max.value
+  a_unit = get_unit(a)
+  if a_min is not None:
+    a_min = Quantity(a_min).in_unit(a_unit).mantissa
+  if a_max is not None:
+    a_max = Quantity(a_max).in_unit(a_unit).mantissa
   return _fun_keep_unit_unary(jnp.clip, a, a_min=a_min, a_max=a_max)
 
 
@@ -3011,19 +2996,19 @@ def histogram(
   bin_edges : array of dtype float
     Return the bin edges ``(length(hist)+1)``.
   """
-  dim = DIMENSIONLESS
+  unit = UNITLESS
   if isinstance(x, Quantity):
-    dim = x.dim
-    x = x.value
+    unit = x.unit
+    x = x.mantissa
   if range is not None:
-    fail_for_dimension_mismatch(range[0], Quantity(0., dim=dim))
-    fail_for_dimension_mismatch(range[1], Quantity(0., dim=dim))
-    range = (range[0].mantissa if isinstance(range[0], Quantity) else range[0],
-             range[1].mantissa if isinstance(range[1], Quantity) else range[1])
+    range = (
+      Quantity(range[0]).in_unit(unit).mantissa,
+      Quantity(range[1]).in_unit(unit).mantissa
+    )
   hist, bin_edges = jnp.histogram(x, bins, range=range, weights=weights, density=density)
-  if dim == DIMENSIONLESS:
+  if unit.is_unitless:
     return hist, bin_edges
-  return hist, Quantity(bin_edges, dim=dim)
+  return hist, Quantity(bin_edges, unit=unit)
 
 
 @set_module_as('brainunit.math')
@@ -3033,7 +3018,7 @@ def compress(
     axis: Optional[int] = None,
     *,
     size: Optional[int] = None,
-    fill_value: Optional[jax.typing.ArrayLike] = 0,
+    fill_value: Optional[jax.typing.ArrayLike] = None,
 ) -> Union[jax.Array, Quantity]:
   """
   Return selected slices of a quantity or an array along given axis.
@@ -3059,15 +3044,14 @@ def compress(
   res : ndarray, Quantity
     A new array that has the same number of dimensions as `a`, and the same shape as `a` with axis `axis` removed.
   """
-  assert not isinstance(condition, Quantity), f'condition must be an array_like. But got {condition}'
-  if isinstance(a, Quantity):
-    if fill_value != 0:
-      fail_for_dimension_mismatch(fill_value, a)
-      fill_value = fill_value.value
+  if isinstance(condition, Quantity):
+    assert condition.is_unitless, 'condition must be unitless.'
+    condition = condition.mantissa
+  a_unit = get_unit(a)
+  if fill_value is not None:
+    fill_value = Quantity(fill_value).in_unit(a_unit).mantissa
   else:
-    if isinstance(fill_value, Quantity):
-      assert fill_value.is_unitless, 'fill_value must be unitless when "a" is not a Quantity.'
-      fill_value = fill_value.value
+    fill_value = 0
   return _fun_keep_unit_unary(functools.partial(jnp.compress, condition),
                               a, axis=axis, size=size, fill_value=fill_value)
 
@@ -3078,7 +3062,7 @@ def extract(
     arr: Union[jax.Array, Quantity],
     *,
     size: Optional[int] = None,
-    fill_value: Optional[jax.typing.ArrayLike | Quantity] = 0,
+    fill_value: Optional[jax.typing.ArrayLike | Quantity] = None,
 ) -> jax.Array | Quantity:
   """
   Return the elements of an array that satisfy some condition.
@@ -3100,15 +3084,14 @@ def extract(
   res : ndarray
     The extracted elements. The shape of `res` is the same as that of `condition`.
   """
-  assert not isinstance(condition, Quantity), f'condition must be an array_like. But got {condition}'
-  if isinstance(arr, Quantity):
-    if fill_value != 0:
-      fail_for_dimension_mismatch(fill_value, arr)
-      fill_value = fill_value.mantissa
+  if isinstance(condition, Quantity):
+    assert condition.is_unitless, 'condition must be unitless.'
+    condition = condition.mantissa
+  a_unit = get_unit(arr)
+  if fill_value is not None:
+    fill_value = Quantity(fill_value).in_unit(a_unit).mantissa
   else:
-    if isinstance(fill_value, Quantity):
-      assert fill_value.is_unitless, 'fill_value must be unitless when "a" is not a Quantity.'
-      fill_value = fill_value.value
+    fill_value = 0
   return _fun_keep_unit_unary(functools.partial(jnp.extract, condition),
                               arr, size=size, fill_value=fill_value)
 
@@ -3257,7 +3240,6 @@ def where(condition, x=None, y=None, /, *, size=None, fill_value=None):
 
   assert size is None and fill_value is None, "size and fill_value are only supported when x and y are not None."
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    fail_for_unit_mismatch(x, y)
     y = y.in_unit(x.unit)
     return Quantity(jnp.where(condition, x.mantissa, y.mantissa), unit=x.unit)
   elif isinstance(x, Quantity):
@@ -3309,29 +3291,27 @@ def unique(
   res : ndarray, Quantity
     The sorted unique values.
   """
+  a_unit = get_unit(a)
+  if fill_value is not None:
+    fill_value = Quantity(fill_value).in_unit(a_unit).mantissa
   if isinstance(a, Quantity):
-    if fill_value is not None:
-      fail_for_dimension_mismatch(fill_value, a)
-      fill_value = fill_value.value
-    result = jnp.unique(a.value,
+    result = jnp.unique(a.mantissa,
                         return_index=return_index,
                         return_inverse=return_inverse,
                         return_counts=return_counts,
-                        axis=axis, equal_nan=equal_nan,
+                        axis=axis,
+                        equal_nan=equal_nan,
                         size=size,
                         fill_value=fill_value)
     if isinstance(result, tuple):
       output = []
-      output.append(Quantity(result[0], dim=a.dim))
+      output.append(Quantity(result[0], unit=a_unit))
       for r in result[1:]:
         output.append(r)
       return tuple(output)
     else:
-      return Quantity(result, dim=a.dim)
+      return Quantity(result, unit=a_unit)
   else:
-    if isinstance(fill_value, Quantity):
-      assert fill_value.is_unitless, 'fill_value must be unitless when "a" is not a Quantity.'
-      fill_value = fill_value.value
     return jnp.unique(a,
                       return_index=return_index,
                       return_inverse=return_inverse,

@@ -1619,7 +1619,7 @@ class Unit:
 
   def __eq__(self, other) -> bool:
     if isinstance(other, Unit):
-      return (other.dim == self.dim) and (other.scale == self.scale)
+      return (other.dim == self.dim) and (other.scale == self.scale) and (other.base == self.base)
     else:
       return False
 
@@ -1844,9 +1844,10 @@ class Quantity:
       The decimal number of the quantity based on the given unit.
     """
     assert isinstance(unit, Unit), f"Expected a Unit, but got {unit}."
-    assert unit.has_same_dim(self.unit), (f"Cannot convert to the decimal number using a unit with different "
-                                          f"dimensions. The quantity has the unit {self.unit}, but the given "
-                                          f"unit is {unit}")
+    if not unit.has_same_dim(self.unit):
+      raise UnitMismatchError(f"Cannot convert to the decimal number using a unit with different "
+                              f"dimensions. The quantity has the unit {self.unit}, but the given "
+                              f"unit is {unit}")
     if not unit.has_same_scale(self.unit):
       return self._mantissa * (self.unit.value / unit.value)
     else:

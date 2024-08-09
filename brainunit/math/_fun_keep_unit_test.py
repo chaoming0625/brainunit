@@ -169,7 +169,7 @@ class TestFunKeepUnitSquenceOutputs(parameterized.TestCase):
     result_q = bu.math.split(q, 3)
     expected_q = jnp.split(jnp.arange(9), 3)
     for r, e in zip(result_q, expected_q):
-      assert_quantity(r, e, bu.ms)
+      assert_quantity(r, e, bu.second)
 
   def test_array_split(self):
     array = jnp.arange(9)
@@ -359,7 +359,7 @@ class TestFunKeepUnitArrayManipulation(parameterized.TestCase):
     q = [[0, 1, 2], [3, 4, 5]] * bu.second
     result_q = bu.math.flipud(q)
     expected_q = jnp.flipud(jnp.array([[0, 1, 2], [3, 4, 5]]))
-    assert_quantity(result_q, expected_q, bu.ms)
+    assert_quantity(result_q, expected_q, bu.second)
 
   def test_roll(self):
     array = jnp.array([0, 1, 2])
@@ -369,7 +369,7 @@ class TestFunKeepUnitArrayManipulation(parameterized.TestCase):
     q = [0, 1, 2] * bu.second
     result_q = bu.math.roll(q, 1)
     expected_q = jnp.roll(jnp.array([0, 1, 2]), 1)
-    assert_quantity(result_q, expected_q, bu.ms)
+    assert_quantity(result_q, expected_q, bu.second)
 
   def test_expand_dims(self):
     array = jnp.array([1, 2, 3])
@@ -489,10 +489,9 @@ class TestFunKeepUnitSelection(parameterized.TestCase):
     result = bu.math.compress(jnp.array([0, 1, 1, 0]), array)
     self.assertTrue(jnp.all(result == jnp.compress(jnp.array([0, 1, 1, 0]), array)))
 
-    q = jnp.array([1, 2, 3, 4])
-    a = [0, 1, 1, 0] * bu.second
-    result_q = bu.math.compress(q, a)
-    expected_q = jnp.compress(jnp.array([1, 2, 3, 4]), jnp.array([0, 1, 1, 0]))
+    q = jnp.array([1, 2, 3, 4]) * bu.second
+    result_q = bu.math.compress(jnp.array([0, 1, 1, 0]), q)
+    expected_q = jnp.compress(jnp.array([0, 1, 1, 0]), q.mantissa)
     assert_quantity(result_q, expected_q, bu.second)
 
   def test_extract(self):
@@ -503,8 +502,8 @@ class TestFunKeepUnitSelection(parameterized.TestCase):
     q = jnp.array([1, 2, 3])
     a = array * bu.second
     result_q = bu.math.extract(q > 1, a)
-    expected_q = jnp.extract(jnp.array([1, 2, 3]) > 1, jnp.array([1, 2, 3])) * bu.second
-    assert jnp.all(result_q == expected_q)
+    expected_q = jnp.extract(q > 1, jnp.array([1, 2, 3])) * bu.second
+    assert bu.math.allclose(result_q , expected_q)
 
   def test_take(self):
     array = jnp.array([4, 3, 5, 7, 6, 8])
@@ -565,7 +564,7 @@ class TestFunKeepUnitOther(parameterized.TestCase):
     fp = [0, 1, 2, 3, 4] * bu.second
     result_q = bu.math.interp(x, xp, fp)
     expected_q = jnp.interp(jnp.array([1, 2, 3]), jnp.array([0, 1, 2, 3, 4]), jnp.array([0, 1, 2, 3, 4])) * bu.second
-    assert_quantity(result_q, expected_q.value, bu.second)
+    assert bu.math.allclose(result_q, expected_q)
 
   def test_clip(self):
     array = jnp.array([1, 2, 3, 4, 5])
@@ -575,7 +574,7 @@ class TestFunKeepUnitOther(parameterized.TestCase):
     q = [1, 2, 3, 4, 5] * bu.ms
     result_q = bu.math.clip(q, 2 * bu.ms, 4 * bu.ms)
     expected_q = jnp.clip(jnp.array([1, 2, 3, 4, 5]), 2, 4) * bu.ms
-    assert_quantity(result_q, expected_q.value, bu.ms)
+    assert bu.math.allclose(result_q, expected_q)
 
   def test_histogram(self):
     array = jnp.array([1, 2, 1])
@@ -705,7 +704,7 @@ class TestFunKeepUnitMathFunMisc(parameterized.TestCase):
     q2 = q2.astype(jnp.int64)
     result_q = bu.math.lcm(q1, q2)
     expected_q = jnp.lcm(jnp.array([4, 5, 6]), jnp.array([2, 3, 4])) * bu.second
-    assert_quantity(result_q, expected_q.value, bu.second)
+    assert bu.math.allclose(result_q, expected_q)
 
   def test_gcd(self):
     result = bu.math.gcd(jnp.array([4, 5, 6]), jnp.array([2, 3, 4]))
@@ -717,7 +716,7 @@ class TestFunKeepUnitMathFunMisc(parameterized.TestCase):
     q2 = q2.astype(jnp.int64)
     result_q = bu.math.gcd(q1, q2)
     expected_q = jnp.gcd(jnp.array([4, 5, 6]), jnp.array([2, 3, 4])) * bu.second
-    assert_quantity(result_q, expected_q.value, bu.second)
+    assert bu.math.allclose(result_q, expected_q)
 
   def test_copysign(self):
     result = bu.math.copysign(jnp.array([-1, 2]), jnp.array([1, -3]))
@@ -727,7 +726,7 @@ class TestFunKeepUnitMathFunMisc(parameterized.TestCase):
     q2 = [1, -3] * ms
     result_q = bu.math.copysign(q1, q2)
     expected_q = jnp.copysign(jnp.array([-1, 2]), jnp.array([1, -3])) * ms
-    assert_quantity(result_q, expected_q.value, ms)
+    assert bu.math.allclose(result_q, expected_q)
 
   def test_rot90(self):
     a = jnp.array([[1, 2], [3, 4]])

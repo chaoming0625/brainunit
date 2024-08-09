@@ -204,21 +204,21 @@ class TestFunArrayCreation(parameterized.TestCase):
         expected = jnp_fun(3, 9, 1)
         assert_quantity(result, expected, unit=unit)
 
-        with pytest.raises(DimensionMismatchError):
+        with pytest.raises(bu.UnitMismatchError):
           result = bm_fun(5 * unit, step=1)
 
-        with pytest.raises(DimensionMismatchError):
+        with pytest.raises(bu.UnitMismatchError):
           result = bm_fun(5, step=1 * unit)
 
-        with pytest.raises(DimensionMismatchError):
+        with pytest.raises(bu.UnitMismatchError):
           result = bm_fun(3 * unit, 9 * unit, 1)
-        with pytest.raises(DimensionMismatchError):
+        with pytest.raises(bu.UnitMismatchError):
           result = bm_fun(3 * unit, 9, 1)
 
-        with pytest.raises(DimensionMismatchError):
+        with pytest.raises(bu.UnitMismatchError):
           result = bm_fun(3, 9 * unit, 1)
 
-        with pytest.raises(DimensionMismatchError):
+        with pytest.raises(bu.UnitMismatchError):
           result = bm_fun(3, 9, 1 * unit)
       else:
         result = bm_fun(5, 15, 5)
@@ -229,10 +229,10 @@ class TestFunArrayCreation(parameterized.TestCase):
         expected = jnp_fun(5, 15, 5)
         assert_quantity(result, expected, unit=unit)
 
-        with pytest.raises(DimensionMismatchError):
+        with pytest.raises(bu.UnitMismatchError):
           result = bm_fun(5, 15 * unit, 5)
 
-        with pytest.raises(DimensionMismatchError):
+        with pytest.raises(bu.UnitMismatchError):
           result = bm_fun(5 * unit, 15, 5)
 
   @parameterized.product(
@@ -304,10 +304,10 @@ class TestFunArrayCreation(parameterized.TestCase):
       expected = jnp_fun(1)
       assert_quantity(result, expected, unit=unit)
 
-      with pytest.raises(DimensionMismatchError):
+      with pytest.raises(bu.UnitMismatchError):
         result = bm_fun(1 * unit, unit=bu.volt)
 
-      with pytest.raises(DimensionMismatchError):
+      with pytest.raises(bu.UnitMismatchError):
         result = bm_fun([1 * unit, 2 * unit * unit, 3 * unit / unit])
 
   @parameterized.product(
