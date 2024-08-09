@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 
 import brainunit as bu
+from brainunit._base import assert_quantity
 from brainunit.math._einops import einrearrange, einreduce, einrepeat, _enumerate_directions
 from brainunit.math._einops_parsing import EinopsError
 
@@ -347,16 +348,6 @@ def test_reduction_imperatives_booleans():
   assert np.array_equal(expected_result_all, bu.math.as_numpy(res_all))
 
 
-def assert_quantity(q, values, unit=None):
-  values = jnp.asarray(values)
-  if unit is None:
-    assert jnp.allclose(q, values), f"Values do not match: {q.value} != {values}"
-    return
-  else:
-    assert bu.have_same_unit(q.dim, unit), f"Dimension mismatch: ({q}) ({unit})"
-    if not jnp.allclose(q.value, values):
-      raise AssertionError(f"Values do not match: {q.value} != {values}")
-
 
 def test_einsum():
   a = jnp.array([1, 2, 3])
@@ -411,7 +402,7 @@ def test_einsum():
   q2 = np.random.rand(2, 3) * bu.second
   q3 = np.random.rand(5) * bu.kilogram
   result = bu.math.einsum('ab,ab,c->', q1, q2, q3)
-  expected = jnp.einsum('ab,ab,c->', q1.value, q2.value, q3.value)
+  expected = jnp.einsum('ab,ab,c->', q1.mantissa, q2.mantissa, q3.mantissa)
   assert_quantity(result, expected, bu.meter * bu.second * bu.kilogram)
 
   # Case 'ab,cd,ef->abcdef'
@@ -419,7 +410,7 @@ def test_einsum():
   q2 = np.random.rand(4, 5) * bu.second
   q3 = np.random.rand(6, 7) * bu.kilogram
   result = bu.math.einsum('ab,cd,ef->abcdef', q1, q2, q3)
-  expected = jnp.einsum('ab,cd,ef->abcdef', q1.value, q2.value, q3.value)
+  expected = jnp.einsum('ab,cd,ef->abcdef', q1.mantissa, q2.mantissa, q3.mantissa)
   assert_quantity(result, expected, bu.meter * bu.second * bu.kilogram)
 
   # Case 'eb,cb,fb->cef'
@@ -427,14 +418,14 @@ def test_einsum():
   q2 = np.random.rand(6, 2) * bu.second
   q3 = np.random.rand(5, 2) * bu.kilogram
   result = bu.math.einsum('eb,cb,fb->cef', q1, q2, q3)
-  expected = jnp.einsum('eb,cb,fb->cef', q1.value, q2.value, q3.value)
+  expected = jnp.einsum('eb,cb,fb->cef', q1.mantissa, q2.mantissa, q3.mantissa)
   assert_quantity(result, expected, bu.meter * bu.second * bu.kilogram)
 
   # Case 'ab,ab'
   q1 = np.random.rand(2, 3) * bu.meter
   q2 = np.random.rand(2, 3) * bu.second
   result = bu.math.einsum('ab,ab', q1, q2)
-  expected = jnp.einsum('ab,ab', q1.value, q2.value)
+  expected = jnp.einsum('ab,ab', q1.mantissa, q2.mantissa)
   assert_quantity(result, expected, bu.meter * bu.second)
 
   # Case 'aab,fa,df,ecc->bde'
@@ -443,7 +434,7 @@ def test_einsum():
   q3 = np.random.rand(4, 5) * bu.kilogram
   q4 = np.random.rand(2, 3, 3) * bu.ampere
   result = bu.math.einsum('aab,fa,df,ecc->bde', q1, q2, q3, q4)
-  expected = jnp.einsum('aab,fa,df,ecc->bde', q1.value, q2.value, q3.value, q4.value)
+  expected = jnp.einsum('aab,fa,df,ecc->bde', q1.mantissa, q2.mantissa, q3.mantissa, q4.mantissa)
   print()
   print(result)
   print(expected)

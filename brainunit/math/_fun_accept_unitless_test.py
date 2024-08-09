@@ -4,7 +4,8 @@ from absl.testing import parameterized
 
 import brainunit as bu
 import brainunit.math as bm
-from brainunit import meter, DimensionMismatchError, assert_quantity
+from brainunit import meter
+from brainunit._base import assert_quantity
 
 fun_accept_unitless_unary = [
   'exp', 'exp2', 'expm1', 'log', 'log10', 'log1p', 'log2',
@@ -60,13 +61,13 @@ class TestFunAcceptUnitless(parameterized.TestCase):
                                (bu.nA, bu.amp)]:
         q = value * unit
         result = fun(q, unit_to_scale=unit2scale)
-        expected = jnp_fun(q / unit2scale)
+        expected = jnp_fun(q.to_decimal_num(unit2scale))
         assert_quantity(result, expected)
 
         with pytest.raises(AssertionError):
           result = fun(q)
 
-        with pytest.raises(DimensionMismatchError):
+        with pytest.raises(bu.UnitMismatchError):
           result = fun(q, unit_to_scale=bu.nS)
 
   @parameterized.product(
@@ -96,7 +97,7 @@ class TestFunAcceptUnitless(parameterized.TestCase):
       with pytest.raises(AssertionError):
         result1, result2 = bm_fun(q)
 
-      with pytest.raises(DimensionMismatchError):
+      with pytest.raises(bu.UnitMismatchError):
         result1, result2 = bm_fun(q, unit_to_scale=bu.second)
 
   @parameterized.product(
@@ -118,13 +119,13 @@ class TestFunAcceptUnitless(parameterized.TestCase):
       q1 = value1 * meter
       q2 = value2 * meter
       result = bm_fun(q1, q2, unit_to_scale=bu.dametre)
-      expected = jnp_fun(jnp.array(value1) / bu.dametre.value, jnp.array(value2) / bu.dametre.value)
+      expected = jnp_fun(q1.to_decimal_num(bu.dametre), q2.to_decimal_num(bu.dametre))
       assert_quantity(result, expected)
 
       with pytest.raises(AssertionError):
         result = bm_fun(q1, q2)
 
-      with pytest.raises(DimensionMismatchError):
+      with pytest.raises(bu.UnitMismatchError):
         result = bm_fun(q1, q2, unit_to_scale=bu.second)
 
   @parameterized.product(
@@ -145,7 +146,7 @@ class TestFunAcceptUnitless(parameterized.TestCase):
 
       q1 = value1 * meter
       q2 = value2 * meter
-      result = bm_fun(q1.to_value(meter), jnp.array(value2))
+      result = bm_fun(q1.to_decimal_num(meter), jnp.array(value2))
       expected = jnp_fun(jnp.array(value1), jnp.array(value2))
       assert_quantity(result, expected)
 
@@ -174,7 +175,7 @@ class TestFunAcceptUnitless(parameterized.TestCase):
       with pytest.raises(AssertionError):
         result = bm_fun(q)
 
-      with pytest.raises(DimensionMismatchError):
+      with pytest.raises(bu.UnitMismatchError):
         result = bm_fun(q, unit_to_scale=bu.second)
 
   @parameterized.product(

@@ -22,10 +22,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from .._base import (DIMENSIONLESS,
+from .._base import (Unit,
                      Quantity,
-                     is_unitless,
-                     get_dim)
+                     get_unit,
+                     is_unitless)
 from .._misc import set_module_as
 
 T = TypeVar("T")
@@ -400,21 +400,21 @@ def gradient(
 
   if len(varargs) == 0:
     if isinstance(f, Quantity) and not is_unitless(f):
-      return Quantity(jnp.gradient(f.value, axis=axis), dim=f.dim)
+      return Quantity(jnp.gradient(f.mantissa, axis=axis), unit=f.unit)
     else:
       return jnp.gradient(f)
   elif len(varargs) == 1:
-    unit = get_dim(f) / get_dim(varargs[0])
-    if unit is None or unit == DIMENSIONLESS:
+    unit = get_unit(f) / get_unit(varargs[0])
+    if isinstance(unit, Unit) and unit.is_unitless:
       return jnp.gradient(f, varargs[0], axis=axis)
     else:
-      return [Quantity(r, dim=unit) for r in jnp.gradient(f.value, varargs[0].value, axis=axis)]
+      return [Quantity(r, unit=unit) for r in jnp.gradient(f.mantissa, varargs[0].mantissa, axis=axis)]
   else:
-    unit_list = [get_dim(f) / get_dim(v) for v in varargs]
-    f = f.value if isinstance(f, Quantity) else f
-    varargs = [v.value if isinstance(v, Quantity) else v for v in varargs]
+    unit_list = [get_unit(f) / get_unit(v) for v in varargs]
+    f = f.mantissa if isinstance(f, Quantity) else f
+    varargs = [v.mantissa if isinstance(v, Quantity) else v for v in varargs]
     result_list = jnp.gradient(f, *varargs, axis=axis)
-    return [Quantity(r, dim=unit) if unit is not None else r for r, unit in zip(result_list, unit_list)]
+    return [(Quantity(r, unit=unit) if unit is not None else r) for r, unit in zip(result_list, unit_list)]
 
 
 # window funcs

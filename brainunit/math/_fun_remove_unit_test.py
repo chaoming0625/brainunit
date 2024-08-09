@@ -1,10 +1,13 @@
+import unittest
+
+import brainstate as bst
 import jax.numpy as jnp
 import pytest
 from absl.testing import parameterized
 
 import brainunit as bu
 import brainunit.math as bm
-from brainunit import assert_quantity, DimensionMismatchError
+from brainunit._base import assert_quantity
 
 fun_remove_unit_unary = [
   'signbit', 'sign',
@@ -117,9 +120,6 @@ class TestFunChangeUnit(parameterized.TestCase):
       result = bm_fun(q.astype(jnp.int32))
       expected = jnp_fun(jnp.array(value))
       assert_quantity(result, expected)
-
-      with pytest.raises(TypeError):
-        result = bm_fun(q)
 
   @parameterized.product(
     array=[(1, 2, 3), (1, 2, 3, 4, 5)],
@@ -263,8 +263,58 @@ class TestFunChangeUnit(parameterized.TestCase):
       expected = jnp_fun(jnp.array(x), jnp.array(v))
       assert_quantity(result, expected)
 
-      with pytest.raises(AssertionError):
+      with pytest.raises(bu.UnitMismatchError):
         result = bm_fun(jnp.array(x), q_v)
 
-      with pytest.raises(DimensionMismatchError):
+      with pytest.raises(bu.UnitMismatchError):
         result = bm_fun(q_x, jnp.array(v))
+
+
+class Test_allclose(unittest.TestCase):
+  def test1(self):
+    a = bst.random.random((10, 10))
+    b = a + 1e-4
+    assert bu.math.allclose(a, b, atol=1e-3)
+
+    a = a * bu.ms
+    b = b * bu.ms
+    with pytest.raises(bu.UnitMismatchError):
+      assert bu.math.allclose(a, b, atol=1e-3)
+    assert bu.math.allclose(a, b, atol=1e-3 * bu.ms)
+
+    val = bst.random.random((10, 10))
+    a = val * bu.mV
+    b = val * bu.ms
+    with pytest.raises(bu.UnitMismatchError):
+      assert bu.math.allclose(a, b)
+
+    b = val * bu.volt
+    assert not bu.math.allclose(a, b)
+
+    b = val
+    with pytest.raises(AssertionError):
+      assert bu.math.allclose(a, b)
+
+    b = val * bu.mV
+    a = val
+    with pytest.raises(AssertionError):
+      assert bu.math.allclose(a, b)
+
+  def test_tol(self):
+    val = bst.random.random((10, 10))
+
+    a = val * bu.mV
+    b = val * bu.mV
+    with pytest.raises(bu.UnitMismatchError):
+      assert bu.math.allclose(a, b, atol=1e-3)
+    with pytest.raises(bu.UnitMismatchError):
+      assert bu.math.allclose(a, b, atol=1e-3 * bu.ms)
+    assert bu.math.allclose(a, b, atol=1e-3 * bu.mV)
+
+    with pytest.raises(bu.UnitMismatchError):
+      assert bu.math.allclose(a, b, rtol=1e-8)
+    with pytest.raises(bu.UnitMismatchError):
+      assert bu.math.allclose(a, b, rtol=1e-8 * bu.ms)
+    assert bu.math.allclose(a, b, rtol=1e-8 * bu.mV)
+
+

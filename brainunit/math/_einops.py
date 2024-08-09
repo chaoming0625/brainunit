@@ -31,7 +31,7 @@ from ._einops_parsing import ParsedExpression, _ellipsis, AnonymousAxis, EinopsE
 from ._fun_array_creation import asarray, zeros_like
 from ._fun_keep_unit import reshape, transpose, expand_dims, tile, where, squeeze
 from ._misc import shape
-from .._base import Quantity, DIMENSIONLESS
+from .._base import Quantity, UNITLESS
 from .._misc import set_module_as
 
 T = TypeVar('T')
@@ -793,12 +793,12 @@ def _partition_list(bs: Sequence[bool], l: Sequence[T]) -> tuple[list[T], list[T
 def _sum(x, axes, preferred_element_type):
   if jax.dtypes.result_type(x, preferred_element_type) != x.dtype:
     x = x.astype(preferred_element_type)
-  dim = None
+  unit = UNITLESS
   if isinstance(x, Quantity):
-    dim = x.dim
-    x = x.value
+    unit = x.unit
+    x = x.mantissa
   x = jax.lax.reduce(x, np.array(0, x.dtype), jax.lax.add if x.dtype != jnp.bool_ else jax.lax.bitwise_or, axes)
-  return Quantity(x, dim=dim) if dim is not None else x
+  return x if unit.is_unitless else Quantity(x, unit=unit)
 
 
 def _sum_uniques(operand, names, uniques, preferred_element_type):
@@ -816,22 +816,24 @@ def _dot_general(
     precision: jax.lax.PrecisionLike = None,
     preferred_element_type: jax.typing.DTypeLike | None = None
 ) -> jax.Array | Quantity:
-  dim = DIMENSIONLESS
+  unit = UNITLESS
   if isinstance(lhs, Quantity):
-    dim = dim * lhs.dim
-    lhs = lhs.value
+    unit = unit * lhs.unit
+    lhs = lhs.mantissa
   if isinstance(rhs, Quantity):
-    dim = dim * rhs.dim
-    rhs = rhs.value
-  r = jax.lax.dot_general(lhs,
-                          rhs,
-                          dimension_numbers=dimension_numbers,
-                          precision=precision,
-                          preferred_element_type=preferred_element_type)
-  if dim == DIMENSIONLESS:
+    unit = unit * rhs.unit
+    rhs = rhs.mantissa
+  r = jax.lax.dot_general(
+    lhs,
+    rhs,
+    dimension_numbers=dimension_numbers,
+    precision=precision,
+    preferred_element_type=preferred_element_type
+  )
+  if unit.is_unitless:
     return r
   else:
-    return Quantity(r, dim=dim)
+    return Quantity(r, unit=unit)
 
 
 def _delta(dtype: jax.typing.DTypeLike, shape_, axes: Sequence[int]) -> jax.Array:
@@ -976,10 +978,10 @@ def _einsum(
       operand = transpose(operand, perm)
     operands.append(operand)  # used in next iteration
 
-  ret = operands[0].value if isinstance(operands[0], Quantity) else operands[0]
+  ret = operands[0].mantissa if isinstance(operands[0], Quantity) else operands[0]
   ret = jax.lax.convert_element_type(ret, preferred_element_type)
   if isinstance(operands[0], Quantity):
-    return Quantity(ret, dim=operands[0].dim)
+    return Quantity(ret, unit=operands[0].unit)
   return ret
 
 

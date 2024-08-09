@@ -15,13 +15,13 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import (Union, Optional, Tuple, Any, Callable)
+from typing import Union, Optional, Tuple, Any, Callable
 
 import jax
 import jax.numpy as jnp
 
 from ._fun_array_creation import asarray
-from .._base import (DIMENSIONLESS, Quantity, _return_check_unitless)
+from .._base import UNITLESS, Quantity, remove_unitless
 from .._misc import set_module_as
 
 __all__ = [
@@ -46,8 +46,8 @@ __all__ = [
 
 def _fun_change_unit_unary(val_fun, unit_fun, x, *args, **kwargs):
   if isinstance(x, Quantity):
-    r = Quantity(val_fun(x.value, *args, **kwargs), dim=unit_fun(x.dim))
-    return _return_check_unitless(r)
+    r = Quantity(val_fun(x.mantissa, *args, **kwargs), unit=unit_fun(x.unit))
+    return remove_unitless(r)
   return val_fun(x, *args, **kwargs)
 
 
@@ -516,16 +516,16 @@ cumproduct = cumprod
 
 def _fun_change_unit_binary(val_fun, unit_fun, x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    return _return_check_unitless(
-      Quantity(val_fun(x.value, y.value, *args, **kwargs), dim=unit_fun(x.dim, y.dim))
+    return remove_unitless(
+      Quantity(val_fun(x.mantissa, y.mantissa, *args, **kwargs), unit=unit_fun(x.unit, y.unit))
     )
   elif isinstance(x, Quantity):
-    return _return_check_unitless(
-      Quantity(val_fun(x.value, y, *args, **kwargs), dim=unit_fun(x.dim, DIMENSIONLESS))
+    return remove_unitless(
+      Quantity(val_fun(x.mantissa, y, *args, **kwargs), unit=unit_fun(x.unit, UNITLESS))
     )
   elif isinstance(y, Quantity):
-    return _return_check_unitless(
-      Quantity(val_fun(x, y.value, *args, **kwargs), dim=unit_fun(DIMENSIONLESS, y.dim))
+    return remove_unitless(
+      Quantity(val_fun(x, y.mantissa, *args, **kwargs), unit=unit_fun(UNITLESS, y.unit))
     )
   else:
     return val_fun(x, y, *args, **kwargs)
@@ -696,14 +696,14 @@ def divmod(
     This is a scalar if both `x` and `y` are scalars.
   """
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    r = jnp.divmod(x.value, y.value)
-    return Quantity(r[0], dim=x.dim / y.dim), Quantity(r[1], dim=x.dim)
+    r = jnp.divmod(x.mantissa, y.mantissa)
+    return Quantity(r[0], unit=x.unit / y.unit), Quantity(r[1], unit=x.unit)
   elif isinstance(x, Quantity):
-    r = jnp.divmod(x.value, y)
-    return Quantity(r[0], dim=x.dim / DIMENSIONLESS), Quantity(r[1], dim=x.dim)
+    r = jnp.divmod(x.mantissa, y)
+    return Quantity(r[0], unit=x.unit / UNITLESS), Quantity(r[1], unit=x.unit)
   elif isinstance(y, Quantity):
-    r = jnp.divmod(x, y.value)
-    return Quantity(r[0], dim=DIMENSIONLESS / y.dim), Quantity(r[1], dim=DIMENSIONLESS)
+    r = jnp.divmod(x, y.mantissa)
+    return Quantity(r[0], unit=UNITLESS / y.dim), Quantity(r[1], unit=UNITLESS)
   else:
     return jnp.divmod(x, y)
 
@@ -805,12 +805,12 @@ def power(
   if isinstance(x, Quantity):
     if isinstance(y, Quantity):
       assert y.is_unitless, f'{jnp.power.__name__} only supports scalar exponent'
-      y = y.value
-    return _return_check_unitless(Quantity(jnp.power(x.value, y), dim=x.dim ** y))
+      y = y.mantissa
+    return remove_unitless(Quantity(jnp.power(x.mantissa, y), unit=x.unit ** y))
   elif isinstance(y, Quantity):
     assert y.is_unitless, f'{jnp.power.__name__} only supports scalar exponent'
-    y = y.value
-    return _return_check_unitless(Quantity(jnp.power(x, y), dim=x ** y))
+    y = y.mantissa
+    return remove_unitless(Quantity(jnp.power(x, y), unit=x ** y))
   else:
     return jnp.power(x, y)
 
@@ -883,12 +883,12 @@ def float_power(
   if isinstance(x, Quantity):
     if isinstance(y, Quantity):
       assert y.is_unitless, f'{jnp.float_power.__name__} only supports scalar exponent'
-      y = y.value
-    return _return_check_unitless(Quantity(jnp.float_power(x.value, y), dim=x.dim ** y))
+      y = y.mantissa
+    return remove_unitless(Quantity(jnp.float_power(x.mantissa, y), unit=x.unit ** y))
   elif isinstance(y, Quantity):
     assert y.is_unitless, f'{jnp.float_power.__name__} only supports scalar exponent'
-    y = y.value
-    return _return_check_unitless(Quantity(jnp.float_power(x, y), dim=x ** y))
+    y = y.mantissa
+    return remove_unitless(Quantity(jnp.float_power(x, y), unit=x ** y))
   else:
     return jnp.float_power(x, y)
 
@@ -1013,17 +1013,17 @@ def multi_dot(
   30000.0
   """
   new_arrays = []
-  dim = DIMENSIONLESS
+  unit = UNITLESS
   for arr in arrays:
     arr = asarray(arr)
     if isinstance(arr, Quantity):
-      dim = dim * arr.dim
-      arr = arr.value
+      unit = unit * arr.unit
+      arr = arr.mantissa
     new_arrays.append(arr)
   r = jnp.linalg.multi_dot(new_arrays, precision=precision)
-  if dim == DIMENSIONLESS:
+  if unit.is_unitless:
     return r
-  return Quantity(r, dim=dim)
+  return Quantity(r, unit=unit)
 
 
 @unit_change(lambda ux, uy: ux * uy)
@@ -1338,6 +1338,6 @@ def matrix_power(
     This is a Quantity if the final unit is the product of the unit of `a` and itself, else an array.
   """
   if isinstance(a, Quantity):
-    return _return_check_unitless(Quantity(jnp.linalg.matrix_power(a.value, n), dim=a.dim ** n))
+    return remove_unitless(Quantity(jnp.linalg.matrix_power(a.mantissa, n), unit=a.unit ** n))
   else:
     return jnp.linalg.matrix_power(a, n)
