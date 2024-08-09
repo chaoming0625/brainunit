@@ -4,7 +4,7 @@ from absl.testing import parameterized
 
 import brainunit as bu
 import brainunit.math as bm
-from brainunit import second, meter, DimensionMismatchError
+from brainunit import second, meter
 from brainunit._base import assert_quantity
 
 fun_array_creation_given_shape = [

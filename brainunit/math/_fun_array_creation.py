@@ -25,7 +25,6 @@ from jax import Array
 from .._base import (
   Quantity,
   Unit,
-  fail_for_dimension_mismatch,
   fail_for_unit_mismatch,
   get_unit,
   unit_scale_align_to_first,

@@ -22,13 +22,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from .._base import (DIMENSIONLESS,
-UNITLESS,
-Unit,
+from .._base import (Unit,
                      Quantity,
-get_unit,
-                     is_unitless,
-                     get_dim)
+                     get_unit,
+                     is_unitless)
 from .._misc import set_module_as
 
 T = TypeVar("T")

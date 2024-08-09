@@ -19,7 +19,7 @@ from typing import (Union, Optional, Sequence)
 import jax
 import jax.numpy as jnp
 
-from .._base import Quantity, fail_for_dimension_mismatch, get_unit, fail_for_unit_mismatch, UNITLESS
+from .._base import Quantity, get_unit
 from .._misc import set_module_as
 
 __all__ = [

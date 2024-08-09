@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 from __future__ import annotations
+
 from typing import Union, Optional, Tuple, Any, Callable
 
 import jax

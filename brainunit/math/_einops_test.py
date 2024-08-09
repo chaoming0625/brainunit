@@ -18,9 +18,9 @@ import numpy as np
 import pytest
 
 import brainunit as bu
+from brainunit._base import assert_quantity
 from brainunit.math._einops import einrearrange, einreduce, einrepeat, _enumerate_directions
 from brainunit.math._einops_parsing import EinopsError
-from brainunit._base import assert_quantity
 
 REDUCTIONS = ("min", "max", "sum", "mean", "prod")
 

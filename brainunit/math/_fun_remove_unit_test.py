@@ -7,7 +7,6 @@ from absl.testing import parameterized
 
 import brainunit as bu
 import brainunit.math as bm
-from brainunit import DimensionMismatchError
 from brainunit._base import assert_quantity
 
 fun_remove_unit_unary = [

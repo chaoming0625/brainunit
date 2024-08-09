@@ -21,7 +21,7 @@ import jax
 import jax.numpy as jnp
 
 from ._fun_array_creation import asarray
-from .._base import DIMENSIONLESS, UNITLESS, Quantity, remove_unitless
+from .._base import UNITLESS, Quantity, remove_unitless
 from .._misc import set_module_as
 
 __all__ = [
