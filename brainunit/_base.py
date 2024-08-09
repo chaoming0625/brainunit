@@ -1395,7 +1395,13 @@ class Unit:
     return get_dim(self) == other_dim
 
   @staticmethod
-  def create(dim: Dimension, name: str, dispname: str, scale: int = 0) -> 'Unit':
+  def create(
+      dim: Dimension,
+      name: str,
+      dispname: str,
+      scale: int = 0,
+      base: float = 10.
+  ) -> 'Unit':
     """
     Create a new named unit.
 
@@ -1419,6 +1425,7 @@ class Unit:
     u = Unit(
       dim=dim,
       scale=scale,
+      base=base,
       name=name,
       dispname=dispname,
     )
