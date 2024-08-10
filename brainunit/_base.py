@@ -158,8 +158,8 @@ def assert_quantity(
     assert isinstance(unit, Unit), f"Expected a Unit, but got {unit}."
     q = _to_quantity(q)
     assert have_same_dim(get_dim(q), unit), f"Dimension mismatch: ({get_dim(q)}) ({get_dim(unit)})"
-    if not jnp.allclose(q.to_decimal_num(unit), mantissa, equal_nan=True):
-      raise AssertionError(f"Values do not match: {q.to_decimal_num(unit)} != {mantissa}")
+    if not jnp.allclose(q.to_decimal(unit), mantissa, equal_nan=True):
+      raise AssertionError(f"Values do not match: {q.to_decimal(unit)} != {mantissa}")
 
 
 # SI dimensions (see table at the top of the file) and various descriptions,
@@ -1837,14 +1837,14 @@ class Quantity:
       "Please create a new Quantity object with the unit you want."
     )
 
-  def to_decimal_num(self, unit: Unit) -> jax.typing.ArrayLike:
+  def to_decimal(self, unit: Unit) -> jax.typing.ArrayLike:
     """
     Convert the given :py:class:`Quantity` into the decimal number.
 
     Examples::
 
     >>> a = jax.numpy.array([1, 2, 3]) * mV
-    >>> a.to_decimal_num(volt)
+    >>> a.to_decimal(volt)
     array([0.001, 0.002, 0.003])
 
     Args:
