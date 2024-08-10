@@ -63,7 +63,7 @@ def _fun_accept_unitless_unary(
       return func(x, *args, **kwargs)
     else:
       assert isinstance(unit_to_scale, Unit), f'unit_to_scale should be a Unit instance. Got {unit_to_scale}'
-      return func(x.to_decimal_num(unit_to_scale), *args, **kwargs)
+      return func(x.to_decimal(unit_to_scale), *args, **kwargs)
   else:
     assert unit_to_scale is None, f'Unit should be None for the function "{func}" when "x" is not a Quantity.'
     return func(x, *args, **kwargs)
@@ -763,7 +763,7 @@ def _fun_accept_unitless_return_keep_unit(
       return func(x, *args, **kwargs)
     else:
       assert isinstance(unit_to_scale, Unit), f'unit_to_scale should be a Unit instance. Got {unit_to_scale}'
-      r = func(x.to_decimal_num(unit_to_scale), *args, **kwargs)
+      r = func(x.to_decimal(unit_to_scale), *args, **kwargs)
       return jax.tree.map(lambda a: a * unit_to_scale, r)
   else:
     # assert unit_to_scale is None, f'Unit should be None for the function "{func}" when "x" is not a Quantity.'
@@ -993,7 +993,7 @@ def _fun_accept_unitless_binary(
       x = x.mantissa
     else:
       assert isinstance(unit_to_scale, Unit), f'unit_to_scale should be a Unit instance. Got {unit_to_scale}'
-      x = x.to_decimal_num(unit_to_scale)
+      x = x.to_decimal(unit_to_scale)
   if isinstance(y, Quantity):
     if unit_to_scale is None:
       assert y.is_unitless, (f'Input should be unitless for the function "{func}" '
@@ -1001,7 +1001,7 @@ def _fun_accept_unitless_binary(
       y = y.mantissa
     else:
       assert isinstance(unit_to_scale, Unit), f'unit_to_scale should be a Unit instance. Got {unit_to_scale}'
-      y = y.to_decimal_num(unit_to_scale)
+      y = y.to_decimal(unit_to_scale)
   return func(x, y, *args, **kwargs)
 
 
