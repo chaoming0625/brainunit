@@ -2940,7 +2940,7 @@ def clip(
     a_min = Quantity(a_min).in_unit(a_unit).mantissa
   if a_max is not None:
     a_max = Quantity(a_max).in_unit(a_unit).mantissa
-  return _fun_keep_unit_unary(jnp.clip, a, a_min=a_min, a_max=a_max)
+  return _fun_keep_unit_unary(jnp.clip, a, min=a_min, max=a_max)
 
 
 @set_module_as('brainunit.math')
