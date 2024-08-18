@@ -327,7 +327,7 @@ class TestQuantity(unittest.TestCase):
 
     # Test put
     q_put = [[1, 2], [3, 4]] * volt
-    q_put.put([[1, 0], [0, 1]], [10, 30] * volt)
+    q_put.put(((1, 0), (0, 1)), [10, 30] * volt)
     assert_quantity(q_put, [[1, 30], [10, 4]], volt)
 
     # Test squeeze (no axes to squeeze in this case, so the array remains the same)
