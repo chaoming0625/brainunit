@@ -1108,14 +1108,14 @@ def corrcoef(
     rowvar: bool = True,
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
-  """
+  r"""
   Return Pearson product-moment correlation coefficients.
 
   Please refer to the documentation for `cov` for more detail.  The
   relationship between the correlation coefficient matrix, `R`, and the
   covariance matrix, `C`, is
 
-  .. math:: R_{ij} = \\frac{ C_{ij} } { \\sqrt{ C_{ii} C_{jj} } }
+  .. math:: R_{ij} = \frac{ C_{ij} } { \sqrt{ C_{ii} C_{jj} } }
 
   The values of `R` are between -1 and 1, inclusive.
 
@@ -1154,7 +1154,7 @@ def correlate(
     preferred_element_type: Optional[jax.typing.DTypeLike] = None,
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
-  """
+  r"""
   Cross-correlation of two 1-dimensional sequences.
 
   This function computes the correlation as generally defined in signal
