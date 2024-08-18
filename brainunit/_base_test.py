@@ -842,6 +842,33 @@ class TestQuantity(unittest.TestCase):
 
     f(a)
 
+  def test_setiterm(self):
+    u = bu.Quantity([0, 0, 0.])
+    u[jnp.asarray([0, 1, 1])] += jnp.asarray([1., 1., 1.])
+    assert_quantity(u, [1., 1., 0.])
+
+    u = bu.Quantity([0, 0, 0.])
+    u = u.scatter_add(jnp.asarray([0, 1, 1]), jnp.asarray([1., 1., 1.]))
+    assert_quantity(u, [1., 2., 0.])
+
+    nu = np.asarray([0, 0, 0.])
+    nu[np.asarray([0, 1, 1])] += np.asarray([1., 1., 1.])
+    self.assertTrue(np.allclose(nu, np.asarray([1., 1., 0.])))
+  
+  def test_at(self):
+    x = jnp.arange(5.0) * bu.mV
+    with self.assertRaises(bu.UnitMismatchError):
+      x.at[2].add(10)
+    x.at[2].add(10 * bu.mV)
+    x.at[10].add(10 * bu.mV)  # out-of-bounds indices are ignored
+    x.at[20].add(10 * bu.mV, mode='clip')
+    x.at[2].get()
+    x.at[20].get()  # out-of-bounds indices clipped
+    x.at[20].get(mode='fill')  # out-of-bounds indices filled with NaN
+    with self.assertRaises(bu.UnitMismatchError):
+      x.at[20].get(mode='fill', fill_value=-1)  # custom fill value
+    x.at[20].get(mode='fill', fill_value=-1 * bu.mV)  # custom fill value
+
 
 class TestNumPyFunctions(unittest.TestCase):
   def test_special_case_numpy_functions(self):
