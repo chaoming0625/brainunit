@@ -170,8 +170,6 @@ See also the BDP ecosystem
    physical_units/standard_units.ipynb
    physical_units/constants.ipynb
    physical_units/conversion.ipynb
-   physical_units/combining_defining_displaying.ipynb
-   physical_units/mechanism.ipynb
 
 
 
@@ -183,6 +181,15 @@ See also the BDP ecosystem
    mathematical_functions/array_creation.ipynb
    mathematical_functions/numpy_functions.ipynb
    mathematical_functions/customize_functions.ipynb
+
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+   :caption: Advanced Tutorials
+
+   advanced_tutorials/combining_and_defining.ipynb
+   advanced_tutorials/mechanism.ipynb
 
 
 
