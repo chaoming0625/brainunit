@@ -1146,7 +1146,7 @@ def _assert_same_base(u1, u2):
 
 def _create_name(dim: Dimension, base, scale) -> str:
   if dim == DIMENSIONLESS:
-    name = f"Unit({base ** scale})"
+    name = f"Unit({base}^{scale})"
   else:
     if _is_tracer(scale) or scale == 0.:
       name = f"{dim}"
@@ -1157,7 +1157,7 @@ def _create_name(dim: Dimension, base, scale) -> str:
 
 def _find_name(dim: Dimension, base, scale) -> Tuple[str, str]:
   if dim == DIMENSIONLESS:
-    name = f"Unit({base ** scale})"
+    name = f"Unit({base}^{scale})"
     return name, name
 
   if isinstance(base, (int, float)):
