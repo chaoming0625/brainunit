@@ -35,6 +35,10 @@ fun_keep_unit_math_unary = [
   'nanmin', 'nanmax', 'ptp', 'average', 'mean', 'std',
   'nanmedian', 'nanmean', 'nanstd', 'diff', 'nan_to_num',
 ]
+fun_accept_unitless_unary_can_return_quantity = [
+  'round', 'around', 'round_', 'rint',
+  'floor', 'ceil', 'trunc', 'fix',
+]
 fun_keep_unit_math_binary = [
   'fmod', 'mod', 'remainder',
   'maximum', 'minimum', 'fmax', 'fmin',
@@ -48,6 +52,9 @@ fun_keep_unit_quantile = [
 ]
 fun_keep_unit_math_unary_misc = [
   'trace', 'lcm', 'gcd', 'copysign', 'rot90', 'intersect1d',
+]
+fun_accept_unitless_unary_2_results = [
+  'modf',
 ]
 
 
@@ -503,7 +510,7 @@ class TestFunKeepUnitSelection(parameterized.TestCase):
     a = array * bu.second
     result_q = bu.math.extract(q > 1, a)
     expected_q = jnp.extract(q > 1, jnp.array([1, 2, 3])) * bu.second
-    assert bu.math.allclose(result_q , expected_q)
+    assert bu.math.allclose(result_q, expected_q)
 
   def test_take(self):
     array = jnp.array([4, 3, 5, 7, 6, 8])
@@ -681,6 +688,49 @@ class TestFunKeepUnit(parameterized.TestCase):
       result = bm_fun(q_value, q)
       expected = jnp_fun(jnp.array(value), q)
       assert_quantity(result, expected, unit=unit)
+
+  @parameterized.product(
+    value=[(1.123, 2.567, 3.891), (1.23, 2.34, 3.45)]
+  )
+  def test_fun_accept_unitless_binary_2_results(self, value):
+    bm_fun_list = [getattr(bm, fun) for fun in fun_accept_unitless_unary_2_results]
+    jnp_fun_list = [getattr(jnp, fun) for fun in fun_accept_unitless_unary_2_results]
+
+    for fun in fun_accept_unitless_unary_2_results:
+      bm_fun = getattr(bm, fun)
+      jnp_fun = getattr(jnp, fun)
+
+      print(f'fun: {bm_fun.__name__}')
+      result1, result2 = bm_fun(jnp.array(value))
+      expected1, expected2 = jnp_fun(jnp.array(value))
+      assert_quantity(result1, expected1)
+      assert_quantity(result2, expected2)
+
+      for unit in [meter, ms]:
+        q = value * unit
+        result1, result2 = bm_fun(q)
+        expected1, expected2 = jnp_fun(jnp.array(value))
+        assert_quantity(result1, expected1, unit)
+        assert_quantity(result2, expected2, unit)
+
+  @parameterized.product(
+    value=[(1.123, 2.567, 3.891), (1.23, 2.34, 3.45)]
+  )
+  def test_fun_accept_unitless_unary_can_return_quantity(self, value):
+    for fun in fun_accept_unitless_unary_can_return_quantity:
+      bm_fun = getattr(bm, fun)
+      jnp_fun = getattr(jnp, fun)
+
+      print(f'fun: {bm_fun.__name__}')
+      result = bm_fun(jnp.array(value))
+      expected = jnp_fun(jnp.array(value))
+      assert_quantity(result, expected)
+
+      for unit in [meter, ms]:
+        q = value * unit
+        result = bm_fun(q)
+        expected = jnp_fun(jnp.array(value))
+        assert_quantity(result, expected, unit)
 
 
 class TestFunKeepUnitMathFunMisc(parameterized.TestCase):

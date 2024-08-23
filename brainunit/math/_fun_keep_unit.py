@@ -24,7 +24,8 @@ import numpy as np
 
 from ._fun_array_creation import asarray
 from .._base import (Quantity,
-                     fail_for_dimension_mismatch, get_unit,
+                     fail_for_dimension_mismatch,
+                     get_unit,
                      UNITLESS,
                      unit_scale_align_to_first,
                      remove_unitless)
@@ -53,6 +54,9 @@ __all__ = [
   'nanmin', 'nanmax', 'ptp', 'average', 'mean', 'std',
   'nanmedian', 'nanmean', 'nanstd', 'diff', 'rot90', 'intersect1d', 'nan_to_num',
   'percentile', 'nanpercentile', 'quantile', 'nanquantile',
+
+  # math funcs only accept unitless (unary) can return Quantity
+  'round', 'around', 'round_', 'rint', 'floor', 'ceil', 'trunc', 'fix', 'modf',
 
   # math funcs keep unit (binary)
   'fmod', 'mod', 'copysign', 'remainder',
@@ -3320,3 +3324,182 @@ def unique(
                       equal_nan=equal_nan,
                       size=size,
                       fill_value=fill_value)
+
+
+@set_module_as('brainunit.math')
+def round_(
+    x: Union[Quantity, jax.typing.ArrayLike],
+) -> jax.Array:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _fun_keep_unit_unary(jnp.round_, x)
+
+
+@set_module_as('brainunit.math')
+def around(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    decimals: int = 0,
+) -> jax.Array:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  decimals : int, optional
+    Number of decimal places to round to (default is 0).
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _fun_keep_unit_unary(jnp.around, x, decimals=decimals)
+
+
+@set_module_as('brainunit.math')
+def round(
+    x: Union[Quantity, jax.typing.ArrayLike],
+    decimals: int = 0,
+) -> jax.Array | Quantity:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+  decimals : int, optional
+    Number of decimal places to round to (default is 0).
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _fun_keep_unit_unary(jnp.round, x, decimals=decimals)
+
+
+@set_module_as('brainunit.math')
+def rint(
+    x: Union[Quantity, jax.typing.ArrayLike],
+) -> Union[Quantity, jax.Array]:
+  """
+  Round an array to the nearest integer.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _fun_keep_unit_unary(jnp.rint, x)
+
+
+@set_module_as('brainunit.math')
+def floor(
+    x: Union[Quantity, jax.typing.ArrayLike],
+) -> jax.Array:
+  """
+  Return the floor of the argument.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _fun_keep_unit_unary(jnp.floor, x)
+
+
+@set_module_as('brainunit.math')
+def ceil(
+    x: Union[Quantity, jax.typing.ArrayLike],
+) -> jax.Array:
+  """
+  Return the ceiling of the argument.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _fun_keep_unit_unary(jnp.ceil, x)
+
+
+@set_module_as('brainunit.math')
+def trunc(
+    x: Union[Quantity, jax.typing.ArrayLike],
+) -> jax.Array:
+  """
+  Return the truncated value of the argument.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _fun_keep_unit_unary(jnp.trunc, x)
+
+
+@set_module_as('brainunit.math')
+def fix(
+    x: Union[Quantity, jax.typing.ArrayLike],
+) -> jax.Array:
+  """
+  Return the nearest integer towards zero.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  out : jax.Array
+  """
+  return _fun_keep_unit_unary(jnp.fix, x)
+
+
+@set_module_as('brainunit.math')
+def modf(
+    x: Union[Quantity, jax.typing.ArrayLike],
+) -> Tuple[jax.Array, jax.Array]:
+  """
+  Return the fractional and integer parts of the array elements.
+
+  Parameters
+  ----------
+  x : array_like, Quantity
+    Input array.
+
+  Returns
+  -------
+  The fractional and integral parts of the input, both with the same dimension.
+  """
+  if isinstance(x, Quantity):
+    return jax.tree.map(lambda y: Quantity(y, unit=x.unit), jnp.modf(x.mantissa))
+  return jnp.modf(x)
