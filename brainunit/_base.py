@@ -43,6 +43,7 @@ __all__ = [
   'is_unitless',
   'get_dim',
   'get_unit',
+  'display_in_unit',
 
   # functions for checking
   'check_dims',
@@ -255,6 +256,10 @@ _siprefixes = {
 }
 
 
+def _is_tracer(x):
+  return isinstance(x, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer))
+
+
 class Dimension:
   """
   Stores the indices of the 7 basic SI unit dimension (length, mass, etc.).
@@ -408,7 +413,7 @@ class Dimension:
   def __eq__(self, value: 'Dimension'):
     try:
       return np.allclose(self._dims, value._dims)
-    except AttributeError:
+    except (AttributeError, jax.errors.TracerArrayConversionError):
       # Only compare equal to another Dimensions object
       return False
 
@@ -429,6 +434,9 @@ class Dimension:
   # --- Dimension objects are singletons and deepcopy is therefore not necessary
   def __deepcopy__(self, memodict):
     return self
+
+  def __hash__(self):
+    return hash(self._dims)
 
 
 @set_module_as('brainunit')
@@ -861,8 +869,9 @@ def fail_for_unit_mismatch(
 @set_module_as('brainunit')
 def display_in_unit(
     x: jax.typing.ArrayLike | 'Quantity',
-    u: 'Unit',
-    precision: Optional[int] = None
+    u: 'Unit' = None,
+    precision: Optional[int] = None,
+    python_code: bool = True
 ) -> str:
   """
   Display a value in a certain unit with a given precision.
@@ -905,8 +914,9 @@ def display_in_unit(
   Array.in_unit
   """
   x = _to_quantity(x)
-  fail_for_unit_mismatch(x, u, 'Non-matching unit for function "in_unit"')
-  return x.in_unit(u).repr_in_unit(precision=precision)
+  if u is not None:
+    x = x.in_unit(u)
+  return x.repr_in_unit(precision=precision, python_code=python_code)
 
 
 @set_module_as('brainunit')
@@ -1134,6 +1144,49 @@ def _assert_same_base(u1, u2):
                                 f"But we got {u1.base} != {u1.base}.")
 
 
+def _create_name(dim: Dimension, base, scale) -> str:
+  if dim == DIMENSIONLESS:
+    name = f"Unit({base}^{scale})"
+  else:
+    if _is_tracer(scale) or scale == 0.:
+      name = f"{dim}"
+    else:
+      name = f"{base}^{scale} * {dim}"
+  return name
+
+
+def _find_name(dim: Dimension, base, scale) -> Tuple[str, str]:
+  if dim == DIMENSIONLESS:
+    name = f"Unit({base}^{scale})"
+    return name, name
+
+  if isinstance(base, (int, float)):
+    if isinstance(scale, (int, float)):
+      key = (dim, scale, base)
+      if key in _standard_units:
+        name = _standard_units[key].name
+        return name, name
+    else:
+      key = (dim, 0, base)
+      if key in _standard_units:
+        name = _standard_units[key].name
+        return name, name
+
+  name = _create_name(dim, base, scale)
+  return name, name
+
+
+_standard_units: Dict[Tuple, 'Unit'] = {}
+
+
+def add_standard_unit(u: 'Unit'):
+  if isinstance(u.base, (int, float)) and isinstance(u.scale, (int, float)):
+    key = (u.dim, u.scale, u.base)
+    # if key in _standard_units:
+    #   raise ValueError(f"Unit {u} already exists: {_standard_units[key]}")
+    _standard_units[key] = u
+
+
 class Unit:
   r"""
    A physical unit.
@@ -1257,10 +1310,7 @@ class Unit:
 
     # The name of this unit
     if name is None:
-      if dim == DIMENSIONLESS:
-        name = f"Unit({self._base ** self._scale})"
-      else:
-        name = repr(dim)
+      name = _create_name(dim, base, scale)
     self._name = name
 
     # The display name of this unit
@@ -1435,6 +1485,9 @@ class Unit:
     scale : int, optional
         The scale of this unit as an exponent of 10, e.g. -3 for a unit that
         is 1/1000 of the base scale. Defaults to 0 (i.e. a base unit).
+    base: float, optional
+        The base for this unit (as the base of the exponent), i.e.
+        a base of 10 means 10^3, for a "k" prefix. Defaults to 10.
 
     Returns
     -------
@@ -1448,6 +1501,7 @@ class Unit:
       name=name,
       dispname=dispname,
     )
+    add_standard_unit(u)
     return u
 
   @staticmethod
@@ -1476,7 +1530,9 @@ class Unit:
       name=name,
       dispname=dispname,
       scale=scale,
+      base=baseunit.base,
     )
+    add_standard_unit(u)
     return u
 
   def __repr__(self):
@@ -1488,14 +1544,17 @@ class Unit:
   def __mul__(self, other) -> 'Unit' | Quantity:
     # self * other
     if isinstance(other, Unit):
-      name = f"{self.name} * {other.name}"
-      dispname = f"{self.dispname} * {other.dispname}"
-      scale = self.scale + other.scale
       _assert_same_base(self, other)
-      return Unit(self.dim * other.dim, scale=scale, base=self.base, name=name, dispname=dispname, iscompound=True)
+      scale = self.scale + other.scale
+      dim = self.dim * other.dim
+      name, dispname = _find_name(dim, self.base, scale)
+      return Unit(dim, scale=scale, base=self.base, name=name, dispname=dispname, iscompound=True)
 
     elif isinstance(other, Quantity):
       return Quantity(other._mantissa, unit=(self * other.unit))
+
+    elif isinstance(other, Dimension):
+      raise TypeError(f"unit {self} cannot multiply by a Dimension {other}.")
 
     else:
       return Quantity(other, unit=self)
@@ -1515,23 +1574,10 @@ class Unit:
   def __div__(self, other) -> 'Unit':
     # self / other
     if isinstance(other, Unit):
-      if self.iscompound:
-        dispname = f"({self.dispname})"
-        name = f"({self.name})"
-      else:
-        dispname = self.dispname
-        name = self.name
-      dispname += "/"
-      name += " / "
-      if other.iscompound:
-        dispname += f"({other.dispname})"
-        name += f"({other.name})"
-      else:
-        dispname += other.dispname
-        name += other.name
       scale = self.scale - other.scale
       dim = self.dim / other.dim
       _assert_same_base(self, other)
+      name, dispname = _find_name(dim, self.base, scale)
       return Unit(dim, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=True)
     else:
       raise TypeError(f"unit {self} cannot divide by a non-unit {other}")
@@ -1539,13 +1585,10 @@ class Unit:
   def __rdiv__(self, other) -> 'Unit' | Quantity:
     # other / self
     if is_scalar_type(other) and other == 1:
-      dispname = self.dispname
-      name = self.name
-      if self.iscompound:
-        dispname = f"({self.dispname})"
-        name = f"({self.name})"
-      return Unit(self.dim ** -1, base=self.base, scale=-self.scale, name=f"1 / {name}",
-                  dispname=f"1 / {dispname}", iscompound=True)
+      dim = self.dim ** -1
+      scale = -self.scale
+      name, dispname = _find_name(dim, self.base, scale)
+      return Unit(dim, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=True)
 
     elif isinstance(other, Unit):
       return other.__div__(self)
@@ -1582,16 +1625,10 @@ class Unit:
   def __pow__(self, other):
     # self ** other
     if is_scalar_type(other):
-      if self.iscompound:
-        dispname = f"({self.dispname})"
-        name = f"({self.name})"
-      else:
-        dispname = self.dispname
-        name = self.name
-      dispname += f"^{str(other)}"
-      name += f" ** {repr(other)}"
+      dim = self.dim ** other
       scale = self.scale * other
-      return Unit(self.dim ** other, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=True)
+      name, dispname = _find_name(dim, self.base, scale)
+      return Unit(dim, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=True)
     else:
       raise TypeError(f"unit cannot perform an exponentiation (unit ** other) with a non-scalar, "
                       f"since one unit cannot contain multiple units. \n"
@@ -2056,7 +2093,7 @@ class Quantity:
   def repr_in_unit(
       self,
       precision: int | None = None,
-      python_code: bool = False
+      python_code: bool = True
   ) -> str:
     """
     Represent the Array in a given unit.
@@ -2088,7 +2125,8 @@ class Quantity:
     '25.123 mV'
     """
     value = jnp.asarray(self._mantissa)
-    if isinstance(value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
+    if _is_tracer(value):
+      # in the JIT mode
       s = str(value)
     else:
       if value.shape == ():
@@ -2201,7 +2239,10 @@ class Quantity:
     return self.repr_in_unit(python_code=True)
 
   def __str__(self) -> str:
-    return self.repr_in_unit()
+    # change to python code,
+    # since the new display method has a scale factor,
+    # which should be more clear when add a "*" operator
+    return self.repr_in_unit(python_code=True)
 
   def __iter__(self):
     """Solve the issue of DeviceArray.__iter__.

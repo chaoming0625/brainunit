@@ -3329,7 +3329,7 @@ def unique(
 @set_module_as('brainunit.math')
 def round_(
     x: Union[Quantity, jax.typing.ArrayLike],
-) -> jax.Array:
+) -> jax.Array | Quantity:
   """
   Round an array to the nearest integer.
 
@@ -3349,7 +3349,7 @@ def round_(
 def around(
     x: Union[Quantity, jax.typing.ArrayLike],
     decimals: int = 0,
-) -> jax.Array:
+) -> jax.Array | Quantity:
   """
   Round an array to the nearest integer.
 
@@ -3411,7 +3411,7 @@ def rint(
 @set_module_as('brainunit.math')
 def floor(
     x: Union[Quantity, jax.typing.ArrayLike],
-) -> jax.Array:
+) -> jax.Array | Quantity:
   """
   Return the floor of the argument.
 
@@ -3430,7 +3430,7 @@ def floor(
 @set_module_as('brainunit.math')
 def ceil(
     x: Union[Quantity, jax.typing.ArrayLike],
-) -> jax.Array:
+) -> jax.Array | Quantity:
   """
   Return the ceiling of the argument.
 
@@ -3449,7 +3449,7 @@ def ceil(
 @set_module_as('brainunit.math')
 def trunc(
     x: Union[Quantity, jax.typing.ArrayLike],
-) -> jax.Array:
+) -> jax.Array | Quantity:
   """
   Return the truncated value of the argument.
 
@@ -3468,7 +3468,7 @@ def trunc(
 @set_module_as('brainunit.math')
 def fix(
     x: Union[Quantity, jax.typing.ArrayLike],
-) -> jax.Array:
+) -> jax.Array | Quantity:
   """
   Return the nearest integer towards zero.
 
@@ -3487,7 +3487,7 @@ def fix(
 @set_module_as('brainunit.math')
 def modf(
     x: Union[Quantity, jax.typing.ArrayLike],
-) -> Tuple[jax.Array, jax.Array]:
+) -> Tuple[jax.Array | Quantity, jax.Array | Quantity]:
   """
   Return the fractional and integer parts of the array elements.
 

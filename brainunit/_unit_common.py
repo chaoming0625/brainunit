@@ -2772,15 +2772,18 @@ zkatal = Unit.create_scaled_unit(katal, "z")
 Mkatal = Unit.create_scaled_unit(katal, "M")
 kkatal = Unit.create_scaled_unit(katal, "k")
 Ykatal = Unit.create_scaled_unit(katal, "Y")
+
 ######### SCALED BASE UNITS TO POWERS ###########
 metre2 = Unit.create((metre ** 2).dim, name="metre2", dispname=f"{str(metre)}^2", scale=metre.scale * 2)
 metre3 = Unit.create((metre ** 3).dim, name="metre3", dispname=f"{str(metre)}^3", scale=metre.scale * 3)
 meter2 = Unit.create((meter ** 2).dim, name="meter2", dispname=f"{str(meter)}^2", scale=meter.scale * 2)
 meter3 = Unit.create((meter ** 3).dim, name="meter3", dispname=f"{str(meter)}^3", scale=meter.scale * 3)
-kilogram2 = Unit.create((kilogram ** 2).dim, name="kilogram2", dispname=f"{str(kilogram)}^2",
-                        scale=kilogram.scale * 2)
-kilogram3 = Unit.create((kilogram ** 3).dim, name="kilogram3", dispname=f"{str(kilogram)}^3",
-                        scale=kilogram.scale * 3)
+kilogram2 = Unit.create(
+  (kilogram ** 2).dim, name="kilogram2", dispname=f"{str(kilogram)}^2", scale=kilogram.scale * 2
+)
+kilogram3 = Unit.create(
+  (kilogram ** 3).dim, name="kilogram3", dispname=f"{str(kilogram)}^3", scale=kilogram.scale * 3
+)
 second2 = Unit.create((second ** 2).dim, name="second2", dispname=f"{str(second)}^2", scale=second.scale * 2)
 second3 = Unit.create((second ** 3).dim, name="second3", dispname=f"{str(second)}^3", scale=second.scale * 3)
 amp2 = Unit.create((amp ** 2).dim, name="amp2", dispname=f"{str(amp)}^2", scale=amp.scale * 2)
@@ -2795,10 +2798,12 @@ mol2 = Unit.create((mol ** 2).dim, name="mol2", dispname=f"{str(mol)}^2", scale=
 mol3 = Unit.create((mol ** 3).dim, name="mol3", dispname=f"{str(mol)}^3", scale=mol.scale * 3)
 candle2 = Unit.create((candle ** 2).dim, name="candle2", dispname=f"{str(candle)}^2", scale=candle.scale * 2)
 candle3 = Unit.create((candle ** 3).dim, name="candle3", dispname=f"{str(candle)}^3", scale=candle.scale * 3)
-kilogramme2 = Unit.create((kilogramme ** 2).dim, name="kilogramme2", dispname=f"{str(kilogramme)}^2",
-                          scale=kilogramme.scale * 2)
-kilogramme3 = Unit.create((kilogramme ** 3).dim, name="kilogramme3", dispname=f"{str(kilogramme)}^3",
-                          scale=kilogramme.scale * 3)
+kilogramme2 = Unit.create(
+  (kilogramme ** 2).dim, name="kilogramme2", dispname=f"{str(kilogramme)}^2", scale=kilogramme.scale * 2
+)
+kilogramme3 = Unit.create(
+  (kilogramme ** 3).dim, name="kilogramme3", dispname=f"{str(kilogramme)}^3", scale=kilogramme.scale * 3
+)
 gram2 = Unit.create((gram ** 2).dim, name="gram2", dispname=f"{str(gram)}^2", scale=gram.scale * 2)
 gram3 = Unit.create((gram ** 3).dim, name="gram3", dispname=f"{str(gram)}^3", scale=gram.scale * 3)
 gramme2 = Unit.create((gramme ** 2).dim, name="gramme2", dispname=f"{str(gramme)}^2", scale=gramme.scale * 2)
@@ -2807,10 +2812,12 @@ molar2 = Unit.create((molar ** 2).dim, name="molar2", dispname=f"{str(molar)}^2"
 molar3 = Unit.create((molar ** 3).dim, name="molar3", dispname=f"{str(molar)}^3", scale=molar.scale * 3)
 radian2 = Unit.create((radian ** 2).dim, name="radian2", dispname=f"{str(radian)}^2", scale=radian.scale * 2)
 radian3 = Unit.create((radian ** 3).dim, name="radian3", dispname=f"{str(radian)}^3", scale=radian.scale * 3)
-steradian2 = Unit.create((steradian ** 2).dim, name="steradian2", dispname=f"{str(steradian)}^2",
-                         scale=steradian.scale * 2)
-steradian3 = Unit.create((steradian ** 3).dim, name="steradian3", dispname=f"{str(steradian)}^3",
-                         scale=steradian.scale * 3)
+steradian2 = Unit.create(
+  (steradian ** 2).dim, name="steradian2", dispname=f"{str(steradian)}^2", scale=steradian.scale * 2
+)
+steradian3 = Unit.create(
+  (steradian ** 3).dim, name="steradian3", dispname=f"{str(steradian)}^3", scale=steradian.scale * 3
+)
 hertz2 = Unit.create((hertz ** 2).dim, name="hertz2", dispname=f"{str(hertz)}^2", scale=hertz.scale * 2)
 hertz3 = Unit.create((hertz ** 3).dim, name="hertz3", dispname=f"{str(hertz)}^3", scale=hertz.scale * 3)
 newton2 = Unit.create((newton ** 2).dim, name="newton2", dispname=f"{str(newton)}^2", scale=newton.scale * 2)
@@ -2841,10 +2848,12 @@ lumen2 = Unit.create((lumen ** 2).dim, name="lumen2", dispname=f"{str(lumen)}^2"
 lumen3 = Unit.create((lumen ** 3).dim, name="lumen3", dispname=f"{str(lumen)}^3", scale=lumen.scale * 3)
 lux2 = Unit.create((lux ** 2).dim, name="lux2", dispname=f"{str(lux)}^2", scale=lux.scale * 2)
 lux3 = Unit.create((lux ** 3).dim, name="lux3", dispname=f"{str(lux)}^3", scale=lux.scale * 3)
-becquerel2 = Unit.create((becquerel ** 2).dim, name="becquerel2", dispname=f"{str(becquerel)}^2",
-                         scale=becquerel.scale * 2)
-becquerel3 = Unit.create((becquerel ** 3).dim, name="becquerel3", dispname=f"{str(becquerel)}^3",
-                         scale=becquerel.scale * 3)
+becquerel2 = Unit.create(
+  (becquerel ** 2).dim, name="becquerel2", dispname=f"{str(becquerel)}^2", scale=becquerel.scale * 2
+)
+becquerel3 = Unit.create(
+  (becquerel ** 3).dim, name="becquerel3", dispname=f"{str(becquerel)}^3", scale=becquerel.scale * 3
+)
 gray2 = Unit.create((gray ** 2).dim, name="gray2", dispname=f"{str(gray)}^2", scale=gray.scale * 2)
 gray3 = Unit.create((gray ** 3).dim, name="gray3", dispname=f"{str(gray)}^3", scale=gray.scale * 3)
 sievert2 = Unit.create((sievert ** 2).dim, name="sievert2", dispname=f"{str(sievert)}^2", scale=sievert.scale * 2)
@@ -2947,10 +2956,12 @@ fsecond2 = Unit.create((fsecond ** 2).dim, name="fsecond2", dispname=f"{str(fsec
 fsecond3 = Unit.create((fsecond ** 3).dim, name="fsecond3", dispname=f"{str(fsecond)}^3", scale=fsecond.scale * 3)
 hsecond2 = Unit.create((hsecond ** 2).dim, name="hsecond2", dispname=f"{str(hsecond)}^2", scale=hsecond.scale * 2)
 hsecond3 = Unit.create((hsecond ** 3).dim, name="hsecond3", dispname=f"{str(hsecond)}^3", scale=hsecond.scale * 3)
-dasecond2 = Unit.create((dasecond ** 2).dim, name="dasecond2", dispname=f"{str(dasecond)}^2",
-                        scale=dasecond.scale * 2)
-dasecond3 = Unit.create((dasecond ** 3).dim, name="dasecond3", dispname=f"{str(dasecond)}^3",
-                        scale=dasecond.scale * 3)
+dasecond2 = Unit.create(
+  (dasecond ** 2).dim, name="dasecond2", dispname=f"{str(dasecond)}^2", scale=dasecond.scale * 2
+)
+dasecond3 = Unit.create(
+  (dasecond ** 3).dim, name="dasecond3", dispname=f"{str(dasecond)}^3", scale=dasecond.scale * 3
+)
 msecond2 = Unit.create((msecond ** 2).dim, name="msecond2", dispname=f"{str(msecond)}^2", scale=msecond.scale * 2)
 msecond3 = Unit.create((msecond ** 3).dim, name="msecond3", dispname=f"{str(msecond)}^3", scale=msecond.scale * 3)
 nsecond2 = Unit.create((nsecond ** 2).dim, name="nsecond2", dispname=f"{str(nsecond)}^2", scale=nsecond.scale * 2)
@@ -3029,10 +3040,12 @@ fampere2 = Unit.create((fampere ** 2).dim, name="fampere2", dispname=f"{str(famp
 fampere3 = Unit.create((fampere ** 3).dim, name="fampere3", dispname=f"{str(fampere)}^3", scale=fampere.scale * 3)
 hampere2 = Unit.create((hampere ** 2).dim, name="hampere2", dispname=f"{str(hampere)}^2", scale=hampere.scale * 2)
 hampere3 = Unit.create((hampere ** 3).dim, name="hampere3", dispname=f"{str(hampere)}^3", scale=hampere.scale * 3)
-daampere2 = Unit.create((daampere ** 2).dim, name="daampere2", dispname=f"{str(daampere)}^2",
-                        scale=daampere.scale * 2)
-daampere3 = Unit.create((daampere ** 3).dim, name="daampere3", dispname=f"{str(daampere)}^3",
-                        scale=daampere.scale * 3)
+daampere2 = Unit.create(
+  (daampere ** 2).dim, name="daampere2", dispname=f"{str(daampere)}^2", scale=daampere.scale * 2
+)
+daampere3 = Unit.create(
+  (daampere ** 3).dim, name="daampere3", dispname=f"{str(daampere)}^3", scale=daampere.scale * 3
+)
 mampere2 = Unit.create((mampere ** 2).dim, name="mampere2", dispname=f"{str(mampere)}^2", scale=mampere.scale * 2)
 mampere3 = Unit.create((mampere ** 3).dim, name="mampere3", dispname=f"{str(mampere)}^3", scale=mampere.scale * 3)
 nampere2 = Unit.create((nampere ** 2).dim, name="nampere2", dispname=f"{str(nampere)}^2", scale=nampere.scale * 2)
@@ -3151,10 +3164,12 @@ fcandle2 = Unit.create((fcandle ** 2).dim, name="fcandle2", dispname=f"{str(fcan
 fcandle3 = Unit.create((fcandle ** 3).dim, name="fcandle3", dispname=f"{str(fcandle)}^3", scale=fcandle.scale * 3)
 hcandle2 = Unit.create((hcandle ** 2).dim, name="hcandle2", dispname=f"{str(hcandle)}^2", scale=hcandle.scale * 2)
 hcandle3 = Unit.create((hcandle ** 3).dim, name="hcandle3", dispname=f"{str(hcandle)}^3", scale=hcandle.scale * 3)
-dacandle2 = Unit.create((dacandle ** 2).dim, name="dacandle2", dispname=f"{str(dacandle)}^2",
-                        scale=dacandle.scale * 2)
-dacandle3 = Unit.create((dacandle ** 3).dim, name="dacandle3", dispname=f"{str(dacandle)}^3",
-                        scale=dacandle.scale * 3)
+dacandle2 = Unit.create(
+  (dacandle ** 2).dim, name="dacandle2", dispname=f"{str(dacandle)}^2", scale=dacandle.scale * 2
+)
+dacandle3 = Unit.create(
+  (dacandle ** 3).dim, name="dacandle3", dispname=f"{str(dacandle)}^3", scale=dacandle.scale * 3
+)
 mcandle2 = Unit.create((mcandle ** 2).dim, name="mcandle2", dispname=f"{str(mcandle)}^2", scale=mcandle.scale * 2)
 mcandle3 = Unit.create((mcandle ** 3).dim, name="mcandle3", dispname=f"{str(mcandle)}^3", scale=mcandle.scale * 3)
 ncandle2 = Unit.create((ncandle ** 2).dim, name="ncandle2", dispname=f"{str(ncandle)}^2", scale=ncandle.scale * 2)
@@ -3233,10 +3248,12 @@ fgramme2 = Unit.create((fgramme ** 2).dim, name="fgramme2", dispname=f"{str(fgra
 fgramme3 = Unit.create((fgramme ** 3).dim, name="fgramme3", dispname=f"{str(fgramme)}^3", scale=fgramme.scale * 3)
 hgramme2 = Unit.create((hgramme ** 2).dim, name="hgramme2", dispname=f"{str(hgramme)}^2", scale=hgramme.scale * 2)
 hgramme3 = Unit.create((hgramme ** 3).dim, name="hgramme3", dispname=f"{str(hgramme)}^3", scale=hgramme.scale * 3)
-dagramme2 = Unit.create((dagramme ** 2).dim, name="dagramme2", dispname=f"{str(dagramme)}^2",
-                        scale=dagramme.scale * 2)
-dagramme3 = Unit.create((dagramme ** 3).dim, name="dagramme3", dispname=f"{str(dagramme)}^3",
-                        scale=dagramme.scale * 3)
+dagramme2 = Unit.create(
+  (dagramme ** 2).dim, name="dagramme2", dispname=f"{str(dagramme)}^2", scale=dagramme.scale * 2
+)
+dagramme3 = Unit.create(
+  (dagramme ** 3).dim, name="dagramme3", dispname=f"{str(dagramme)}^3", scale=dagramme.scale * 3
+)
 mgramme2 = Unit.create((mgramme ** 2).dim, name="mgramme2", dispname=f"{str(mgramme)}^2", scale=mgramme.scale * 2)
 mgramme3 = Unit.create((mgramme ** 3).dim, name="mgramme3", dispname=f"{str(mgramme)}^3", scale=mgramme.scale * 3)
 ngramme2 = Unit.create((ngramme ** 2).dim, name="ngramme2", dispname=f"{str(ngramme)}^2", scale=ngramme.scale * 2)
@@ -3315,10 +3332,14 @@ fradian2 = Unit.create((fradian ** 2).dim, name="fradian2", dispname=f"{str(frad
 fradian3 = Unit.create((fradian ** 3).dim, name="fradian3", dispname=f"{str(fradian)}^3", scale=fradian.scale * 3)
 hradian2 = Unit.create((hradian ** 2).dim, name="hradian2", dispname=f"{str(hradian)}^2", scale=hradian.scale * 2)
 hradian3 = Unit.create((hradian ** 3).dim, name="hradian3", dispname=f"{str(hradian)}^3", scale=hradian.scale * 3)
-daradian2 = Unit.create((daradian ** 2).dim, name="daradian2", dispname=f"{str(daradian)}^2",
-                        scale=daradian.scale * 2)
-daradian3 = Unit.create((daradian ** 3).dim, name="daradian3", dispname=f"{str(daradian)}^3",
-                        scale=daradian.scale * 3)
+daradian2 = Unit.create(
+  (daradian ** 2).dim, name="daradian2", dispname=f"{str(daradian)}^2",
+  scale=daradian.scale * 2
+)
+daradian3 = Unit.create(
+  (daradian ** 3).dim, name="daradian3", dispname=f"{str(daradian)}^3",
+  scale=daradian.scale * 3
+)
 mradian2 = Unit.create((mradian ** 2).dim, name="mradian2", dispname=f"{str(mradian)}^2", scale=mradian.scale * 2)
 mradian3 = Unit.create((mradian ** 3).dim, name="mradian3", dispname=f"{str(mradian)}^3", scale=mradian.scale * 3)
 nradian2 = Unit.create((nradian ** 2).dim, name="nradian2", dispname=f"{str(nradian)}^2", scale=nradian.scale * 2)
@@ -8125,3 +8146,4 @@ all_units = [
 ]
 
 del base_units, scaled_units, powered_units, additional_units
+
