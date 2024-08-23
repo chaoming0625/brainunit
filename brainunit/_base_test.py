@@ -13,6 +13,10 @@
 # limitations under the License.
 # ==============================================================================
 
+
+import os
+
+os.environ['JAX_TRACEBACK_FILTERING'] = 'off'
 import itertools
 import unittest
 import warnings
@@ -245,6 +249,16 @@ class TestQuantity(unittest.TestCase):
         display_in_unit(10 * nS, ohm)
     assert_equal(display_in_unit(10.0, Unit(scale=1)), "1. * Unit(10.0^1)")
     assert_equal(display_in_unit(3 * bu.kmeter / bu.meter), '3. * Unit(10.0^3)')
+    assert_equal(str(bu.mS / bu.cm ** 2), 'mS/cmeter2')
+
+    assert_equal(display_in_unit(10. * bu.mV), '10. * mvolt')
+    assert_equal(display_in_unit(10. * bu.ohm * bu.amp), '10. * volt')
+    assert_equal(display_in_unit(120. * (bu.mS / bu.cm ** 2)), '120. * msiemens / cmeter2')
+    assert_equal(display_in_unit(3.0 * bu.kmeter / 130.51 * bu.meter), '0.02298675 * 10.0^3 * meter2')
+    assert_equal(display_in_unit(3.0 * bu.kmeter / (130.51 * bu.meter)), '0.02298675 * Unit(10.0^3)')
+    assert_equal(display_in_unit(3.0 * bu.kmeter / 130.51 * bu.meter * bu.cm ** -2), '0.02298675 * Unit(10.0^7)')
+    assert_equal(display_in_unit(3.0 * bu.kmeter / 130.51 * bu.meter * bu.cm ** -1), '0.02298675 * 10.0^5 * meter')
+    assert_equal(display_in_unit(1. * bu.joule / bu.kelvin), '1. * joule / kelvin')
 
   def test_display2(self):
 
@@ -252,10 +266,9 @@ class TestQuantity(unittest.TestCase):
     def f(s):
       a = bu.ms ** s
       print(a)
-      return a
+      return bu.Quantity(1., unit=a)
 
-    with self.assertRaises(jax.errors.TracerBoolConversionError):
-      f(2)
+    f(2)
 
   def test_unary_operations(self):
     q = Quantity(5, unit=mV)
