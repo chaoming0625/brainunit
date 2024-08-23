@@ -1146,34 +1146,33 @@ def _assert_same_base(u1, u2):
 
 def _create_name(dim: Dimension, base, scale) -> str:
   if dim == DIMENSIONLESS:
-    name = f"Unit({base}^{scale})"
+    return f"Unit({base}^{scale})"
   else:
     if _is_tracer(scale) or scale == 0.:
       name = f"{dim}"
     else:
       name = f"{base}^{scale} * {dim}"
-  return name
+    return name
 
 
-def _find_name(dim: Dimension, base, scale) -> Tuple[str, str]:
+def _find_a_name(dim: Dimension, base, scale) -> Optional[str]:
   if dim == DIMENSIONLESS:
     name = f"Unit({base}^{scale})"
-    return name, name
+    return name
 
   if isinstance(base, (int, float)):
     if isinstance(scale, (int, float)):
       key = (dim, scale, base)
       if key in _standard_units:
         name = _standard_units[key].name
-        return name, name
-    else:
-      key = (dim, 0, base)
-      if key in _standard_units:
-        name = _standard_units[key].name
-        return name, name
-
-  name = _create_name(dim, base, scale)
-  return name, name
+        return name
+    key = (dim, 0, base)
+    if key in _standard_units:
+      name = _standard_units[key].name
+      if _is_tracer(scale):
+        return name
+      else:
+        return f"{base}^{scale} * {name}"
 
 
 _standard_units: Dict[Tuple, 'Unit'] = {}
@@ -1547,8 +1546,15 @@ class Unit:
       _assert_same_base(self, other)
       scale = self.scale + other.scale
       dim = self.dim * other.dim
-      name, dispname = _find_name(dim, self.base, scale)
-      return Unit(dim, scale=scale, base=self.base, name=name, dispname=dispname, iscompound=True)
+      name = _find_a_name(dim, self.base, scale)
+      dispname = name
+      if name is None:
+        name = f"{self.name} * {other.name}"
+        dispname = f"{self.dispname} * {other.dispname}"
+        iscompound = True
+      else:
+        iscompound = False
+      return Unit(dim, scale=scale, base=self.base, name=name, dispname=dispname, iscompound=iscompound)
 
     elif isinstance(other, Quantity):
       return Quantity(other._mantissa, unit=(self * other.unit))
@@ -1577,8 +1583,27 @@ class Unit:
       scale = self.scale - other.scale
       dim = self.dim / other.dim
       _assert_same_base(self, other)
-      name, dispname = _find_name(dim, self.base, scale)
-      return Unit(dim, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=True)
+      name = _find_a_name(dim, self.base, scale)
+      dispname = name
+      if name is None:
+        if self.iscompound:
+          dispname = f"({self.dispname})"
+          name = f"({self.name})"
+        else:
+          dispname = self.dispname
+          name = self.name
+        dispname += "/"
+        name += " / "
+        if other.iscompound:
+          dispname += f"({other.dispname})"
+          name += f"({other.name})"
+        else:
+          dispname += other.dispname
+          name += other.name
+        iscompound = True
+      else:
+        iscompound = False
+      return Unit(dim, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=iscompound)
     else:
       raise TypeError(f"unit {self} cannot divide by a non-unit {other}")
 
@@ -1587,8 +1612,19 @@ class Unit:
     if is_scalar_type(other) and other == 1:
       dim = self.dim ** -1
       scale = -self.scale
-      name, dispname = _find_name(dim, self.base, scale)
-      return Unit(dim, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=True)
+      name = _find_a_name(dim, self.base, scale)
+      dispname = name
+      if name is None:
+        if self.iscompound:
+          dispname = f"({self.dispname})"
+          name = f"({self.name})"
+        else:
+          dispname = self.dispname
+          name = self.name
+        iscompound = True
+      else:
+        iscompound = False
+      return Unit(dim, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=iscompound)
 
     elif isinstance(other, Unit):
       return other.__div__(self)
@@ -1627,8 +1663,21 @@ class Unit:
     if is_scalar_type(other):
       dim = self.dim ** other
       scale = self.scale * other
-      name, dispname = _find_name(dim, self.base, scale)
-      return Unit(dim, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=True)
+      name = _find_a_name(dim, self.base, scale)
+      dispname = name
+      if name is None:
+        if self.iscompound:
+          dispname = f"({self.dispname})"
+          name = f"({self.name})"
+        else:
+          dispname = self.dispname
+          name = self.name
+        dispname += f"^{str(other)}"
+        name += f" ** {repr(other)}"
+        iscompound = True
+      else:
+        iscompound = False
+      return Unit(dim, base=self.base, scale=scale, name=name, dispname=dispname, iscompound=iscompound)
     else:
       raise TypeError(f"unit cannot perform an exponentiation (unit ** other) with a non-scalar, "
                       f"since one unit cannot contain multiple units. \n"
