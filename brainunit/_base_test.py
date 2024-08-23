@@ -97,7 +97,7 @@ class TestUnit(unittest.TestCase):
         inplace_op(volt)
 
   def test_display(self):
-    assert_equal(str(bu.kmeter / bu.meter), 'Unit(1000.0)')
+    assert_equal(str(bu.kmeter / bu.meter), 'Unit(10.0^3)')
 
 
 class TestQuantity(unittest.TestCase):
@@ -243,9 +243,8 @@ class TestQuantity(unittest.TestCase):
       assert_equal(display_in_unit(10. * mV, ohm * amp), "0.01 * volt")
       with pytest.raises(bu.UnitMismatchError):
         display_in_unit(10 * nS, ohm)
-    assert_equal(display_in_unit(10.0, Unit(scale=1)), "1. * Unit(10.0)")
-
-    assert_equal(display_in_unit(3 * bu.kmeter / bu.meter), '3. * Unit(1000.0)')
+    assert_equal(display_in_unit(10.0, Unit(scale=1)), "1. * Unit(10.0^1)")
+    assert_equal(display_in_unit(3 * bu.kmeter / bu.meter), '3. * Unit(10.0^3)')
 
   def test_display2(self):
 
