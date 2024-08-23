@@ -3500,4 +3500,6 @@ def modf(
   -------
   The fractional and integral parts of the input, both with the same dimension.
   """
-  return _fun_keep_unit_unary(jnp.modf, x)
+  if isinstance(x, Quantity):
+    return jax.tree.map(lambda y: Quantity(y, unit=x.unit), jnp.modf(x.mantissa))
+  return jnp.modf(x)
