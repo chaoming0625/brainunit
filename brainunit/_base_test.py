@@ -242,6 +242,19 @@ class TestQuantity(unittest.TestCase):
         display_in_unit(10 * nS, ohm)
     assert_equal(display_in_unit(10.0, Unit(scale=1)), "1. * Unit(10.0)")
 
+
+  def test_display2(self):
+
+    @jax.jit
+    def f(s):
+      a = bu.ms ** s
+      print(a)
+      return a
+
+    with self.assertRaises(jax.errors.TracerBoolConversionError):
+      f(2)
+
+
   def test_unary_operations(self):
     q = Quantity(5, unit=mV)
     assert_quantity(-q, -5, mV)

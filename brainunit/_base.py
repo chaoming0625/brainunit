@@ -256,6 +256,10 @@ _siprefixes = {
 }
 
 
+def _is_tracer(x):
+  return isinstance(x, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer))
+
+
 class Dimension:
   """
   Stores the indices of the 7 basic SI unit dimension (length, mass, etc.).
@@ -409,7 +413,7 @@ class Dimension:
   def __eq__(self, value: 'Dimension'):
     try:
       return np.allclose(self._dims, value._dims)
-    except AttributeError:
+    except (AttributeError, jax.errors.TracerArrayConversionError):
       # Only compare equal to another Dimensions object
       return False
 
@@ -1144,7 +1148,7 @@ def _create_name(dim: Dimension, base, scale) -> str:
   if dim == DIMENSIONLESS:
     name = f"Unit({base ** scale})"
   else:
-    if scale == 0.:
+    if _is_tracer(scale) or scale == 0.:
       name = f"{dim}"
     else:
       name = f"{base}^{scale} * {dim}"
@@ -1152,16 +1156,34 @@ def _create_name(dim: Dimension, base, scale) -> str:
 
 
 def _find_name(dim: Dimension, base, scale) -> Tuple[str, str]:
-  if isinstance(base, (int, float)) and isinstance(scale, (int, float)):
-    key = (dim, scale, base)
-    if key in _standard_units:
-      name = _standard_units[key].name
-      return name, name
+  if isinstance(base, (int, float)):
+    if isinstance(scale, (int, float)):
+      if dim == DIMENSIONLESS:
+        name = f"Unit({base ** scale})"
+        return name, name
+
+      key = (dim, scale, base)
+      if key in _standard_units:
+        name = _standard_units[key].name
+        return name, name
+    else:
+      key = (dim, 0, base)
+      if key in _standard_units:
+        name = _standard_units[key].name
+        return name, name
   name = _create_name(dim, base, scale)
   return name, name
 
 
 _standard_units: Dict[Tuple, 'Unit'] = {}
+
+
+def add_standard_unit(u: 'Unit'):
+  if isinstance(u.base, (int, float)) and isinstance(u.scale, (int, float)):
+    key = (u.dim, u.scale, u.base)
+    # if key in _standard_units:
+    #   raise ValueError(f"Unit {u} already exists: {_standard_units[key]}")
+    _standard_units[key] = u
 
 
 class Unit:
@@ -1478,7 +1500,7 @@ class Unit:
       name=name,
       dispname=dispname,
     )
-    _standard_units[(dim, scale, base)] = u
+    add_standard_unit(u)
     return u
 
   @staticmethod
@@ -1509,7 +1531,7 @@ class Unit:
       scale=scale,
       base=baseunit.base,
     )
-    _standard_units[(baseunit.dim, scale, baseunit.base)] = u
+    add_standard_unit(u)
     return u
 
   def __repr__(self):
@@ -2102,7 +2124,7 @@ class Quantity:
     '25.123 mV'
     """
     value = jnp.asarray(self._mantissa)
-    if isinstance(value, (jax.ShapeDtypeStruct, jax.core.ShapedArray, DynamicJaxprTracer)):
+    if _is_tracer(value):
       # in the JIT mode
       s = str(value)
     else:
