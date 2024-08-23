@@ -96,6 +96,9 @@ class TestUnit(unittest.TestCase):
       with pytest.raises(NotImplementedError):
         inplace_op(volt)
 
+  def test_display(self):
+    assert_equal(str(bu.kmeter / bu.meter), 'Unit(1000.0)')
+
 
 class TestQuantity(unittest.TestCase):
   def test_dim(self):
@@ -242,6 +245,7 @@ class TestQuantity(unittest.TestCase):
         display_in_unit(10 * nS, ohm)
     assert_equal(display_in_unit(10.0, Unit(scale=1)), "1. * Unit(10.0)")
 
+    assert_equal(display_in_unit(3 * bu.kmeter / bu.meter), '3. * Unit(1000.0)')
 
   def test_display2(self):
 
@@ -253,7 +257,6 @@ class TestQuantity(unittest.TestCase):
 
     with self.assertRaises(jax.errors.TracerBoolConversionError):
       f(2)
-
 
   def test_unary_operations(self):
     q = Quantity(5, unit=mV)
@@ -868,7 +871,7 @@ class TestQuantity(unittest.TestCase):
     nu = np.asarray([0, 0, 0.])
     nu[np.asarray([0, 1, 1])] += np.asarray([1., 1., 1.])
     self.assertTrue(np.allclose(nu, np.asarray([1., 1., 0.])))
-  
+
   def test_at(self):
     x = jnp.arange(5.0) * bu.mV
     with self.assertRaises(bu.UnitMismatchError):
