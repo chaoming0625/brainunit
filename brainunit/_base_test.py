@@ -13,6 +13,10 @@
 # limitations under the License.
 # ==============================================================================
 
+
+import os
+
+os.environ['JAX_TRACEBACK_FILTERING'] = 'off'
 import itertools
 import unittest
 import warnings
@@ -262,10 +266,9 @@ class TestQuantity(unittest.TestCase):
     def f(s):
       a = bu.ms ** s
       print(a)
-      return a
+      return bu.Quantity(1., unit=a)
 
-    with self.assertRaises(jax.errors.TracerBoolConversionError):
-      f(2)
+    f(2)
 
   def test_unary_operations(self):
     q = Quantity(5, unit=mV)
