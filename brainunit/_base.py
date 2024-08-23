@@ -1156,12 +1156,12 @@ def _create_name(dim: Dimension, base, scale) -> str:
 
 
 def _find_name(dim: Dimension, base, scale) -> Tuple[str, str]:
+  if dim == DIMENSIONLESS:
+    name = f"Unit({base ** scale})"
+    return name, name
+
   if isinstance(base, (int, float)):
     if isinstance(scale, (int, float)):
-      if dim == DIMENSIONLESS:
-        name = f"Unit({base ** scale})"
-        return name, name
-
       key = (dim, scale, base)
       if key in _standard_units:
         name = _standard_units[key].name
@@ -1171,6 +1171,7 @@ def _find_name(dim: Dimension, base, scale) -> Tuple[str, str]:
       if key in _standard_units:
         name = _standard_units[key].name
         return name, name
+
   name = _create_name(dim, base, scale)
   return name, name
 
