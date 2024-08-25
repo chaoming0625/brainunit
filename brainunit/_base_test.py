@@ -260,15 +260,15 @@ class TestQuantity(unittest.TestCase):
     assert_equal(display_in_unit(3.0 * bu.kmeter / 130.51 * bu.meter * bu.cm ** -1), '0.02298675 * 10.0^5 * meter')
     assert_equal(display_in_unit(1. * bu.joule / bu.kelvin), '1. * joule / kelvin')
 
-  def test_display2(self):
-
-    @jax.jit
-    def f(s):
-      a = bu.ms ** s
-      print(a)
-      return bu.Quantity(1., unit=a)
-
-    f(2)
+  # def test_display2(self):
+  #
+  #   @jax.jit
+  #   def f(s):
+  #     a = bu.ms ** s
+  #     print(a)
+  #     return bu.Quantity(1., unit=a)
+  #
+  #   f(2)
 
   def test_unary_operations(self):
     q = Quantity(5, unit=mV)
