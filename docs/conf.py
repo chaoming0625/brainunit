@@ -30,6 +30,7 @@ import os
 import sys
 import shutil
 
+sys.path.insert(0, os.path.abspath(os.path.curdir))
 sys.path.insert(0, os.path.abspath('../'))
 
 import brainunit
@@ -124,7 +125,6 @@ html_last_updated_fmt = ""
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-jupyter_execute_notebooks = "off"
 thebe_config = {
     "repository_url": "https://github.com/binder-examples/jupyter-stacks-datascience",
     "repository_branch": "master",
@@ -137,8 +137,6 @@ html_theme_options = {
 
 # -- Options for myst ----------------------------------------------
 # Notebook cell execution timeout; defaults to 30.
-execution_timeout = 200
-
 autodoc_default_options = {
     'exclude-members': '....,default_rng',
 }

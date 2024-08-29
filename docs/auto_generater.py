@@ -310,17 +310,21 @@ def main():
                 header='Other Functions',
                 template=True)
 
-  # module_and_name = [
-  #   ('_einops', 'Einstein Operations'),
-  #   ('_fun_array_creation', 'Array Creation Functions'),
-  #   ('', ''),
-  # ]
-  #
-  # _write_submodules(module_name='brainunit.math',
-  #                   filename='apis/brainunit.math.rst',
-  #                   header='``brainunit.math`` module',
-  #                   submodule_names=[k[0] for k in module_and_name],
-  #                   section_names=[k[1] for k in module_and_name])
+  module_and_name = [
+    ('_einops', 'Einstein Operations'),
+    ('_fun_accept_unitless', 'Functions that Accepting Unitless'),
+    ('_fun_array_creation', 'Array Creation Functions'),
+    ('_fun_change_unit', 'Functions that Changing Unit'),
+    ('_fun_keep_unit', 'Functions that Keeping Unit'),
+    ('_fun_remove_unit', 'Functions that Removing Unit'),
+    ('_misc', 'Other Functions'),
+  ]
+  
+  _write_submodules(module_name='brainunit.math',
+                    filename='apis/brainunit.math.rst',
+                    header='``brainunit.math`` module',
+                    submodule_names=[k[0] for k in module_and_name],
+                    section_names=[k[1] for k in module_and_name])
 
 
 if __name__ == '__main__':

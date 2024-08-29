@@ -51,6 +51,9 @@ __all__ = [
   'fail_for_dimension_mismatch',
   'fail_for_unit_mismatch',
   'assert_quantity',
+
+  # advanced functions
+  'get_or_create_dimension',
 ]
 
 StaticScalar = Union[
@@ -2042,7 +2045,7 @@ class Quantity:
       "Please create a new Quantity object with the unit you want."
     )
 
-  def to_decimal(self, unit: Unit) -> jax.typing.ArrayLike:
+  def to_decimal(self, unit: Unit = UNITLESS) -> jax.typing.ArrayLike:
     """
     Convert the given :py:class:`Quantity` into the decimal number.
 

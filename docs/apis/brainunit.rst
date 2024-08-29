@@ -16,8 +16,8 @@ Base Classes
 
     Quantity
     Unit
+    UnitMismatchError
     Dimension
-    DIMENSIONLESS
     DimensionMismatchError
 
 
@@ -31,13 +31,11 @@ Helper Functions
 
     get_or_create_dimension
     get_unit
-    get_basic_unit
+    get_dim
     is_unitless
-    have_same_unit
-    in_unit
-    in_best_unit
-    register_new_unit
+    is_dimensionless
+    check_dims
     check_units
-    is_scalar_type
     fail_for_dimension_mismatch
+    fail_for_unit_mismatch
 
