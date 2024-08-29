@@ -65,7 +65,7 @@ setup(
   },
   extras_require={
     'cpu': ['jaxlib'],
-    'cuda12': ['jaxlib[cuda12_pip]', ],
+    'cuda12': ['jaxlib[cuda12]', ],
     'tpu': ['jaxlib[tpu]'],
   },
   keywords=('physical unit, '
