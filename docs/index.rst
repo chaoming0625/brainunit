@@ -37,25 +37,14 @@ Installation
 
 Quick Start
 ^^^^^^^^^^^
-Most users of the `brainunit` package will work with `Quantity`: the combination of a value and a unit. The most convenient way to
-create a `Quantity` is to multiply or divide a value by one of the built-in
-units. It works with scalars, sequences, and `numpy` or `jax.numpy` arrays.
+Most users of the ``brainunit`` package will work with ``Quantity``: the combination of
+a value and a unit. The most convenient way to create a ``Quantity`` is to multiply or
+divide a value by one of the built-in units. It works with scalars, sequences,
+and ``numpy`` or ``jax`` arrays.
 
 .. code-block:: python
 
     import brainunit as bu
-    61.8 * bu.second
-
-.. code-block:: text
-
-    61.8 * second
-
-we recommend using 64-bit precision for better numerical stability
-
-.. code-block:: python
-
-    import brainstate as bst
-    bst.environ.set(precision=64)
     61.8 * bu.second
 
 .. code-block:: text
@@ -92,7 +81,7 @@ we recommend using 64-bit precision for better numerical stability
     ArrayImpl([1., 2., 3.]) * second
 
 
-You can get the unit and mantissa from a `Quantity` using the unit and mantissa members:
+You can get the unit and mantissa from a ``Quantity`` using the unit and mantissa members:
 
 .. code-block:: python
 
@@ -109,7 +98,12 @@ You can get the unit and mantissa from a `Quantity` using the unit and mantissa 
     q.unit
 
 
-From this basic building block, it is possible to start combining quantities with different units:
+.. code-block:: text
+
+    second
+
+
+You can also combine quantities or units:
 
 .. code-block:: python
 
@@ -129,12 +123,11 @@ From this basic building block, it is possible to start combining quantities wit
     
     0.022997 * (meter / second)
 
-To create a dimensionless quantity, directly use the `Quantity` constructor:
+To create a dimensionless quantity, directly use the ``Quantity`` constructor:
 
 .. code-block:: python
     
-    from brainunit import Quantity
-    q = Quantity(61.8)
+    q = bu.Quantity(61.8)
     q.dim
 
 .. code-block:: text
@@ -180,6 +173,7 @@ See also the BDP ecosystem
 
    mathematical_functions/array_creation.ipynb
    mathematical_functions/numpy_functions.ipynb
+   mathematical_functions/elinstein_operations.ipynb
    mathematical_functions/customize_functions.ipynb
 
 
