@@ -282,13 +282,14 @@ class Dimension:
   """
 
   __module__ = "brainunit"
-  __slots__ = ["_dims"]
+  __slots__ = ["_dims", "_hash"]
   __array_priority__ = 1000
 
   # ---- INITIALISATION ---- #
 
   def __init__(self, dims):
     self._dims: np.ndarray = np.asarray(dims)
+    self._hash = hash(self._dims.tobytes())
 
   # ---- METHODS ---- #
   def get_dimension(self, d):
@@ -436,7 +437,7 @@ class Dimension:
     return self
 
   def __hash__(self):
-    return hash(self._dims.tobytes())
+    return self._hash
 
 
 @set_module_as('brainunit')
@@ -878,6 +879,8 @@ def display_in_unit(
   precision : `int`, optional
       The number of digits of precision (in the given unit, see Examples).
       If no value is given, numpy's `get_printoptions` value is used.
+  python_code: `bool`, optional
+      
 
   Returns
   -------
@@ -1840,35 +1843,37 @@ class Quantity:
       unit = mantissa
       mantissa = 1.
 
-    if isinstance(mantissa, (list, tuple)):
-      mantissa, new_unit = _process_list_with_units(mantissa)
-      if unit is UNITLESS:
-        unit = new_unit
-      elif new_unit != UNITLESS:
-        if not new_unit.has_same_dim(unit):
-          raise TypeError(f"All elements must have the same unit. But got {unit} != {UNITLESS}")
-        if not new_unit.has_same_scale(unit):
-          mantissa = mantissa * (new_unit.value / unit.value)
-      mantissa = jnp.array(mantissa, dtype=dtype)
+    with jax.ensure_compile_time_eval():  # inside JIT, this can avoid to trace the constant mantissa value
 
-    # array mantissa
-    elif isinstance(mantissa, Quantity):
-      if unit is UNITLESS:
-        unit = mantissa.unit
-      elif not unit.has_same_dim(mantissa.unit):
-        raise ValueError("Cannot create a Quantity object with a different unit.")
-      mantissa = mantissa.in_unit(unit)
-      mantissa = mantissa._mantissa
-
-    elif isinstance(mantissa, (np.ndarray, jax.Array)):
-      if dtype is not None:
+      if isinstance(mantissa, (list, tuple)):
+        mantissa, new_unit = _process_list_with_units(mantissa)
+        if unit is UNITLESS:
+          unit = new_unit
+        elif new_unit != UNITLESS:
+          if not new_unit.has_same_dim(unit):
+            raise TypeError(f"All elements must have the same unit. But got {unit} != {UNITLESS}")
+          if not new_unit.has_same_scale(unit):
+            mantissa = mantissa * (new_unit.value / unit.value)
         mantissa = jnp.array(mantissa, dtype=dtype)
 
-    elif isinstance(mantissa, (jnp.number, numbers.Number)):
-      mantissa = jnp.array(mantissa, dtype=dtype)
+      # array mantissa
+      elif isinstance(mantissa, Quantity):
+        if unit is UNITLESS:
+          unit = mantissa.unit
+        elif not unit.has_same_dim(mantissa.unit):
+          raise ValueError("Cannot create a Quantity object with a different unit.")
+        mantissa = mantissa.in_unit(unit)
+        mantissa = mantissa._mantissa
 
-    else:
-      mantissa = mantissa
+      elif isinstance(mantissa, (np.ndarray, jax.Array)):
+        if dtype is not None:
+          mantissa = jnp.array(mantissa, dtype=dtype)
+
+      elif isinstance(mantissa, (jnp.number, numbers.Number)):
+        mantissa = jnp.array(mantissa, dtype=dtype)
+
+      else:
+        mantissa = mantissa
 
     # mantissa
     self._mantissa = mantissa
