@@ -53,9 +53,9 @@ def _fun_accept_unitless_unary(
 ):
   if isinstance(x, Quantity):
     if unit_to_scale is None:
-      assert x.is_unitless, (f'Input should be unitless for the function "{func}" '
-                             f'when scaling "unit_to_scale" is not provided.')
-      x = x.mantissa
+      assert x.dim.is_dimensionless, (f'Input should be dimensionless for the function "{func}" '
+                                      f'when scaling "unit_to_scale" is not provided.')
+      x = x.to_decimal()
       return func(x, *args, **kwargs)
     else:
       assert isinstance(unit_to_scale, Unit), f'unit_to_scale should be a Unit instance. Got {unit_to_scale}'
@@ -758,17 +758,17 @@ def _fun_accept_unitless_binary(
 ):
   if isinstance(x, Quantity):
     if unit_to_scale is None:
-      assert x.is_unitless, (f'Input should be unitless for the function "{func}" '
-                             f'when scaling "unit_to_scale" is not provided.')
-      x = x.mantissa
+      assert x.dim.is_dimensionless, (f'Input should be dimensionless for the function "{func}" '
+                                      f'when scaling "unit_to_scale" is not provided.')
+      x = x.to_decimal()
     else:
       assert isinstance(unit_to_scale, Unit), f'unit_to_scale should be a Unit instance. Got {unit_to_scale}'
       x = x.to_decimal(unit_to_scale)
   if isinstance(y, Quantity):
     if unit_to_scale is None:
-      assert y.is_unitless, (f'Input should be unitless for the function "{func}" '
-                             f'when scaling "unit_to_scale" is not provided.')
-      y = y.mantissa
+      assert y.dim.is_dimensionless, (f'Input should be dimensionless for the function "{func}" '
+                                      f'when scaling "unit_to_scale" is not provided.')
+      y = y.to_decimal()
     else:
       assert isinstance(unit_to_scale, Unit), f'unit_to_scale should be a Unit instance. Got {unit_to_scale}'
       y = y.to_decimal(unit_to_scale)
@@ -1067,7 +1067,7 @@ def ldexp(
     This is a Quantity if the product of the square of the unit of `x` and the unit of `y` is not dimensionless.
   """
   if isinstance(x, Quantity):
-    assert x.is_unitless, f'Expected unitless array, got {x}'
+    assert x.dim.is_dimensionless, f'Expected dimensionless array, got {x}'
     x = x.value
   return jnp.ldexp(x, y)
 
@@ -1079,7 +1079,6 @@ def ldexp(
 @set_module_as('brainunit.math')
 def bitwise_not(
     x: Union[Quantity, jax.typing.ArrayLike],
-    unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
   Compute the bit-wise NOT of an array, element-wise.
@@ -1100,7 +1099,6 @@ def bitwise_not(
 @set_module_as('brainunit.math')
 def invert(
     x: Union[Quantity, jax.typing.ArrayLike],
-    unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
   Compute bit-wise inversion, or bit-wise NOT, element-wise.
@@ -1124,11 +1122,11 @@ def invert(
 
 def _fun_unitless_binary(func, x, y, *args, **kwargs):
   if isinstance(x, Quantity):
-    assert x.is_unitless, f'Expected unitless array, got {x}'
-    x = x.mantissa
+    assert x.dim.is_dimensionless, f'Expected dimensionless array, got {x}'
+    x = x.to_decimal()
   if isinstance(y, Quantity):
-    assert y.is_unitless, f'Expected unitless array, got {y}'
-    y = y.mantissa
+    assert y.dim.is_dimensionless, f'Expected dimensionless array, got {y}'
+    y = y.to_decimal()
   return func(x, y, *args, **kwargs)
 
 

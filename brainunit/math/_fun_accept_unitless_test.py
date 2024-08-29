@@ -164,3 +164,21 @@ class TestFunAcceptUnitless(parameterized.TestCase):
 
       with pytest.raises(AssertionError):
         result = bm_fun(q1, q2)
+
+  def test_dimensionless(self):
+    a = 1.0 * bu.mvolt / bu.volt
+
+    for fun_name in fun_accept_unitless_unary:
+      r1 = getattr(bu.math, fun_name)(a)
+      r2 = getattr(jnp, fun_name)(a.to_decimal())
+      print(fun_name, r1, r2)
+      self.assertTrue(jnp.allclose(r1, r2, equal_nan=True))
+
+    b = 2.0 * bu.mvolt / bu.volt
+
+    for fun_name in ['hypot', 'arctan2', 'logaddexp', 'logaddexp2',]:
+      r1 = getattr(bu.math, fun_name)(a, b)
+      r2 = getattr(jnp, fun_name)(a.to_decimal(), b.to_decimal())
+      print(fun_name, r1, r2)
+      self.assertTrue(jnp.allclose(r1, r2, equal_nan=True))
+
