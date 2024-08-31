@@ -141,15 +141,8 @@ See also the BDP ecosystem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-- `brainstate <https://github.com/chaoming0625/brainstate>`_: A ``State``-based transformation system for brain dynamics programming.
+We are building the `BDP ecosystem <https://ecosystem-for-brain-dynamics.readthedocs.io/>`_:
 
-- `brainunit <https://github.com/chaoming0625/brainunit>`_: The unit system for brain dynamics programming.
-
-- `braintaichi <https://github.com/chaoming0625/braintaichi>`_: Leveraging Taichi Lang to customize brain dynamics operators.
-
-- `brainscale <https://github.com/chaoming0625/brainscale>`_: The scalable online learning framework for biological neural networks.
-
-- `braintools <https://github.com/chaoming0625/braintools>`_: The toolbox for the brain dynamics simulation, training and analysis.
 
 
 
