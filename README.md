@@ -38,13 +38,4 @@ The official documentation is hosted on Read the Docs: [https://brainunit.readth
 
 ## See also the BDP ecosystem
 
-- [``brainstate``](https://github.com/chaoming0625/brainstate): A ``State``-based transformation system for brain dynamics programming.
-
-- [``brainunit``](https://github.com/chaoming0625/brainunit): Physical units and unit-aware mathematical system in JAX for brain dynamics and AI4Science.
-
-- [``braintaichi``](https://github.com/chaoming0625/braintaichi): Leveraging Taichi Lang to customize brain dynamics operators.
-
-- [``brainscale``](https://github.com/chaoming0625/brainscale): The scalable online learning framework for biological neural networks.
-
-- [``braintools``](https://github.com/chaoming0625/braintools): The toolbox for the brain dynamics simulation, training and analysis.
-
+We are building the BDP ecosystem: https://ecosystem-for-brain-dynamics.readthedocs.io/
