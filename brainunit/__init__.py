@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from __future__ import annotations
 
 __version__ = "0.0.2"
 
@@ -23,6 +22,8 @@ from . import _unit_shortcuts
 from . import math
 from ._base import *
 from ._base import __all__ as _base_all
+from ._celsius import *
+from ._celsius import __all__ as _celsius_all
 from ._unit_common import *
 from ._unit_common import __all__ as _common_all
 from ._unit_constants import *
@@ -30,5 +31,5 @@ from ._unit_constants import __all__ as _constants_all
 from ._unit_shortcuts import *
 from ._unit_shortcuts import __all__ as _std_units_all
 
-__all__ = ['math'] + _common_all + _std_units_all + _constants_all + _base_all
-del _common_all, _std_units_all, _constants_all, _base_all
+__all__ = ['math'] + _common_all + _std_units_all + _constants_all + _base_all + _celsius_all
+del _common_all, _std_units_all, _constants_all, _base_all, _celsius_all
