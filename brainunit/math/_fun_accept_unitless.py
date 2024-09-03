@@ -167,7 +167,7 @@ def exp2(
     unit_to_scale: Optional[Unit] = None,
 ) -> jax.Array:
   """
-  Calculate 2**p for all p in the input quantity or array.
+  Calculate ``2**p`` for all p in the input quantity or array.
 
   Parameters
   ----------
@@ -191,6 +191,8 @@ def expm1(
 ) -> jax.Array:
   """
   Calculate the exponential of the input elements minus 1.
+
+  Calculate ``exp(x) - 1`` for all elements in the array.
 
   Parameters
   ----------
@@ -260,6 +262,8 @@ def log1p(
 ) -> jax.Array:
   """
   Natural logarithm of 1 + the input elements.
+
+  Calculates ``log(1 + x)``.
 
   Parameters
   ----------
