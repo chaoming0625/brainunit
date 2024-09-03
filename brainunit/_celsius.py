@@ -20,7 +20,8 @@ from ._base import Quantity
 from ._unit_common import kelvin
 
 __all__ = [
-  "celsius2kelvin"
+  "celsius2kelvin",
+  "kelvin2celsius",
 ]
 
 
