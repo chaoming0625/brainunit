@@ -670,7 +670,8 @@ def arange(
   stop = stop.in_unit(unit).mantissa if isinstance(stop, Quantity) else stop
   step = step.in_unit(unit).mantissa if isinstance(step, Quantity) else step
   # compute
-  r = jnp.arange(start, stop, step, dtype=dtype)
+  with jax.ensure_compile_time_eval():
+    r = jnp.arange(start, stop, step, dtype=dtype)
   return r if unit.is_unitless else Quantity(r, unit=unit)
 
 
@@ -719,7 +720,8 @@ def linspace(
   unit = get_unit(start)
   start = start.in_unit(unit).mantissa if isinstance(start, Quantity) else start
   stop = stop.in_unit(unit).mantissa if isinstance(stop, Quantity) else stop
-  result = jnp.linspace(start, stop, num=num, endpoint=endpoint, retstep=retstep, dtype=dtype)
+  with jax.ensure_compile_time_eval():
+    result = jnp.linspace(start, stop, num=num, endpoint=endpoint, retstep=retstep, dtype=dtype)
   return result if unit.is_unitless else Quantity(result, unit=unit)
 
 
@@ -767,8 +769,8 @@ def logspace(
   unit = get_unit(start)
   start = start.in_unit(unit).mantissa if isinstance(start, Quantity) else start
   stop = stop.in_unit(unit).mantissa if isinstance(stop, Quantity) else stop
-
-  result = jnp.logspace(start, stop, num=num, endpoint=endpoint, base=base, dtype=dtype)
+  with jax.ensure_compile_time_eval():
+    result = jnp.logspace(start, stop, num=num, endpoint=endpoint, base=base, dtype=dtype)
   return result if unit.is_unitless else Quantity(result, unit=unit)
 
 

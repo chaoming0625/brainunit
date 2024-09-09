@@ -28,7 +28,7 @@ from .._base import (Quantity,
                      get_unit,
                      UNITLESS,
                      unit_scale_align_to_first,
-                     remove_unitless)
+                     maybe_decimal)
 from .._misc import set_module_as
 
 __all__ = [
@@ -301,7 +301,7 @@ def _fun_keep_unit_return_sequence(
 ):
   if isinstance(x, Quantity):
     r = func(x.mantissa, *args, **kwargs)
-    return [remove_unitless(Quantity(rr, unit=x.unit)) for rr in r]
+    return [maybe_decimal(Quantity(rr, unit=x.unit)) for rr in r]
   return func(x, *args, **kwargs)
 
 

@@ -166,7 +166,7 @@ class TestFunAcceptUnitless(parameterized.TestCase):
         result = bm_fun(q1, q2)
 
   def test_dimensionless(self):
-    a = 1.0 * bu.mvolt / bu.volt
+    a = bu.Quantity(1.0)
 
     for fun_name in fun_accept_unitless_unary:
       r1 = getattr(bu.math, fun_name)(a)
@@ -174,7 +174,7 @@ class TestFunAcceptUnitless(parameterized.TestCase):
       print(fun_name, r1, r2)
       self.assertTrue(jnp.allclose(r1, r2, equal_nan=True))
 
-    b = 2.0 * bu.mvolt / bu.volt
+    b = bu.Quantity(2.0)
 
     for fun_name in ['hypot', 'arctan2', 'logaddexp', 'logaddexp2',]:
       r1 = getattr(bu.math, fun_name)(a, b)
