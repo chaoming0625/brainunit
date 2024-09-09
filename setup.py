@@ -41,7 +41,7 @@ with io.open(os.path.join(here, 'README.md'), 'r', encoding='utf-8') as f:
 
 # installation packages
 packages = find_packages(
-  exclude=["docs*", "build*",
+  exclude=["docs*", "build*", "dev*",
            "dist*", "brainunit.egg-info*", "brainunit/__pycache__*"]
 )
 

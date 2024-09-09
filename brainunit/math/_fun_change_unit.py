@@ -21,7 +21,7 @@ import jax
 import jax.numpy as jnp
 
 from ._fun_array_creation import asarray
-from .._base import UNITLESS, Quantity, remove_unitless
+from .._base import UNITLESS, Quantity, maybe_decimal
 from .._misc import set_module_as
 
 __all__ = [
@@ -47,7 +47,7 @@ __all__ = [
 def _fun_change_unit_unary(val_fun, unit_fun, x, *args, **kwargs):
   if isinstance(x, Quantity):
     r = Quantity(val_fun(x.mantissa, *args, **kwargs), unit=unit_fun(x.unit))
-    return remove_unitless(r)
+    return maybe_decimal(r)
   return val_fun(x, *args, **kwargs)
 
 
@@ -516,15 +516,15 @@ cumproduct = cumprod
 
 def _fun_change_unit_binary(val_fun, unit_fun, x, y, *args, **kwargs):
   if isinstance(x, Quantity) and isinstance(y, Quantity):
-    return remove_unitless(
+    return maybe_decimal(
       Quantity(val_fun(x.mantissa, y.mantissa, *args, **kwargs), unit=unit_fun(x.unit, y.unit))
     )
   elif isinstance(x, Quantity):
-    return remove_unitless(
+    return maybe_decimal(
       Quantity(val_fun(x.mantissa, y, *args, **kwargs), unit=unit_fun(x.unit, UNITLESS))
     )
   elif isinstance(y, Quantity):
-    return remove_unitless(
+    return maybe_decimal(
       Quantity(val_fun(x, y.mantissa, *args, **kwargs), unit=unit_fun(UNITLESS, y.unit))
     )
   else:
@@ -806,11 +806,11 @@ def power(
     if isinstance(y, Quantity):
       assert y.is_unitless, f'{jnp.power.__name__} only supports scalar exponent'
       y = y.mantissa
-    return remove_unitless(Quantity(jnp.power(x.mantissa, y), unit=x.unit ** y))
+    return maybe_decimal(Quantity(jnp.power(x.mantissa, y), unit=x.unit ** y))
   elif isinstance(y, Quantity):
     assert y.is_unitless, f'{jnp.power.__name__} only supports scalar exponent'
     y = y.mantissa
-    return remove_unitless(Quantity(jnp.power(x, y), unit=x ** y))
+    return maybe_decimal(Quantity(jnp.power(x, y), unit=x ** y))
   else:
     return jnp.power(x, y)
 
@@ -884,11 +884,11 @@ def float_power(
     if isinstance(y, Quantity):
       assert y.is_unitless, f'{jnp.float_power.__name__} only supports scalar exponent'
       y = y.mantissa
-    return remove_unitless(Quantity(jnp.float_power(x.mantissa, y), unit=x.unit ** y))
+    return maybe_decimal(Quantity(jnp.float_power(x.mantissa, y), unit=x.unit ** y))
   elif isinstance(y, Quantity):
     assert y.is_unitless, f'{jnp.float_power.__name__} only supports scalar exponent'
     y = y.mantissa
-    return remove_unitless(Quantity(jnp.float_power(x, y), unit=x ** y))
+    return maybe_decimal(Quantity(jnp.float_power(x, y), unit=x ** y))
   else:
     return jnp.float_power(x, y)
 
@@ -1338,6 +1338,6 @@ def matrix_power(
     This is a Quantity if the final unit is the product of the unit of `a` and itself, else an array.
   """
   if isinstance(a, Quantity):
-    return remove_unitless(Quantity(jnp.linalg.matrix_power(a.mantissa, n), unit=a.unit ** n))
+    return maybe_decimal(Quantity(jnp.linalg.matrix_power(a.mantissa, n), unit=a.unit ** n))
   else:
     return jnp.linalg.matrix_power(a, n)
