@@ -2267,7 +2267,7 @@ class Quantity:
     >>> x.repr_in_unit(mV, 3)
     '25.123 mV'
     """
-    value = self.mantissa
+    value = jnp.asarray(self.mantissa)
     if _is_tracer(value):
       # in the JIT mode
       s = str(value)
