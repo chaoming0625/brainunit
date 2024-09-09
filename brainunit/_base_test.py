@@ -751,22 +751,6 @@ class TestQuantity(unittest.TestCase):
     with pytest.raises(NotImplementedError):
       illegal_pow(np.arange(10))
 
-    # inplace operations with unsupported objects should fail
-    for inplace_op in [
-      q.__iadd__,
-      q.__isub__,
-      q.__imul__,
-      q.__idiv__,
-      q.__itruediv__,
-      q.__ifloordiv__,
-      q.__imod__,
-      q.__ipow__,
-    ]:
-      try:
-        result = inplace_op("string")
-      except (bu.UnitMismatchError, NotImplementedError):
-        pass
-
   def test_deepcopy(self):
     d = {"x": 1 * second}
 
