@@ -1201,7 +1201,7 @@ class TestHelperFunctions(unittest.TestCase):
       a_function(5 * second, None)
     with pytest.raises(DimensionMismatchError):
       a_function(5, None)
-    with pytest.raises(TypeError):
+    with pytest.raises(AttributeError):
       a_function(object(), None)
     with pytest.raises(TypeError):
       a_function([1, 2 * volt, 3], None)
@@ -1269,7 +1269,7 @@ class TestHelperFunctions(unittest.TestCase):
       a_function(5 * second, None)
     with pytest.raises(bu.UnitMismatchError):
       a_function(5, None)
-    with pytest.raises(TypeError):
+    with pytest.raises(AttributeError):
       a_function(object(), None)
     with pytest.raises(TypeError):
       a_function([1, 2 * volt, 3], None)
