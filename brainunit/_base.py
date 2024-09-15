@@ -43,8 +43,13 @@ __all__ = [
   'is_unitless',
   'get_dim',
   'get_unit',
+  'get_mantissa',
   'display_in_unit',
   'maybe_decimal',
+
+  # helper classes
+  'DIMENSIONLESS',
+  'UNITLESS',
 
   # functions for checking
   'check_dims',
@@ -669,6 +674,33 @@ def get_unit(obj) -> Unit:
       return Quantity(obj).unit
     except TypeError:
       raise TypeError(f"Object of type {type(obj)} does not have a unit")
+
+
+@set_module_as('brainunit')
+def get_mantissa(obj):
+  """
+  Return the mantissa of a Quantity or a number.
+
+  Parameters
+  ----------
+  obj : `object`
+      The object to check.
+
+  Returns
+  -------
+  mantissa : `float` or `array_like`
+      The mantissa of the `obj`.
+
+
+  See Also
+  --------
+  get_dim
+  get_unit
+  """
+  try:
+    return obj.mantissa
+  except AttributeError:
+    return obj
 
 
 @set_module_as('brainunit')
