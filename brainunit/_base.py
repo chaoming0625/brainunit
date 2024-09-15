@@ -44,6 +44,7 @@ __all__ = [
   'get_dim',
   'get_unit',
   'get_mantissa',
+  'get_magnitude',
   'display_in_unit',
   'maybe_decimal',
 
@@ -339,10 +340,6 @@ class Dimension:
     attribute -- this will return a `Dimension` object for `Array`,
     `Unit` and `Dimension`.
     """
-    return self
-
-  @property
-  def unit(self):
     return self
 
   # ---- REPRESENTATION ---- #
@@ -701,6 +698,10 @@ def get_mantissa(obj):
     return obj.mantissa
   except AttributeError:
     return obj
+
+
+get_magnitude = get_mantissa
+
 
 
 @set_module_as('brainunit')
@@ -2110,7 +2111,22 @@ class Quantity:
     """
     return self._mantissa
 
-  def update_value(self, mantissa: PyTree):
+  @property
+  def magnitude(self) -> jax.typing.ArrayLike:
+    """
+    The magnitude of the array.
+
+    Same as :py:meth:`mantissa`.
+
+    In the scientific notation, :math:`x = a * 10^b`, the magnitude :math:`b` is the exponent
+    of the power of ten. For example, in the number :math:`3.14 * 10^5`, the magnitude is :math:`5`.
+
+    Returns:
+      The magnitude of the array.
+    """
+    return self.mantissa
+
+  def update_mantissa(self, mantissa: PyTree):
     """
     Set the mantissa of the array.
 
@@ -2465,7 +2481,7 @@ class Quantity:
     # update
     self_value = jnp.asarray(self._check_tracer())
     self_value = self_value.at[index].set(value.mantissa)
-    self.update_value(self_value)
+    self.update_mantissa(self_value)
 
   def scatter_add(
       self,
@@ -2768,7 +2784,7 @@ class Quantity:
 
     # update the mantissa in-place or not
     if inplace:
-      self.update_value(r.mantissa)
+      self.update_mantissa(r.mantissa)
       return self
     else:
       return r
@@ -2952,7 +2968,7 @@ class Quantity:
   def __ilshift__(self, oc) -> 'Quantity':
     # self <<= oc
     r = self.__lshift__(oc)
-    self.update_value(r.mantissa)
+    self.update_mantissa(r.mantissa)
     return self
 
   def __rshift__(self, oc) -> 'Quantity':
@@ -2971,7 +2987,7 @@ class Quantity:
   def __irshift__(self, oc) -> 'Quantity':
     # self >>= oc
     r = self.__rshift__(oc)
-    self.update_value(r.mantissa)
+    self.update_mantissa(r.mantissa)
     return self
 
   def __round__(self, ndigits: int = None) -> 'Quantity':
@@ -3176,7 +3192,7 @@ class Quantity:
 
   def resize(self, new_shape) -> 'Quantity':
     """Change shape and size of array in-place."""
-    self.update_value(jnp.resize(self.mantissa, new_shape))
+    self.update_mantissa(jnp.resize(self.mantissa, new_shape))
     return self
 
   def sort(self, axis=-1, stable=True, order=None) -> 'Quantity':
@@ -3196,7 +3212,7 @@ class Quantity:
         but unspecified fields will still be used, in the order in which
         they come up in the dtype, to break ties.
     """
-    self.update_value(jnp.sort(self.mantissa, axis=axis, stable=stable, order=order))
+    self.update_mantissa(jnp.sort(self.mantissa, axis=axis, stable=stable, order=order))
     return self
 
   def squeeze(self, axis=None) -> 'Quantity':
@@ -3614,12 +3630,12 @@ class Quantity:
 
   def cuda(self, deice=None) -> 'Quantity':
     deice = jax.devices('cuda')[0] if deice is None else deice
-    self.update_value(jax.device_put(self.mantissa, deice))
+    self.update_mantissa(jax.device_put(self.mantissa, deice))
     return self
 
   def cpu(self, device=None) -> 'Quantity':
     device = jax.devices('cpu')[0] if device is None else device
-    self.update_value(jax.device_put(self.mantissa, device))
+    self.update_mantissa(jax.device_put(self.mantissa, device))
     return self
 
   # dtype exchanging #
