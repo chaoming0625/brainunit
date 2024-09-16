@@ -29,6 +29,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_equal
 
+import brainunit as u
 import brainunit as bu
 from brainunit._base import (
   DIMENSIONLESS,
@@ -1439,3 +1440,88 @@ def test_str_repr():
   ]:
     assert len(str(error))
     assert len(repr(error))
+
+
+class TestGetMethod(unittest.TestCase):
+  def test_get_dim(self):
+    assert u.get_dim(1) == u.DIMENSIONLESS
+    assert u.get_dim(1.0) == u.DIMENSIONLESS
+    assert u.get_dim(1 * u.mV) == u.volt.dim
+    assert u.get_dim(1 * u.mV / u.mV) == u.DIMENSIONLESS
+    assert u.get_dim(1 * u.mV / u.second) == u.volt.dim / u.second.dim
+    assert u.get_dim(1 * u.mV / u.second ** 2) == u.volt.dim / u.second.dim ** 2
+    assert u.get_dim(1 * u.mV ** 2 / u.second ** 2) == u.volt.dim ** 2 / u.second.dim ** 2
+
+    assert u.get_dim(object()) == u.DIMENSIONLESS
+    assert u.get_dim("string") == u.DIMENSIONLESS
+    assert u.get_dim([1, 2, 3]) == u.DIMENSIONLESS
+    assert u.get_dim(np.array([1, 2, 3])) == u.DIMENSIONLESS
+    assert u.get_dim(np.array([1, 2, 3]) * u.mV) == u.volt.dim
+
+    assert u.get_dim(u.mV) == u.volt.dim
+    assert u.get_dim(u.mV / u.mV) == u.DIMENSIONLESS
+    assert u.get_dim(u.mV / u.second) == u.volt.dim / u.second.dim
+    assert u.get_dim(u.mV / u.second ** 2) == u.volt.dim / u.second.dim ** 2
+    assert u.get_dim(u.mV ** 2 / u.second ** 2) == u.volt.dim ** 2 / u.second.dim ** 2
+
+    assert u.get_dim(u.mV.dim) == u.volt.dim
+    assert u.get_dim(u.mV.dim / u.mV.dim) == u.DIMENSIONLESS
+    assert u.get_dim(u.mV.dim / u.second.dim) == u.volt.dim / u.second.dim
+    assert u.get_dim(u.mV.dim / u.second.dim ** 2) == u.volt.dim / u.second.dim ** 2
+    assert u.get_dim(u.mV.dim ** 2 / u.second.dim ** 2) == u.volt.dim ** 2 / u.second.dim ** 2
+
+  def test_unit(self):
+    assert u.get_unit(1) == u.UNITLESS
+    assert u.get_unit(1.0) == u.UNITLESS
+    assert u.get_unit(1 * u.mV) == u.mV
+    assert u.get_unit(1 * u.mV / u.mV) == u.UNITLESS
+    assert u.get_unit(1 * u.mV / u.second) == u.mV / u.second
+    assert u.get_unit(1 * u.mV / u.second ** 2) == u.mV / u.second ** 2
+    assert u.get_unit(1 * u.mV ** 2 / u.second ** 2) == u.mV ** 2 / u.second ** 2
+
+    assert u.get_unit(object()) == u.UNITLESS
+    assert u.get_unit("string") == u.UNITLESS
+    assert u.get_unit([1, 2, 3]) == u.UNITLESS
+    assert u.get_unit(np.array([1, 2, 3])) == u.UNITLESS
+    assert u.get_unit(np.array([1, 2, 3]) * u.mV) == u.mV
+
+    assert u.get_unit(u.mV) == u.mV
+    assert u.get_unit(u.mV / u.mV) == u.UNITLESS
+    assert u.get_unit(u.mV / u.second) == u.mV / u.second
+    assert u.get_unit(u.mV / u.second ** 2) == u.mV / u.second ** 2
+    assert u.get_unit(u.mV ** 2 / u.second ** 2) == u.mV ** 2 / u.second ** 2
+
+    assert u.get_unit(u.mV.dim) == u.UNITLESS
+    assert u.get_unit(u.mV.dim / u.mV.dim) == u.UNITLESS
+    assert u.get_unit(u.mV.dim / u.second.dim) == u.UNITLESS
+    assert u.get_unit(u.mV.dim / u.second.dim ** 2) == u.UNITLESS
+    assert u.get_unit(u.mV.dim ** 2 / u.second.dim ** 2) == u.UNITLESS
+
+  def test_get_mantissa(self):
+    assert u.get_mantissa(1) == 1
+    assert u.get_mantissa(1.0) == 1.0
+    assert u.get_mantissa(1 * u.mV) == 1
+    assert u.get_mantissa(1 * u.mV / u.mV) == 1
+    assert u.get_mantissa(1 * u.mV / u.second) == 1
+    assert u.get_mantissa(1 * u.mV / u.second ** 2) == 1
+    assert u.get_mantissa(1 * u.mV ** 2 / u.second ** 2) == 1
+
+    obj = object()
+    assert u.get_mantissa(obj) == obj
+    assert u.get_mantissa("string") == "string"
+    assert u.get_mantissa([1, 2, 3]) == [1, 2, 3]
+    assert np.allclose(u.get_mantissa(np.array([1, 2, 3])), np.array([1, 2, 3]))
+    assert np.allclose(u.get_mantissa(np.array([1, 2, 3]) * u.mV), np.array([1, 2, 3]))
+
+    assert u.get_mantissa(u.mV) == u.mV
+    assert u.get_mantissa(u.mV / u.mV) == u.mV / u.mV
+    assert u.get_mantissa(u.mV / u.second) == u.mV / u.second
+    assert u.get_mantissa(u.mV / u.second ** 2) == u.mV / u.second ** 2
+    assert u.get_mantissa(u.mV ** 2 / u.second ** 2) == u.mV ** 2 / u.second ** 2
+
+    assert u.get_mantissa(u.mV.dim) == u.mV.dim
+    assert u.get_mantissa(u.mV.dim / u.mV.dim) == u.mV.dim / u.mV.dim
+    assert u.get_mantissa(u.mV.dim / u.second.dim) == u.mV.dim / u.second.dim
+    assert u.get_mantissa(u.mV.dim / u.second.dim ** 2) == u.mV.dim / u.second.dim ** 2
+    assert u.get_mantissa(u.mV.dim ** 2 / u.second.dim ** 2) == u.mV.dim ** 2 / u.second.dim ** 2
+
