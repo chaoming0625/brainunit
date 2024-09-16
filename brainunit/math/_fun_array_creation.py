@@ -610,14 +610,14 @@ def asarray(
   else:
     unit = leaf_unit
 
-  # 
-  a_mantissa = treedef.unflatten([leaf.mantissa for leaf in leaves])
-  a_mantissa = jnp.asarray(a_mantissa, dtype=dtype, order=order)
+  # reconstruct mantissa
+  a = treedef.unflatten([leaf.mantissa for leaf in leaves])
+  a = jnp.asarray(a, dtype=dtype, order=order)
 
   # returns
   if unit.is_unitless:
-    return a_mantissa
-  return Quantity(a_mantissa, unit=unit)
+    return a
+  return Quantity(a, unit=unit)
 
 
 array = asarray
