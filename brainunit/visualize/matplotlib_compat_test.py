@@ -1,8 +1,11 @@
-import matplotlib.pyplot as plt
 import brainunit as u
 from brainunit import visualize
 import pytest
 
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    pytest.skip("matplotlib is not installed", allow_module_level=True)
 
 def test_quantity_support():
     with visualize.quantity_support():
